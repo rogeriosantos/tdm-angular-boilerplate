@@ -56,6 +56,10 @@ export class AuthService {
     const body = this.mapToAuthPayload(payload);
     const headers = this.createAuthRequestHeader();
 
+    // console.log('Request payload:', payload);
+    // console.log('Request body:', body);
+    // console.log('Request headers:', headers);
+
     return this.http.post<BearerTokenResponse>(this.tokenUrl, body, { headers }).pipe(
       map(
         (response) =>
@@ -126,7 +130,7 @@ export class AuthService {
     const { scope, clientId, clientSecret } = this.oauthConfig;
 
     return {
-      username: userName,
+      username: userName.toUpperCase(), // Convert username to uppercase
       password,
       grant_type: 'password',
       scope,

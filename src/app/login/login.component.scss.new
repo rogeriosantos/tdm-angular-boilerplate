@@ -5,13 +5,3 @@
 input::-ms-reveal {
   display: none;
 }
-
-// Ensure proper background and layout
-:host {
-  background-color: #f5f5f5;
-  min-height: 100vh;
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}

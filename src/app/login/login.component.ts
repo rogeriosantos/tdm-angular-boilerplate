@@ -24,6 +24,8 @@ import { environment } from '../config/environment';
   styleUrls: ['./login.component.scss'],
 })
 export class LoginComponent {
+  @HostBinding('class') hostClass = 'flex h-screen w-screen justify-center items-center';
+
   protected form;
 
   protected passwordFieldType: 'password' | 'text' = 'password';

@@ -7,5 +7,7 @@
       "path": "../../../../../TDM/DEV/tdm-gl/WebClients"
     }
   ],
-  "settings": {}
+  "settings": {
+    "nxConsole.generateAiAgentRules": true
+  }
 }
