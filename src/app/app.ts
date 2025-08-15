@@ -9,5 +9,5 @@ import { RouterOutlet } from '@angular/router';
   styleUrl: './app.css',
 })
 export class App {
-  protected readonly title = signal('angular-project');
+  protected readonly title = signal('CRIB Management System');
 }
