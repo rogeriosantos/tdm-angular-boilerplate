@@ -49,78 +49,55 @@
         </mat-icon>
       </button>
 
-      <mat-menu #menu="matMenu" class="min-w-[200px]">
-        <div class="flex items-center px-4 py-2 w-full group">
-          <mat-icon class="ml-auto mr-4 text-gray-500">person</mat-icon>
-          <span class="text-gray-600">{{ currentUser.username }}</span>
+      <mat-menu #menu="matMenu" class="user-menu">
+        <!-- User info header -->
+        <div class="user-info-header">
+          <mat-icon>person</mat-icon>
+          <span class="username">{{ currentUser.username }}</span>
         </div>
-        <div class="py-2">
-          <mat-divider></mat-divider>
 
-          <button
-            mat-menu-item
-            (click)="navigateToHome()"
-            class="flex items-center px-4 py-2 w-full hover:bg-gray-50 group"
-          >
-            <span class="text-blue-500 group-hover:text-blue-600">{{ t('home') }}</span>
-            <mat-icon class="ml-auto text-blue-500 group-hover:text-blue-600">home</mat-icon>
-          </button>
+        <mat-divider></mat-divider>
 
-          <mat-divider class="my-2"></mat-divider>
+        <!-- Home button -->
+        <button mat-menu-item (click)="navigateToHome()" class="menu-item">
+          <mat-icon>home</mat-icon>
+          <span>{{ t('home') }}</span>
+        </button>
 
-          <!-- Language Selection -->
-          <button
-            mat-menu-item
-            [matMenuTriggerFor]="languageMenu"
-            class="flex items-center px-4 py-2 w-full hover:bg-gray-50 group"
-          >
-            <span class="text-blue-500 group-hover:text-blue-600">{{ t('language') }}</span>
-            <span class="ml-auto text-gray-500">({{ currentLanguage$ | async }})</span>
-            <mat-icon class="ml-2 text-blue-500 group-hover:text-blue-600">language</mat-icon>
-          </button>
+        <mat-divider></mat-divider>
 
-          <mat-divider class="my-2"></mat-divider>
+        <!-- Language Selection -->
+        <button mat-menu-item [matMenuTriggerFor]="languageMenu" class="menu-item">
+          <mat-icon>language</mat-icon>
+          <span>{{ t('language') }}</span>
+          <span class="language-indicator">({{ currentLanguage$ | async }})</span>
+        </button>
 
-          <button
-            mat-menu-item
-            (click)="logout(); cleanupCookies()"
-            class="flex items-center px-4 py-2 w-full hover:bg-gray-50 group"
-          >
-            <span class="text-blue-500 group-hover:text-blue-600">{{ t('logout') }}</span>
-            <mat-icon class="ml-auto text-blue-500 group-hover:text-blue-600">logout</mat-icon>
-          </button>
-        </div>
+        <mat-divider></mat-divider>
+
+        <!-- Logout button -->
+        <button mat-menu-item (click)="logout(); cleanupCookies()" class="menu-item">
+          <mat-icon>logout</mat-icon>
+          <span>{{ t('logout') }}</span>
+        </button>
       </mat-menu>
 
       <!-- Language Submenu -->
-      <mat-menu #languageMenu="matMenu">
-        <button
-          mat-menu-item
-          (click)="changeLanguage('en')"
-          class="flex items-center px-4 py-2 w-full hover:bg-gray-50"
-        >
+      <mat-menu #languageMenu="matMenu" class="language-menu">
+        <button mat-menu-item (click)="changeLanguage('en')" class="language-item">
           <span>English</span>
-          <span class="ml-auto text-xs text-gray-500" *ngIf="(currentLanguage$ | async) === 'en'"
-            >✓</span
-          >
+          <mat-icon class="check-icon" *ngIf="(currentLanguage$ | async) === 'en'">check</mat-icon>
         </button>
-        <button
-          mat-menu-item
-          (click)="changeLanguage('de')"
-          class="flex items-center px-4 py-2 w-full hover:bg-gray-50"
-        >
+
+        <button mat-menu-item (click)="changeLanguage('de')" class="language-item">
           <span>Deutsch</span>
-          <span class="ml-auto text-xs text-gray-500" *ngIf="(currentLanguage$ | async) === 'de'"
-            >✓</span
-          >
+          <mat-icon class="check-icon" *ngIf="(currentLanguage$ | async) === 'de'">check</mat-icon>
         </button>
-        <mat-divider class="my-2"></mat-divider>
-        <button
-          mat-menu-item
-          (click)="refreshServerLanguageSettings()"
-          class="flex items-center px-4 py-2 w-full hover:bg-gray-50"
-        >
-          <mat-icon class="mr-2 text-blue-500">sync</mat-icon>
+
+        <mat-divider></mat-divider>
+
+        <button mat-menu-item (click)="refreshServerLanguageSettings()" class="menu-item">
+          <mat-icon>sync</mat-icon>
           <span>Sync from Server</span>
         </button>
       </mat-menu>

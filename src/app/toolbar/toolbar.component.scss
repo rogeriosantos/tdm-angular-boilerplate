@@ -187,9 +187,128 @@ mat-toolbar {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 0.5rem !important;
   overflow: hidden;
+  min-width: 200px;
+}
+
+/* User menu specific styling */
+.user-menu {
+  .user-info-header {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    padding: 12px 16px !important;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    gap: 12px !important;
+    min-height: 48px !important;
+
+    mat-icon {
+      color: #6c757d !important;
+      font-size: 20px !important;
+      width: 20px !important;
+      height: 20px !important;
+      line-height: 20px !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      margin: 0 !important;
+      flex-shrink: 0 !important;
+    }
+
+    .username {
+      color: #495057 !important;
+      font-weight: 500 !important;
+      font-size: 14px !important;
+      line-height: 20px !important;
+      margin: 0 !important;
+      display: flex !important;
+      align-items: center !important;
+    }
+  }
+}
+
+/* Menu item styling */
+.menu-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 12px 16px !important;
+  min-height: 48px !important;
+
+  mat-icon {
+    color: #007bff !important;
+    font-size: 20px !important;
+    width: 20px !important;
+    height: 20px !important;
+    margin: 0 !important;
+  }
+
+  span {
+    color: #007bff !important;
+    font-size: 14px !important;
+    font-weight: 400 !important;
+  }
+
+  .language-indicator {
+    margin-left: auto !important;
+    color: #6c757d !important;
+    font-size: 12px !important;
+  }
+
+  &:hover {
+    background-color: #f8f9fa !important;
+
+    mat-icon {
+      color: #0056b3 !important;
+    }
+
+    span {
+      color: #0056b3 !important;
+    }
+  }
+}
+
+/* Language menu styling */
+.language-menu {
+  .language-item {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 12px 16px !important;
+    min-height: 48px !important;
+
+    span {
+      color: #495057 !important;
+      font-size: 14px !important;
+    }
+
+    .check-icon {
+      color: #28a745 !important;
+      font-size: 16px !important;
+      width: 16px !important;
+      height: 16px !important;
+    }
+
+    &:hover {
+      background-color: #f8f9fa !important;
+    }
+  }
 }
 
 /* Menu item hover effects */
 ::ng-deep .mat-mdc-menu-item:hover {
-  background: linear-gradient(135deg, #f8f9fa 0%, #f0f0f0 100%) !important;
+  background: #f8f9fa !important;
+}
+
+/* Override Material Design default styles for user info */
+::ng-deep .user-menu .user-info-header {
+  display: flex !important;
+  align-items: center !important;
+
+  .mat-icon {
+    vertical-align: middle !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
 }
