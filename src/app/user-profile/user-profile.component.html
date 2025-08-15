@@ -1,0 +1,74 @@
+<ng-container *ngIf="vm$ | async as vm">
+  <button
+    mat-icon-button
+    [matMenuTriggerFor]="profileMenu"
+    class="flex items-center justify-center w-10 h-10 border border-gray-300 rounded"
+  >
+    <mat-icon class="w-[22px] h-[22px] flex -mt-1 -ml-[0.22rem]">person</mat-icon>
+  </button>
+
+  <mat-menu #profileMenu="matMenu" class="min-w-[300px]">
+    <div class="mx-auto min-w-[256px] max-w-sm overflow-hidden rounded-lg bg-white">
+      <!-- User Info Header -->
+      <div class="border-b px-4">
+        <div class="my-4 text-center">
+          <mat-icon class="!h-12 !w-12 !text-5xl text-gray-600">person</mat-icon>
+          <div class="py-2">
+            <h3 class="mb-1 text-2xl font-bold text-gray-800">
+              {{ vm.username }}
+            </h3>
+            <div class="inline-flex items-center text-gray-700">
+              {{ vm.department }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Language Selection -->
+      <div class="px-4 py-4">
+        <p class="mb-2 flex items-center gap-2 text-gray-800 font-medium">Language Settings:</p>
+        <div class="text-xs text-gray-600 mb-3">
+          <div>UI: {{ vm.uiLanguage }}</div>
+          <div>Data: {{ vm.dataLanguage }}</div>
+        </div>
+
+        <div class="space-y-2">
+          <button
+            mat-menu-item
+            *ngFor="let lang of supportedLanguages"
+            (click)="onLanguageChange(lang)"
+            class="flex items-center justify-between w-full"
+          >
+            <span>{{ lang === 'en' ? 'English' : 'Deutsch' }}</span>
+            <span *ngIf="vm.uiLanguage === lang" class="text-blue-500">✓</span>
+          </button>
+        </div>
+      </div>
+
+      <mat-divider class="my-2"></mat-divider>
+
+      <!-- Actions -->
+      <div class="px-4 py-2">
+        <button
+          mat-menu-item
+          (click)="refreshUserProfile()"
+          class="flex items-center w-full text-blue-500"
+        >
+          <mat-icon class="mr-2">refresh</mat-icon>
+          <span>Refresh Profile</span>
+        </button>
+      </div>
+    </div>
+  </mat-menu>
+</ng-container>
+
+<!-- Fallback when no user profile -->
+<ng-container *ngIf="!(vm$ | async)">
+  <button
+    mat-icon-button
+    class="flex items-center justify-center w-10 h-10 border border-gray-300 rounded"
+    (click)="refreshUserProfile()"
+  >
+    <mat-icon class="w-[22px] h-[22px] flex -mt-1 -ml-[0.22rem] text-gray-400">person</mat-icon>
+  </button>
+</ng-container>
