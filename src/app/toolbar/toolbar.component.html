@@ -1,0 +1,129 @@
+<ng-container *transloco="let t; read: 'main'">
+  <mat-toolbar>
+    <button
+      (click)="navigateToHome()"
+      mat-icon-button
+      class="icon"
+      [attr.aria-label]="t('home-button-aria')"
+    >
+      <mat-icon class="left_icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          height="24px"
+          viewBox="0 -960 960 960"
+          width="24px"
+          fill="#5f6368"
+        >
+          <path
+            d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"
+          />
+        </svg>
+      </mat-icon>
+    </button>
+    <div class="title">
+      <img src="assets/tdm-logo.svg" [alt]="t('tdm-logo-alt')" class="logo" />
+      <span class="pipe"> |</span>
+      <span class="moduleName">{{ moduleName }}</span>
+    </div>
+
+    <span class="flex-grow flex-shrink"></span>
+
+    <div class="buttons_right">
+      <button
+        class="flex items-center justify-center w-10 h-10 border border-gray-300 rounded"
+        [matMenuTriggerFor]="menu"
+        [attr.aria-label]="t('user-menu-aria')"
+      >
+        <mat-icon class="w-[22px] h-[22px] flex -mt-1 -ml-[0.22rem]">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            height="24px"
+            viewBox="0 -960 960 960"
+            width="24px"
+            fill="#5f6368"
+          >
+            <path
+              d="M480-480q-66 0-113-47t-47-113q0-66 47-113t113-47q66 0 113 47t47 113q0 66-47 113t-113 47ZM160-160v-112q0-34 17.5-62.5T224-378q62-31 126-46.5T480-440q66 0 130 15.5T736-378q29 15 46.5 43.5T800-272v112H160Zm80-80h480v-32q0-11-5.5-20T700-306q-54-27-109-40.5T480-360q-56 0-111 13.5T260-306q-9 5-14.5 14t-5.5 20v32Zm240-320q33 0 56.5-23.5T560-640q0-33-23.5-56.5T480-720q-33 0-56.5 23.5T400-640q0 33 23.5 56.5T480-560Zm0-80Zm0 400Z"
+            />
+          </svg>
+        </mat-icon>
+      </button>
+
+      <mat-menu #menu="matMenu" class="min-w-[200px]">
+        <div class="flex items-center px-4 py-2 w-full group">
+          <mat-icon class="ml-auto mr-4 text-gray-500">person</mat-icon>
+          <span class="text-gray-600">{{ currentUser.username }}</span>
+        </div>
+        <div class="py-2">
+          <mat-divider></mat-divider>
+
+          <button
+            mat-menu-item
+            (click)="navigateToHome()"
+            class="flex items-center px-4 py-2 w-full hover:bg-gray-50 group"
+          >
+            <span class="text-blue-500 group-hover:text-blue-600">{{ t('home') }}</span>
+            <mat-icon class="ml-auto text-blue-500 group-hover:text-blue-600">home</mat-icon>
+          </button>
+
+          <mat-divider class="my-2"></mat-divider>
+
+          <!-- Language Selection -->
+          <button
+            mat-menu-item
+            [matMenuTriggerFor]="languageMenu"
+            class="flex items-center px-4 py-2 w-full hover:bg-gray-50 group"
+          >
+            <span class="text-blue-500 group-hover:text-blue-600">{{ t('language') }}</span>
+            <span class="ml-auto text-gray-500">({{ currentLanguage$ | async }})</span>
+            <mat-icon class="ml-2 text-blue-500 group-hover:text-blue-600">language</mat-icon>
+          </button>
+
+          <mat-divider class="my-2"></mat-divider>
+
+          <button
+            mat-menu-item
+            (click)="logout(); cleanupCookies()"
+            class="flex items-center px-4 py-2 w-full hover:bg-gray-50 group"
+          >
+            <span class="text-blue-500 group-hover:text-blue-600">{{ t('logout') }}</span>
+            <mat-icon class="ml-auto text-blue-500 group-hover:text-blue-600">logout</mat-icon>
+          </button>
+        </div>
+      </mat-menu>
+
+      <!-- Language Submenu -->
+      <mat-menu #languageMenu="matMenu">
+        <button
+          mat-menu-item
+          (click)="changeLanguage('en')"
+          class="flex items-center px-4 py-2 w-full hover:bg-gray-50"
+        >
+          <span>English</span>
+          <span class="ml-auto text-xs text-gray-500" *ngIf="(currentLanguage$ | async) === 'en'"
+            >✓</span
+          >
+        </button>
+        <button
+          mat-menu-item
+          (click)="changeLanguage('de')"
+          class="flex items-center px-4 py-2 w-full hover:bg-gray-50"
+        >
+          <span>Deutsch</span>
+          <span class="ml-auto text-xs text-gray-500" *ngIf="(currentLanguage$ | async) === 'de'"
+            >✓</span
+          >
+        </button>
+        <mat-divider class="my-2"></mat-divider>
+        <button
+          mat-menu-item
+          (click)="refreshServerLanguageSettings()"
+          class="flex items-center px-4 py-2 w-full hover:bg-gray-50"
+        >
+          <mat-icon class="mr-2 text-blue-500">sync</mat-icon>
+          <span>Sync from Server</span>
+        </button>
+      </mat-menu>
+    </div>
+  </mat-toolbar>
+</ng-container>

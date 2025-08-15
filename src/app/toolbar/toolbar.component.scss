@@ -1,0 +1,76 @@
+/* Exact copy from WebClients machine-operator toolbar styling */
+mat-toolbar {
+  display: flex;
+  padding: 1rem 1.5rem;
+  justify-content: space-between;
+  align-items: center;
+  align-self: stretch;
+  border-top: 4px solid #f29526; /* Orange border from machine-operator */
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  margin-left: 1rem;
+
+  .appName {
+    font-size: 1.125rem;
+    color: #43424a;
+  }
+
+  .pipe {
+    margin: 0 0.5rem;
+    color: #d9d9d9;
+  }
+
+  .moduleName {
+    font-size: 1rem;
+    color: #43424a;
+  }
+}
+
+.buttons_right {
+  display: flex;
+  gap: 1rem;
+}
+
+.left_icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  margin-top: -0.3rem;
+  margin-left: -0.3rem;
+}
+
+.right_icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  margin-top: -0.3rem;
+  margin-left: -0.3rem;
+}
+
+.icon {
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #d9d9d9;
+  border-radius: 0.25rem;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.logo {
+  width: auto;
+  height: 22px;
+  margin-right: 0.5rem;
+}
+
+.flex-grow {
+  flex-grow: 1;
+}
+
+.flex-shrink {
+  flex-shrink: 1;
+}

@@ -1,59 +1,61 @@
-<!-- Exact copy from WebClients shared auth login component -->
-<form
-  [formGroup]="form"
-  (ngSubmit)="onSubmit()"
-  class="mb-3 flex h-fit max-w-lg flex-auto flex-col justify-center rounded bg-white px-8 pb-8 pt-6 shadow"
->
-  <img src="/assets/tdm-logo.svg" width="145" height="20" class="mb-5 flex self-center" />
-  <mat-form-field class="mb-4">
-    <mat-label for="username">Username</mat-label>
-    <input
-      matInput
-      data-testid="userName"
-      formControlName="userName"
-      style="text-transform: uppercase"
-    />
-    <mat-error *ngIf="form.controls['userName'].hasError('required')">
-      Username is required
-    </mat-error>
-  </mat-form-field>
-  <mat-form-field class="mb-6">
-    <mat-label for="password">Password</mat-label>
-    <input
-      matInput
-      data-testid="password"
-      [type]="passwordFieldType"
-      formControlName="password"
-      autocomplete="off"
-    />
-    <button matSuffix mat-icon-button type="button" (click)="togglePasswordVisibility()">
-      <mat-icon
-        *ngIf="form.controls['password'].value !== '' && passwordFieldType === 'text'"
-        fontIcon="visibility_off"
-      ></mat-icon>
-      <mat-icon
-        *ngIf="form.controls['password'].value !== '' && passwordFieldType === 'password'"
-        fontIcon="visibility"
+<ng-container *transloco="let t; read: 'auth'">
+  <!-- Exact copy from WebClients shared auth login component -->
+  <form
+    [formGroup]="form"
+    (ngSubmit)="onSubmit()"
+    class="mb-3 flex h-fit max-w-lg flex-auto flex-col justify-center rounded bg-white px-8 pb-8 pt-6 shadow"
+  >
+    <img src="/assets/tdm-logo.svg" width="145" height="20" class="mb-5 flex self-center" />
+    <mat-form-field class="mb-4">
+      <mat-label for="username">{{ t('username') }}</mat-label>
+      <input
+        matInput
+        data-testid="userName"
+        formControlName="userName"
+        style="text-transform: uppercase"
+      />
+      <mat-error *ngIf="form.controls['userName'].hasError('required')">
+        {{ t('username-required') }}
+      </mat-error>
+    </mat-form-field>
+    <mat-form-field class="mb-6">
+      <mat-label for="password">{{ t('password') }}</mat-label>
+      <input
+        matInput
+        data-testid="password"
+        [type]="passwordFieldType"
+        formControlName="password"
+        autocomplete="off"
+      />
+      <button matSuffix mat-icon-button type="button" (click)="togglePasswordVisibility()">
+        <mat-icon
+          *ngIf="form.controls['password'].value !== '' && passwordFieldType === 'text'"
+          fontIcon="visibility_off"
+        ></mat-icon>
+        <mat-icon
+          *ngIf="form.controls['password'].value !== '' && passwordFieldType === 'password'"
+          fontIcon="visibility"
+        ></mat-icon>
+      </button>
+      <mat-error *ngIf="form.controls['password'].hasError('required')">
+        {{ t('password-required') }}
+      </mat-error>
+    </mat-form-field>
+    <mat-error *ngIf="form.hasError('invalid') || error">{{
+      error || t('login-failed')
+    }}</mat-error>
+    <button
+      data-testid="submit"
+      type="submit"
+      [disabled]="!form.valid || isLoading"
+      mat-flat-button
+      color="primary"
+    >
+      {{ t('login') }}
+
+      <mat-icon *ngIf="isLoading"
+        ><mat-spinner color="primary" diameter="18"> </mat-spinner
       ></mat-icon>
     </button>
-    <mat-error *ngIf="form.controls['password'].hasError('required')">
-      Password is required
-    </mat-error>
-  </mat-form-field>
-  <mat-error *ngIf="form.hasError('invalid') || error">{{
-    error || 'Username or password invalid'
-  }}</mat-error>
-  <button
-    data-testid="submit"
-    type="submit"
-    [disabled]="!form.valid || isLoading"
-    mat-flat-button
-    color="primary"
-  >
-    Login
-
-    <mat-icon *ngIf="isLoading"
-      ><mat-spinner color="primary" diameter="18"> </mat-spinner
-    ></mat-icon>
-  </button>
-</form>
+  </form>
+</ng-container>

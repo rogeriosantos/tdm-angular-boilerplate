@@ -1,10 +1,25 @@
 <div class="dashboard-container">
-  <header>
-    <h1>Dashboard</h1>
-    <button (click)="logout()" class="logout-btn">Logout</button>
-  </header>
-  <main>
-    <p>Welcome! You are successfully logged in.</p>
-    <!-- Add your dashboard content here -->
+  <!-- Machine Operator Toolbar Header -->
+  <app-toolbar></app-toolbar>
+
+  <main class="dashboard-content" *transloco="let t; read: 'dashboard'">
+    <h1>{{ t('title') }}</h1>
+    <p>{{ t('welcome') }}</p>
+
+    <!-- Test Buttons for SystemInfo API -->
+    <div class="test-buttons mt-8 p-4 border rounded-lg bg-gray-50">
+      <h3 class="text-lg font-semibold mb-4">API Testing</h3>
+      <div class="space-x-4">
+        <button mat-raised-button color="primary" (click)="testSystemInfo()">
+          Test SystemInfo API
+        </button>
+        <button mat-raised-button color="accent" (click)="testLanguageSettings()">
+          Test Language Settings
+        </button>
+      </div>
+      <p class="text-sm text-gray-600 mt-2">Check browser console for API response details</p>
+    </div>
+
+    <!-- {{ t('content-placeholder') }} -->
   </main>
 </div>

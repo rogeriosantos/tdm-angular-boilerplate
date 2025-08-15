@@ -1,0 +1,24 @@
+{
+  "main": {
+    "module-name": "Maschinenbediener",
+    "home-button-aria": "Startseite",
+    "tdm-logo-alt": "TDM Systems Logo",
+    "user-menu-aria": "Benutzermenü",
+    "home": "Startseite",
+    "language": "Sprache",
+    "logout": "Abmelden"
+  },
+  "auth": {
+    "login": "Anmelden",
+    "username": "Benutzername",
+    "password": "Passwort",
+    "username-required": "Benutzername ist erforderlich",
+    "password-required": "Passwort ist erforderlich",
+    "login-failed": "Benutzername oder Passwort ungültig"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Willkommen! Sie sind erfolgreich angemeldet.",
+    "content-placeholder": "Fügen Sie hier Ihre Dashboard-Inhalte hinzu"
+  }
+}

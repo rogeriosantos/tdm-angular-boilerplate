@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { AuthService, LoginRequest } from '../services/auth.service';
 import { environment } from '../config/environment';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-login',
@@ -18,6 +19,8 @@ import { environment } from '../config/environment';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
+    MatProgressSpinnerModule,
+    TranslocoDirective,
     MatProgressSpinnerModule,
   ],
   templateUrl: './login.component.html',

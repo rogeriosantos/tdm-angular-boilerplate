@@ -1,0 +1,24 @@
+{
+  "main": {
+    "module-name": "Machine Operator",
+    "home-button-aria": "Home",
+    "tdm-logo-alt": "TDM Systems Logo",
+    "user-menu-aria": "User menu",
+    "home": "Home",
+    "language": "Language",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": "Login",
+    "username": "Username",
+    "password": "Password",
+    "username-required": "Username is required",
+    "password-required": "Password is required",
+    "login-failed": "Username or password invalid"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcome": "Welcome! You are successfully logged in.",
+    "content-placeholder": "Add your dashboard content here"
+  }
+}
