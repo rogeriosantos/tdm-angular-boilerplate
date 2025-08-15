@@ -1,0 +1,8 @@
+{
+  "/identity/*": {
+    "target": "https://decnt336.win.dom.sandvik.com/TDM2025GlobalLineSQLCASE2",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

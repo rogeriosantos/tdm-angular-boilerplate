@@ -1,0 +1,122 @@
+:host {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+}
+
+form {
+  margin-bottom: 12px;
+  display: flex;
+  height: fit-content;
+  max-width: 32rem;
+  flex: 1 1 auto;
+  flex-direction: column;
+  justify-content: center;
+  border-radius: 0.375rem;
+  background-color: white;
+  padding: 2rem 2rem 2rem 2rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+}
+
+img {
+  margin-bottom: 1.25rem;
+  display: flex;
+  align-self: center;
+}
+
+.mat-mdc-form-field:first-of-type {
+  margin-bottom: 1rem;
+}
+
+.mat-mdc-form-field:last-of-type {
+  margin-bottom: 1.5rem;
+}
+
+.mat-mdc-raised-button {
+  width: 100%;
+}
+
+.mat-error {
+  margin-bottom: 1rem;
+}
+
+//hide native eye icon on edge
+::-ms-reveal {
+  display: none;
+}
+.auth-mode-toggle input[type='checkbox'] {
+  width: auto;
+  margin: 0;
+}
+
+.auth-mode-toggle small {
+  display: block;
+  color: #666;
+  font-style: italic;
+}
+
+.login-container form div {
+  margin-bottom: 16px;
+}
+
+.login-container label {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.login-container input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.login-container input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.login-container button {
+  width: 100%;
+  padding: 10px;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.login-container button:hover:not(:disabled) {
+  background: #1565c0;
+}
+
+.login-container button:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
+
+.login-container .error {
+  color: #d32f2f;
+  margin-top: 12px;
+  text-align: center;
+  padding: 8px;
+  background-color: #ffebee;
+  border: 1px solid #ffcdd2;
+  border-radius: 4px;
+}
+
+.login-container .debug-info {
+  color: #666;
+  margin-top: 8px;
+  text-align: center;
+  font-size: 12px;
+  padding: 4px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+}
