@@ -4,7 +4,6 @@ import { Observable, BehaviorSubject, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
 import { environment } from '../config/environment';
-import { SystemInfoService } from './system-info.service';
 import * as I18nActions from '../i18n/state/i18n.actions';
 
 export interface LoginRequest {
@@ -46,11 +45,7 @@ export class AuthService {
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(
-    private http: HttpClient,
-    private systemInfoService: SystemInfoService,
-    private store: Store
-  ) {
+  constructor(private http: HttpClient, private store: Store) {
     // Check if user is already logged in
     const token = this.getToken();
     const username = this.getUsername();
@@ -125,17 +120,6 @@ export class AuthService {
             access_token: response.access_token
               ? `${response.access_token.substring(0, 20)}...`
               : 'NOT_PROVIDED',
-          });
-
-          // Call SystemInfo endpoint after successful login
-          console.log('📡 Calling SystemInfo endpoint after successful login...');
-          this.systemInfoService.getSystemInfo().subscribe({
-            next: (systemInfo) => {
-              console.log('🎯 SystemInfo call successful after login:', systemInfo);
-            },
-            error: (error) => {
-              console.error('❌ SystemInfo call failed after login:', error);
-            },
           });
 
           // Trigger language settings fetch from user profile

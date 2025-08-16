@@ -49,7 +49,10 @@ export class I18nEffects {
       switchMap(() =>
         this.userProfileService.getUserLanguageSettings().pipe(
           map(({ uiLanguage, dataLanguage }) => {
-            console.log('🌍 Using user locale for language settings:', { uiLanguage, dataLanguage });
+            console.log('🌍 Using user locale for language settings:', {
+              uiLanguage,
+              dataLanguage,
+            });
             return I18nActions.fetchServerLanguageSettingsSuccess({ uiLanguage, dataLanguage });
           }),
           catchError((error) => {

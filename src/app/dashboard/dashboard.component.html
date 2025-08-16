@@ -6,16 +6,10 @@
     <h1>{{ t('title') }}</h1>
     <p>{{ t('welcome') }}</p>
 
-    <!-- Test Buttons for SystemInfo API -->
+    <!-- Test Buttons for User Profile API -->
     <div class="test-buttons mt-8 p-4 border rounded-lg bg-gray-50">
       <h3 class="text-lg font-semibold mb-4">API Testing</h3>
       <div class="space-x-4">
-        <button mat-raised-button color="primary" (click)="testSystemInfo()">
-          Test SystemInfo API
-        </button>
-        <button mat-raised-button color="accent" (click)="testLanguageSettings()">
-          Test Language Settings
-        </button>
         <button mat-raised-button color="warn" (click)="testUserProfileLocale()">
           🌍 Test User Locale (de-DE)
         </button>
