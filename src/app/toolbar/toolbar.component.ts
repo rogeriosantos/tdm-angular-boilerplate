@@ -7,10 +7,12 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
+import { UserProfileService } from '../services/user-profile.service';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { I18nService } from '../i18n/services/i18n.service';
 import { SupportedLanguage } from '../i18n/state/i18n.state';
-import { Observable } from 'rxjs';
+import { Observable, BehaviorSubject } from 'rxjs';
+import { UserProfile } from '../models/user-profile.model';
 
 @Component({
   selector: 'app-toolbar',
@@ -30,18 +32,27 @@ import { Observable } from 'rxjs';
 })
 export class ToolbarComponent implements OnInit {
   appName = 'Global Line';
-  moduleName = '';
+  moduleName = 'CRIB Management'; // Set default module name
 
-  // Mock user data - in real app this would come from a service
-  currentUser = {
-    username: 'SYSADMIN',
-  };
+  // Real user data from user profile service
+  private currentUserSubject = new BehaviorSubject<UserProfile | null>(null);
+  currentUser$ = this.currentUserSubject.asObservable();
+
+  // For backward compatibility with template - but now shows real status
+  get currentUser() {
+    const user = this.currentUserSubject.value;
+    if (!user) {
+      return { username: '❌ API ERROR' }; // Show clear error instead of "Loading..."
+    }
+    return user;
+  }
 
   currentLanguage$: Observable<string>;
 
   constructor(
     private router: Router,
     private authService: AuthService,
+    private userProfileService: UserProfileService,
     private translocoService: TranslocoService,
     private i18nService: I18nService
   ) {
@@ -51,6 +62,26 @@ export class ToolbarComponent implements OnInit {
   ngOnInit() {
     // Set module name using translation like machine-operator
     this.moduleName = this.translocoService.translate('main.module-name');
+
+    // Load actual user profile data
+    this.loadUserProfile();
+  }
+
+  private loadUserProfile() {
+    console.log('🔄 Toolbar: Loading user profile...');
+    this.userProfileService.getUserInfo().subscribe({
+      next: (userProfile) => {
+        console.log('✅ Toolbar: User profile loaded:', userProfile);
+        this.currentUserSubject.next(userProfile);
+      },
+      error: (error) => {
+        console.error('❌ Toolbar: Failed to load user profile:', error);
+        console.error('❌ Toolbar: NO MOCK DATA - User profile service is failing');
+
+        // Don't set any fallback data - let the error be visible
+        this.currentUserSubject.next(null);
+      },
+    });
   }
 
   navigateToHome() {

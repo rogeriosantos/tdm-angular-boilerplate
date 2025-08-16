@@ -6,7 +6,7 @@ import { map, tap, withLatestFrom, switchMap, catchError } from 'rxjs/operators'
 import { of } from 'rxjs';
 
 import { I18nStorageService } from '../services/i18n-storage.service';
-import { SystemInfoService } from '../../services/system-info.service';
+import { UserProfileService } from '../../services/user-profile.service';
 import { selectSettings } from './i18n.reducer';
 import * as I18nActions from './i18n.actions';
 
@@ -16,7 +16,7 @@ export class I18nEffects {
   private store = inject(Store);
   private i18nStorage = inject(I18nStorageService);
   private transloco = inject(TranslocoService);
-  private systemInfoService = inject(SystemInfoService);
+  private userProfileService = inject(UserProfileService);
 
   // Initialize language settings on app start
   initI18n$ = createEffect(() =>
@@ -42,18 +42,19 @@ export class I18nEffects {
     )
   );
 
-  // Fetch language settings from server
+  // Fetch language settings from server (using user profile locale)
   fetchServerLanguage$ = createEffect(() =>
     this.actions$.pipe(
       ofType(I18nActions.fetchServerLanguageSettings),
       switchMap(() =>
-        this.systemInfoService.getUserLanguageSettings().pipe(
-          map(({ uiLanguage, dataLanguage }) =>
-            I18nActions.fetchServerLanguageSettingsSuccess({ uiLanguage, dataLanguage })
-          ),
+        this.userProfileService.getUserLanguageSettings().pipe(
+          map(({ uiLanguage, dataLanguage }) => {
+            console.log('🌍 Using user locale for language settings:', { uiLanguage, dataLanguage });
+            return I18nActions.fetchServerLanguageSettingsSuccess({ uiLanguage, dataLanguage });
+          }),
           catchError((error) => {
             console.warn(
-              'Failed to fetch server language settings, using browser fallback:',
+              'Failed to fetch user language settings from profile, using browser fallback:',
               error
             );
             const initialLanguage = this.i18nStorage.getInitialLanguage();

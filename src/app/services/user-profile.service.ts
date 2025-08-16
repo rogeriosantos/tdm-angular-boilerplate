@@ -3,24 +3,27 @@ import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { UserProfile } from '../models/user-profile.model';
-import { environment } from '../../environments/environment';
+import { environment } from '../config/environment';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserProfileService {
   private http = inject(HttpClient);
-  private readonly apiUrl = environment.apiUrl || 'https://pw-gkyr1t3/202501HF01local';
+  private authService = inject(AuthService);
+  private readonly apiUrl = environment.baseApiUrl;
 
   getUserInfo(): Observable<UserProfile> {
-    return this.http.get<any>(`${this.apiUrl}/userinfo`).pipe(
+    // Try the OAuth2 identity endpoint first, fallback to API endpoint if needed
+    return this.http.get<any>(`${this.apiUrl}/identity/connect/userinfo`).pipe(
       tap((userInfo) => {
-        console.log('=== UserInfo API Response ===');
+        console.log('=== UserInfo API Response (OAuth2 Identity) ===');
         console.log('Full Response:', userInfo);
         console.log('Username:', userInfo.preferred_username || userInfo.name);
         console.log('Locale:', userInfo.locale);
         console.log('Department:', userInfo.department);
-        console.log('==============================');
+        console.log('===============================================');
       }),
       map((userInfo) => ({
         username: userInfo.preferred_username || userInfo.name || 'Unknown',
@@ -32,14 +35,10 @@ export class UserProfileService {
       })),
       catchError((error) => {
         console.error('❌ Failed to fetch user info:', error);
-        // Return mock user profile instead of throwing error
-        return of({
-          username: 'Demo User',
-          department: 'Development',
-          email: 'demo@example.com',
-          locale: 'en-US',
-          data_language: 'en-US',
-        });
+        console.error('❌ UserInfo API is not working - NO MOCK DATA PROVIDED');
+
+        // Don't provide fallback data - let the error propagate
+        throw error;
       })
     );
   }
@@ -73,6 +72,7 @@ export class UserProfileService {
     if (language.startsWith('en')) return 'en';
     if (language.startsWith('de')) return 'de';
     // Add more languages as needed
-    return 'en'; // fallback
+    console.warn(`⚠️ Unsupported language: ${language}, falling back to 'en'`);
+    return 'en'; // fallback to English
   }
 }

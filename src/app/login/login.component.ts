@@ -53,9 +53,10 @@ export class LoginComponent {
 
     const { userName, password } = this.form.getRawValue();
 
-    console.log('Starting login process...', {
+    console.log('🚀 Starting login process...', {
       username: userName,
       baseApiUrl: environment.baseApiUrl,
+      timestamp: new Date().toISOString(),
     });
 
     const credentials: LoginRequest = {
@@ -65,18 +66,42 @@ export class LoginComponent {
 
     this.authService.login(credentials).subscribe({
       next: (response) => {
+        console.log('🎯 LOGIN COMPONENT - Received response from auth service:');
+        console.log('🎯 Full response object:', response);
+        console.log('🎯 Response properties:', {
+          success: response.success,
+          message: response.message,
+          access_token: response.access_token
+            ? `${response.access_token.substring(0, 20)}...`
+            : 'NOT_PROVIDED',
+          expires_in: response.expires_in,
+          token_type: response.token_type,
+          user: response.user,
+          all_keys: Object.keys(response),
+          timestamp: new Date().toISOString(),
+        });
+
         this.isLoading = false;
         if (response.success) {
-          console.log('Login successful, redirecting...');
+          console.log('✅ Login successful, redirecting to dashboard...');
           this.router.navigate(['/dashboard']);
         } else {
+          console.warn('⚠️ Login response indicates failure:', response.message);
           this.error = response.message || 'Login failed. Please try again.';
         }
       },
       error: (error) => {
+        console.error('💥 LOGIN COMPONENT - Error in subscribe:');
+        console.error('💥 Error object:', error);
+        console.error('💥 Error details:', {
+          message: error.message,
+          name: error.name,
+          stack: error.stack,
+          timestamp: new Date().toISOString(),
+        });
+
         this.isLoading = false;
         this.error = 'Login failed. Please try again.';
-        console.error('Login error:', error);
       },
     });
   }

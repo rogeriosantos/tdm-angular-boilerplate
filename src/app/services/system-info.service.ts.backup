@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { catchError, map, tap } from 'rxjs/operators';
 import { SystemInfo } from '../models/system-info.model';
 import { environment } from '../../environments/environment';
@@ -9,9 +9,8 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class SystemInfoService {
+  private http = inject(HttpClient);
   private readonly apiUrl = environment.apiUrl || 'https://pw-gkyr1t3/202501HF01local';
-
-  constructor(private http: HttpClient) {}
 
   getSystemInfo(): Observable<SystemInfo> {
     return this.http.get<SystemInfo>(`${this.apiUrl}/api/System/SystemInfo`).pipe(
@@ -27,7 +26,7 @@ export class SystemInfoService {
       catchError((error) => {
         console.error('❌ Failed to fetch system info:', error);
         console.error('❌ SystemInfo API is not working - NO MOCK DATA PROVIDED');
-
+        
         // Don't provide fallback data - let the error propagate
         throw error;
       })

@@ -2,7 +2,10 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
+import { Store } from '@ngrx/store';
 import { environment } from '../config/environment';
+import { SystemInfoService } from './system-info.service';
+import * as I18nActions from '../i18n/state/i18n.actions';
 
 export interface LoginRequest {
   username: string;
@@ -16,6 +19,7 @@ export interface LoginResponse {
   success: boolean;
   message?: string;
   user?: any;
+  username?: string;
 }
 
 export interface BearerTokenResponse {
@@ -38,44 +42,105 @@ export class AuthService {
   private oauthConfig = environment.oauthConfig;
 
   private tokenKey = 'auth_token';
+  private usernameKey = 'auth_username';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient) {
+  constructor(
+    private http: HttpClient,
+    private systemInfoService: SystemInfoService,
+    private store: Store
+  ) {
     // Check if user is already logged in
     const token = this.getToken();
+    const username = this.getUsername();
     if (token) {
-      this.currentUserSubject.next({ token });
+      this.currentUserSubject.next({
+        token,
+        username: username || 'Unknown',
+      });
     }
   }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    console.log('Attempting authentication with URL:', this.tokenUrl);
+    console.log('🔐 Attempting authentication with URL:', this.tokenUrl);
+    console.log('🔐 Login credentials (password hidden):', {
+      username: credentials.username,
+      password: '***HIDDEN***',
+    });
 
     const payload = this.createRequestOwnerPayload(credentials.username, credentials.password);
     const body = this.mapToAuthPayload(payload);
     const headers = this.createAuthRequestHeader();
 
-    // console.log('Request payload:', payload);
-    // console.log('Request body:', body);
-    // console.log('Request headers:', headers);
+    console.log('🔐 Request payload:', {
+      ...payload,
+      password: '***HIDDEN***',
+      client_secret: '***HIDDEN***',
+    });
+    console.log('🔐 Request body:', body.replace(/password=[^&]*/g, 'password=***HIDDEN***'));
+    console.log(
+      '🔐 Request headers:',
+      headers
+        .keys()
+        .map(
+          (key) => `${key}: ${key.includes('Authorization') ? '***HIDDEN***' : headers.get(key)}`
+        )
+    );
 
     return this.http.post<BearerTokenResponse>(this.tokenUrl, body, { headers }).pipe(
-      map(
-        (response) =>
-          ({
-            access_token: response.access_token,
-            expires_in: response.expires_in,
-            token_type: response.token_type,
-            success: true,
-            message: 'Login successful',
-          } as LoginResponse)
-      ),
+      map((response) => {
+        console.log('🎉 RAW AUTHENTICATION RESPONSE:', response);
+        console.log('🎉 Response details:', {
+          access_token: response.access_token
+            ? `${response.access_token.substring(0, 20)}...`
+            : 'NOT_PROVIDED',
+          expires_in: response.expires_in,
+          token_type: response.token_type,
+          full_response_keys: Object.keys(response),
+          full_response: response,
+        });
+
+        return {
+          access_token: response.access_token,
+          expires_in: response.expires_in,
+          token_type: response.token_type,
+          success: true,
+          message: 'Login successful',
+          username: credentials.username, // Include the original username
+        } as LoginResponse;
+      }),
       tap((response) => {
         if (response.success && response.access_token) {
           this.setToken(response.access_token);
-          this.currentUserSubject.next({ token: response.access_token });
-          console.log('Authentication successful');
+          this.setUsername(credentials.username); // Store the username
+          this.currentUserSubject.next({
+            token: response.access_token,
+            username: credentials.username,
+          });
+          console.log('✅ Authentication successful - token and username stored');
+          console.log('✅ Stored username:', credentials.username);
+          console.log('✅ Mapped login response:', {
+            ...response,
+            access_token: response.access_token
+              ? `${response.access_token.substring(0, 20)}...`
+              : 'NOT_PROVIDED',
+          });
+
+          // Call SystemInfo endpoint after successful login
+          console.log('📡 Calling SystemInfo endpoint after successful login...');
+          this.systemInfoService.getSystemInfo().subscribe({
+            next: (systemInfo) => {
+              console.log('🎯 SystemInfo call successful after login:', systemInfo);
+            },
+            error: (error) => {
+              console.error('❌ SystemInfo call failed after login:', error);
+            },
+          });
+
+          // Trigger language settings fetch from user profile
+          console.log('🌍 Triggering language fetch from user profile...');
+          this.store.dispatch(I18nActions.fetchServerLanguageSettings());
         }
       }),
       catchError((error) => this.handleAuthError(error))
@@ -106,6 +171,7 @@ export class AuthService {
 
   private clearLocalAuth(): void {
     localStorage.removeItem(this.tokenKey);
+    localStorage.removeItem(this.usernameKey);
     this.currentUserSubject.next(null);
   }
 
@@ -113,8 +179,16 @@ export class AuthService {
     return localStorage.getItem(this.tokenKey);
   }
 
+  getUsername(): string | null {
+    return localStorage.getItem(this.usernameKey);
+  }
+
   private setToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
+  }
+
+  private setUsername(username: string): void {
+    localStorage.setItem(this.usernameKey, username);
   }
 
   isAuthenticated(): boolean {
@@ -167,13 +241,23 @@ export class AuthService {
   }
 
   private handleAuthError(error: any): Observable<LoginResponse> {
-    console.error('Authentication error details:', {
+    console.error('❌ AUTHENTICATION ERROR - FULL DETAILS:');
+    console.error('❌ Error object:', error);
+    console.error('❌ Error details:', {
       status: error.status,
       statusText: error.statusText,
       url: error.url,
       message: error.message,
       error: error.error,
+      headers: error.headers,
+      name: error.name,
+      ok: error.ok,
+      type: error.type,
     });
+
+    if (error.error) {
+      console.error('❌ Error response body:', error.error);
+    }
 
     // Handle different types of errors
     let errorMessage = 'Login failed. Please try again.';
@@ -197,6 +281,8 @@ export class AuthService {
     } else if (error.status >= 500) {
       errorMessage = 'Server error. Please try again later.';
     }
+
+    console.error('❌ Final error message:', errorMessage);
 
     // Return a failed login response instead of throwing
     return of({
