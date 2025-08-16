@@ -23,7 +23,7 @@
     <div class="title">
       <img src="assets/tdm-logo.svg" [alt]="t('tdm-logo-alt')" class="logo" />
       <span class="pipe"> |</span>
-      <span class="moduleName">{{ moduleName }}</span>
+      <span class="moduleName">{{ t('module-name') }}</span>
     </div>
 
     <span class="flex-grow flex-shrink"></span>
@@ -85,20 +85,13 @@
       <!-- Language Submenu -->
       <mat-menu #languageMenu="matMenu" class="language-menu">
         <button mat-menu-item (click)="changeLanguage('en')" class="language-item">
-          <span>English</span>
+          <span class="language-text">English</span>
           <mat-icon class="check-icon" *ngIf="(currentLanguage$ | async) === 'en'">check</mat-icon>
         </button>
 
         <button mat-menu-item (click)="changeLanguage('de')" class="language-item">
-          <span>Deutsch</span>
+          <span class="language-text">Deutsch</span>
           <mat-icon class="check-icon" *ngIf="(currentLanguage$ | async) === 'de'">check</mat-icon>
-        </button>
-
-        <mat-divider></mat-divider>
-
-        <button mat-menu-item (click)="refreshServerLanguageSettings()" class="menu-item">
-          <mat-icon>sync</mat-icon>
-          <span>Sync from Server</span>
         </button>
       </mat-menu>
     </div>

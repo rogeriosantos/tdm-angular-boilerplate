@@ -276,10 +276,13 @@ mat-toolbar {
     justify-content: space-between !important;
     padding: 12px 16px !important;
     min-height: 48px !important;
+    width: 100% !important;
 
-    span {
+    .language-text {
       color: #495057 !important;
       font-size: 14px !important;
+      flex: 1 !important;
+      text-align: left !important;
     }
 
     .check-icon {
@@ -287,11 +290,50 @@ mat-toolbar {
       font-size: 16px !important;
       width: 16px !important;
       height: 16px !important;
+      margin-left: auto !important;
+      flex-shrink: 0 !important;
+      order: 2 !important;
     }
 
     &:hover {
       background-color: #f8f9fa !important;
     }
+  }
+}
+
+/* Override Material Design menu item content ordering */
+::ng-deep .language-menu .language-item {
+  .mat-mdc-menu-item-text {
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    width: 100% !important;
+  }
+  
+  /* Force the mat-icon to appear after the text */
+  .mat-icon.check-icon {
+    order: 2 !important;
+    margin-left: auto !important;
+    position: absolute !important;
+    right: 16px !important;
+  }
+  
+  /* Ensure text stays on the left */
+  .language-text {
+    order: 1 !important;
+    margin-right: 40px !important;
+  }
+}
+
+/* Additional override for Material menu item structure */
+::ng-deep .language-menu .mat-mdc-menu-item {
+  position: relative !important;
+  
+  .mat-icon {
+    position: absolute !important;
+    right: 16px !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
   }
 }
 

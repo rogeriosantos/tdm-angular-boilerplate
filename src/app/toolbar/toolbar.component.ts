@@ -32,7 +32,6 @@ import { UserProfile } from '../models/user-profile.model';
 })
 export class ToolbarComponent implements OnInit {
   appName = 'Global Line';
-  moduleName = 'CRIB Management'; // Set default module name
 
   // Real user data from user profile service
   private currentUserSubject = new BehaviorSubject<UserProfile | null>(null);
@@ -60,9 +59,6 @@ export class ToolbarComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Set module name using translation like machine-operator
-    this.moduleName = this.translocoService.translate('main.module-name');
-
     // Load actual user profile data
     this.loadUserProfile();
   }
@@ -92,11 +88,6 @@ export class ToolbarComponent implements OnInit {
   changeLanguage(language: SupportedLanguage) {
     // Use the new I18n service to change both UI and data language
     this.i18nService.setBothLanguages(language);
-  }
-
-  refreshServerLanguageSettings() {
-    // Fetch fresh language settings from the server
-    this.i18nService.fetchServerLanguageSettings();
   }
 
   logout() {
