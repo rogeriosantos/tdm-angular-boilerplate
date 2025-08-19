@@ -1,9 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { AuthService } from '../services/auth.service';
-import { UserProfileService } from '../services/user-profile.service';
+import { AuthService } from '../auth/services/auth.service';
+import { UserProfileService } from '../../core/services/user-profile.service';
 import { Router } from '@angular/router';
-import { ToolbarComponent } from '../toolbar/toolbar.component';
+import { ToolbarComponent } from '../../layout/toolbar/toolbar.component';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatButtonModule } from '@angular/material/button';
 

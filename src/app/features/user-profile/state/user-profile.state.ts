@@ -1,7 +1,7 @@
-import { UserProfile } from '../../models/user-profile.model';
+import { UserProfile } from '../../../shared/models/user-profile.model';
 
 // Re-export UserProfile for other components
-export type { UserProfile } from '../../models/user-profile.model';
+export type { UserProfile } from '../../../shared/models/user-profile.model';
 
 export interface UserProfileState {
   userProfile: UserProfile | null;

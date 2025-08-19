@@ -3,8 +3,8 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject, of } from 'rxjs';
 import { map, tap, catchError } from 'rxjs/operators';
 import { Store } from '@ngrx/store';
-import { environment } from '../config/environment';
-import * as I18nActions from '../i18n/state/i18n.actions';
+import { environment } from '../../../core/config/environment';
+import * as I18nActions from '../../i18n/state/i18n.actions';
 
 export interface LoginRequest {
   username: string;

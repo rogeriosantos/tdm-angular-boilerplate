@@ -13,19 +13,19 @@ import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 
 // Core imports
-import { authInterceptor } from './interceptors/auth.interceptor';
-import { errorInterceptor } from './interceptors/error.interceptor';
+import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { errorInterceptor } from './core/interceptors/error.interceptor';
 
 // Feature imports
-import { i18nInterceptor } from './i18n/interceptors/i18n.interceptor';
-import { I18nEffects } from './i18n/state/i18n.effects';
-import { i18nFeature } from './i18n/state/i18n.reducer';
-import { UserProfileEffects } from './user-profile/state/user-profile.effects';
-import { userProfileFeature } from './user-profile/state/user-profile.reducer';
+import { i18nInterceptor } from './features/i18n/interceptors/i18n.interceptor';
+import { I18nEffects } from './features/i18n/state/i18n.effects';
+import { i18nFeature } from './features/i18n/state/i18n.reducer';
+import { UserProfileEffects } from './features/user-profile/state/user-profile.effects';
+import { userProfileFeature } from './features/user-profile/state/user-profile.reducer';
 
-// Legacy imports (to be refactored)
-import { translocoProviders } from './transloco/transloco-root.module';
-import { provideI18n } from './i18n/i18n.provider';
+// Configuration imports
+import { translocoProviders } from './core/config/transloco/transloco-root.module';
+import { provideI18n } from './features/i18n/i18n.provider';
 
 import { routes } from './app.routes';
 

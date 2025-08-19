@@ -2,7 +2,7 @@ import { HttpRequest, HttpEvent, HttpErrorResponse, HttpHandlerFn } from '@angul
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, Observable, throwError } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { AuthService } from '../../features/auth/services/auth.service';
 import { environment } from '../config/environment';
 
 export const authInterceptor = (

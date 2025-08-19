@@ -1,7 +1,7 @@
 import { createSelector } from '@ngrx/store';
 import { selectUserProfile } from './user-profile.reducer';
 import { selectSettings } from '../../i18n/state/i18n.reducer';
-import { UserProfileViewModel } from '../../models/user-profile.model';
+import { UserProfileViewModel } from '../../../shared/models/user-profile.model';
 
 export const selectUserProfileViewModel = createSelector(
   selectUserProfile,

@@ -4,7 +4,7 @@ import { Store } from '@ngrx/store';
 import { map, switchMap, catchError, tap } from 'rxjs/operators';
 import { of } from 'rxjs';
 
-import { UserProfileService } from '../../services/user-profile.service';
+import { UserProfileService } from '../../../core/services/user-profile.service';
 import * as UserProfileActions from './user-profile.actions';
 import * as I18nActions from '../../i18n/state/i18n.actions';
 

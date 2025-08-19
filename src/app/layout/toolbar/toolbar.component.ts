@@ -6,13 +6,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { Router } from '@angular/router';
-import { AuthService } from '../services/auth.service';
-import { UserProfileService } from '../services/user-profile.service';
+import { AuthService } from '../../features/auth/services/auth.service';
+import { UserProfileService } from '../../core/services/user-profile.service';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
-import { I18nService } from '../i18n/services/i18n.service';
-import { SupportedLanguage } from '../i18n/state/i18n.state';
+import { I18nService } from '../../features/i18n/services/i18n.service';
+import { SupportedLanguage } from '../../features/i18n/state/i18n.state';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { UserProfile } from '../models/user-profile.model';
+import { UserProfile } from '../../shared/models/user-profile.model';
 
 @Component({
   selector: 'app-toolbar',

@@ -6,7 +6,7 @@ import { map, tap, withLatestFrom, switchMap, catchError } from 'rxjs/operators'
 import { of } from 'rxjs';
 
 import { I18nStorageService } from '../services/i18n-storage.service';
-import { UserProfileService } from '../../services/user-profile.service';
+import { UserProfileService } from '../../../core/services/user-profile.service';
 import { selectSettings } from './i18n.reducer';
 import * as I18nActions from './i18n.actions';
 
