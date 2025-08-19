@@ -32,6 +32,7 @@ import { UserProfile } from '../models/user-profile.model';
 })
 export class ToolbarComponent implements OnInit {
   appName = 'Global Line';
+  moduleName = 'CRIB Management';
 
   // Real user data from user profile service
   private currentUserSubject = new BehaviorSubject<UserProfile | null>(null);
@@ -99,7 +100,5 @@ export class ToolbarComponent implements OnInit {
 
   cleanupCookies() {
     // Clean up any local storage or session data
-    localStorage.removeItem('selectedMachine');
-    localStorage.removeItem('selectedJob');
   }
 }

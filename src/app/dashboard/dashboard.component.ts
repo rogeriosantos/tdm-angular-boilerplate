@@ -15,6 +15,9 @@ import { MatButtonModule } from '@angular/material/button';
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent {
+  uilanguage: string = '';
+  dataLanguage: string = '';
+
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -31,6 +34,10 @@ export class DashboardComponent {
     this.userProfileService.getUserLanguageSettings().subscribe({
       next: (response: { uiLanguage: string; dataLanguage: string }) => {
         console.log('✅ User Profile Locale Settings:', response);
+
+        this.uilanguage = response.uiLanguage;
+        this.dataLanguage = response.dataLanguage;
+
         console.log('🎯 This will be used for i18n language selection');
       },
       error: (error: any) => {
