@@ -54,7 +54,7 @@ export const appConfig: ApplicationConfig = {
         })
       : [],
 
-    // I18n setup (legacy - to be refactored)
+    // I18n and translation setup
     provideI18n(),
     translocoProviders,
   ],
