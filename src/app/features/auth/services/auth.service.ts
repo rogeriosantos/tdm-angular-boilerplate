@@ -33,9 +33,11 @@ export interface BearerTokenResponse {
 export class AuthService {
   // Use environment configuration matching machine-operator pattern
   private baseUrl = environment.baseApiUrl;
-  private tokenUrl = `${this.baseUrl}/identity/connect/token`;
-  private userInfoUrl = `${this.baseUrl}/identity/connect/userinfo`;
-  private revokeUrl = `${this.baseUrl}/identity/connect/revocation`;
+  // Use separate authentication URL for mixed development environments
+  private authBaseUrl = environment.authUrl;
+  private tokenUrl = `${this.authBaseUrl}/identity/connect/token`;
+  private userInfoUrl = `${this.authBaseUrl}/identity/connect/userinfo`;
+  private revokeUrl = `${this.authBaseUrl}/identity/connect/revocation`;
 
   // OAuth2 Resource Owner configuration (from environment)
   private oauthConfig = environment.oauthConfig;

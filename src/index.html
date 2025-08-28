@@ -2,8 +2,8 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>CRIB Management</title>
-    <base href="/crib/" />
+    <title>TDM Management</title>
+    <base href="/" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/x-icon" href="favicon.ico" />
     <link
@@ -11,6 +11,40 @@
       rel="stylesheet"
     />
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+
+    <!-- Load configuration before the app starts -->
+    <script>
+      // Inline configuration for development to avoid loading issues
+      window.APP_CONFIG = {
+        // Application title (will be shown in browser tab)
+        title: 'TDM Management [DEV]',
+
+        // Base path for the application (e.g., '/crib/', '/myapp/', or '/' for root)
+        basePath: '/', // Use root path for development
+
+        // API endpoint path (will be combined with current host)
+        apiPath: 'https://pw-gkyr1t3/202501hf01local', // In dev, Angular proxy will handle this
+
+        // Optional: Override the hosting URL (usually auto-detected)
+        hostingUrl: 'http://localhost:4200', // Development server
+
+        // Authentication server (separate from main API for development)
+        authUrl: 'https://pw-gkyr1t3/202501hf01local', // Production auth server
+
+        // Optional: Environment specific settings
+        environment: 'development', // 'development' | 'production'
+
+        // Optional: Debug mode
+        debug: true, // Enable debug logs in development
+      };
+
+      // Console info about configuration
+      console.log('📋 App Configuration loaded:', window.APP_CONFIG);
+    </script>
+    <script>
+      // Check if config loaded
+      console.log('🔍 Checking if APP_CONFIG loaded:', typeof window.APP_CONFIG, window.APP_CONFIG);
+    </script>
   </head>
   <body>
     <app-root></app-root>
@@ -18,5 +52,94 @@
     <!-- In development, the environment will use proxy, so baseUrl is empty -->
     <p hidden id="settings::baseUrl"></p>
     <p hidden id="settings::baseHostingUrl">http://localhost:4200</p>
+    <p hidden id="settings::authUrl"></p>
+    <script>
+      // Apply configuration from app-config.js
+      function applyConfiguration() {
+        console.log('🚀 Configuration script starting...');
+        const config = window.APP_CONFIG || {};
+        console.log('📝 Loaded config:', config);
+
+        // Auto-detect configuration if not explicitly set
+        const currentPath = window.location.pathname;
+        const pathSegments = currentPath.split('/').filter((seg) => seg);
+        const currentHost = window.location.origin;
+
+        // Determine base path
+        let basePath = config.basePath;
+        if (!basePath) {
+          // Auto-detect from URL path
+          basePath = pathSegments.length > 0 ? '/' + pathSegments[0] + '/' : '/';
+        }
+
+        // Determine API path
+        let apiPath = config.apiPath || '202501hf01local';
+
+        // Set API URL (for general API calls)
+        let baseApiUrl;
+        if (apiPath.startsWith('http')) {
+          // If apiPath is already a full URL, use it as-is
+          baseApiUrl = apiPath;
+        } else {
+          // If it's just a path, combine with current host
+          baseApiUrl = currentHost + '/' + apiPath;
+        }
+
+        // Determine authentication URL (can be different from API URL)
+        let authUrl = config.authUrl;
+        if (!authUrl) {
+          // If no explicit auth URL, use the same as baseApiUrl
+          authUrl = baseApiUrl;
+        }
+        // If authUrl is explicitly set and is a full URL, use it as-is
+        // If it's just a path, combine with current host
+        if (authUrl && !authUrl.startsWith('http')) {
+          authUrl = currentHost + '/' + authUrl;
+        }
+
+        // Determine title
+        let title = config.title;
+        if (!title) {
+          // Auto-detect based on path
+          const appName = pathSegments[0] || 'app';
+          const titleMap = {
+            crib: 'CRIB Management',
+            tdm: 'TDM Management',
+          };
+          title = titleMap[appName.toLowerCase()] || 'TDM Management';
+        }
+
+        // Apply configuration
+        document.title = title;
+
+        // Update base href if we detected a path
+        const baseElement = document.querySelector('base');
+        if (baseElement && basePath !== '/') {
+          baseElement.setAttribute('href', basePath);
+        }
+
+        // Set API URL (for general API calls)
+        document.getElementById('settings::baseUrl').innerText = baseApiUrl;
+        document.getElementById('settings::baseHostingUrl').innerText = currentHost;
+
+        // Set Authentication URL (can be different server)
+        document.getElementById('settings::authUrl').innerText = authUrl;
+
+        // Log configuration for debugging
+        console.log('🔧 Applied configuration:');
+        console.log('   Title:', title);
+        console.log('   Base Path:', basePath);
+        console.log('   API Path:', apiPath);
+        console.log('   API URL:', baseApiUrl);
+        console.log('   Auth URL:', authUrl);
+        console.log('   Host:', currentHost);
+        console.log('   Environment:', config.environment || 'auto-detected');
+
+        return { title, basePath, apiPath, baseApiUrl, authUrl, currentHost };
+      }
+
+      // Apply configuration when page loads
+      applyConfiguration();
+    </script>
   </body>
 </html>
