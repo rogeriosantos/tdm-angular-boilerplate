@@ -5,7 +5,8 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "build:prod": "ng build --configuration production",
+    "build:prod": "ng build --configuration production && copy src\\assets\\app-config.prod.js dist\\angular-project\\browser\\assets\\app-config.js",
+    "build:dev": "ng build --configuration development && copy src\\assets\\app-config.dev.js dist\\angular-project\\browser\\assets\\app-config.js",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "deploy:iis": "npm run build:prod && copy web.config.template dist\\angular-project\\browser\\web.config"

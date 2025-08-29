@@ -1,5 +1,5 @@
-// Application Configuration
-// This file can be customized for each deployment without rebuilding the application
+// Development Configuration
+// This file is used during development (ng serve)
 window.APP_CONFIG = {
   // Application title (will be shown in browser tab)
   title: 'TDM Management [DEV]',
@@ -14,7 +14,7 @@ window.APP_CONFIG = {
   hostingUrl: 'http://localhost:4200', // Development server
 
   // Authentication server (separate from main API for development)
-  authUrl: 'https://pw-gkyr1t3/202501hf01local', // Production auth server
+  authUrl: 'https://pw-gkyr1t3/202501hf01local', // Production auth server for testing
 
   // Optional: Environment specific settings
   environment: 'development', // 'development' | 'production'
@@ -24,4 +24,4 @@ window.APP_CONFIG = {
 };
 
 // Console info about configuration
-console.log('📋 App Configuration loaded:', window.APP_CONFIG);
+console.log('📋 App Configuration loaded (DEVELOPMENT):', window.APP_CONFIG);

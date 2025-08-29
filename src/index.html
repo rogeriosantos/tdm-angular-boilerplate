@@ -13,34 +13,7 @@
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
     <!-- Load configuration before the app starts -->
-    <script>
-      // Inline configuration for development to avoid loading issues
-      window.APP_CONFIG = {
-        // Application title (will be shown in browser tab)
-        title: 'TDM Management [DEV]',
-
-        // Base path for the application (e.g., '/crib/', '/myapp/', or '/' for root)
-        basePath: '/', // Use root path for development
-
-        // API endpoint path (will be combined with current host)
-        apiPath: 'https://pw-gkyr1t3/202501hf01local', // In dev, Angular proxy will handle this
-
-        // Optional: Override the hosting URL (usually auto-detected)
-        hostingUrl: 'http://localhost:4200', // Development server
-
-        // Authentication server (separate from main API for development)
-        authUrl: 'https://pw-gkyr1t3/202501hf01local', // Production auth server
-
-        // Optional: Environment specific settings
-        environment: 'development', // 'development' | 'production'
-
-        // Optional: Debug mode
-        debug: true, // Enable debug logs in development
-      };
-
-      // Console info about configuration
-      console.log('📋 App Configuration loaded:', window.APP_CONFIG);
-    </script>
+    <script src="assets/app-config.dev.js"></script>
     <script>
       // Check if config loaded
       console.log('🔍 Checking if APP_CONFIG loaded:', typeof window.APP_CONFIG, window.APP_CONFIG);
@@ -63,7 +36,9 @@
         // Auto-detect configuration if not explicitly set
         const currentPath = window.location.pathname;
         const pathSegments = currentPath.split('/').filter((seg) => seg);
-        const currentHost = window.location.origin;
+
+        // Use explicit host URL from config, or fall back to auto-detection
+        let currentHost = config.hostingUrl || window.location.origin;
 
         // Determine base path
         let basePath = config.basePath;
