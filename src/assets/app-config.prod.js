@@ -5,7 +5,7 @@ window.APP_CONFIG = {
   title: 'TDM Management',
 
   // Base path for the application (e.g., '/crib/', '/myapp/', or '/' for root)
-  basePath: '/crib/', // Production base path
+  basePath: '/202501hf01local/crib/', // Production base path with full path
 
   // Explicit host URL (replaces auto-detection)
   hostingUrl: 'https://pw-gkyr1t3/202501hf01local', // Production server
