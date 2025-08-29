@@ -14,4 +14,5 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
+  { path: '**', redirectTo: '/login' }, // Wildcard route to catch all unmatched routes
 ];
