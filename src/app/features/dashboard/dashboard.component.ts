@@ -4,13 +4,20 @@ import { AuthService } from '../auth/services/auth.service';
 import { UserProfileService } from '../../core/services/user-profile.service';
 import { Router } from '@angular/router';
 import { ToolbarComponent } from '../../layout/toolbar/toolbar.component';
+import { SelectMachineComponent } from '../../shared/components/select-machine/select-machine.component';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatButtonModule } from '@angular/material/button';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, ToolbarComponent, TranslocoDirective, MatButtonModule],
+  imports: [
+    CommonModule,
+    ToolbarComponent,
+    SelectMachineComponent,
+    TranslocoDirective,
+    MatButtonModule,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })

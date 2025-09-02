@@ -1,0 +1,102 @@
+<div class="flex flex-row bg-white border-t-2 border-gray-200 p-4 shadow-md">
+  <div class="basis-1/3"></div>
+  <div class="basis-1/3">
+    <div class="flex-grow flex justify-center items-center space-x-4">
+      <!-- select machine combobox -->
+      <div class="flex flex-col w-96">
+        <label for="machine" class="text-gray-700 font-medium mb-1 flex items-center">
+          <span class="mr-2">🏭</span>
+          Machine Select
+        </label>
+
+        <mat-form-field appearance="outline" class="custom-combobox">
+          <input
+            type="text"
+            placeholder="Select a machine..."
+            matInput
+            [formControl]="selectMachinesControl"
+            [matAutocomplete]="autoMachine"
+          />
+          <span
+            matSuffix
+            *ngIf="selectMachinesControl.value"
+            (click)="clearMachineSelection($event)"
+            class="cursor-pointer text-gray-500 hover:text-gray-700"
+            >✕</span
+          >
+        </mat-form-field>
+
+        <mat-autocomplete
+          #autoMachine="matAutocomplete"
+          [displayWith]="displayFnMachine"
+          (optionSelected)="onMachineOptionSelected($event)"
+        >
+          <mat-option *ngFor="let option of mockMachines" [value]="option">
+            <div class="option-content-machine">
+              <div class="machine-icon">🏭</div>
+              <div class="option-text">
+                <div>{{ option.id }}</div>
+                <div class="option-name">{{ option.name }}</div>
+              </div>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+      </div>
+
+      <!-- separator -->
+      <div class="flex flex-col justify-end">
+        <div class="arrow">➤</div>
+      </div>
+
+      <!-- Jobs selection combobox-->
+      <div class="flex flex-col w-96">
+        <label for="job" class="text-gray-700 font-medium mb-1 flex items-center">
+          <span class="mr-2">⚙️</span>
+          Job Select
+        </label>
+
+        <mat-form-field appearance="outline" class="custom-combobox">
+          <input
+            type="text"
+            placeholder="Select a job..."
+            matInput
+            [formControl]="selectJobsControl"
+            [matAutocomplete]="autoJob"
+            [disabled]="!selectedMachine"
+          />
+          <span
+            matSuffix
+            *ngIf="selectJobsControl.value"
+            (click)="clearJobSelection($event)"
+            class="cursor-pointer text-gray-500 hover:text-gray-700"
+            >✕</span
+          >
+        </mat-form-field>
+
+        <mat-autocomplete
+          #autoJob="matAutocomplete"
+          [displayWith]="displayFnJob"
+          (optionSelected)="onJobOptionSelected($event)"
+        >
+          <mat-option *ngFor="let option of filteredJobs" [value]="option">
+            <div class="option-content">
+              <div>{{ option.id }}</div>
+              <div class="job-description">{{ option.description }}</div>
+            </div>
+          </mat-option>
+        </mat-autocomplete>
+      </div>
+    </div>
+  </div>
+  <div class="basis-1/3 ml-4 mt-1.5">
+    <div>
+      <button
+        mat-flat-button
+        [disabled]="!selectedJob"
+        class="job-details-button px-4 py-2 rounded-md hover:bg-gray-300 hover:text-white right_button"
+      >
+        Show Job Details
+      </button>
+    </div>
+  </div>
+</div>
