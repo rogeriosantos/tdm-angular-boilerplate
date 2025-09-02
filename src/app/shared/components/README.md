@@ -1,12 +1,15 @@
 # Selection Components Architecture
 
 ## Overview
+
 This module provides a modular selection system with separate components for Cost Unit and Workplace selection, composed together in a selection bar.
 
 ## Component Structure
 
 ### 1. Cost Unit Selector (`costunit-selector/`)
+
 **Purpose**: Handles Cost Unit selection independently
+
 - **Selector**: `app-costunit-selector`
 - **Exports**: `CostUnit` interface
 - **Events**: `@Output() costUnitSelected: EventEmitter<CostUnit | null>`
@@ -16,7 +19,9 @@ This module provides a modular selection system with separate components for Cos
   - Emits selection events to parent
 
 ### 2. Workplace Selector (`workplace-selector/`)
+
 **Purpose**: Handles Workplace selection based on selected Cost Unit
+
 - **Selector**: `app-workplace-selector`
 - **Exports**: `Workplace` interface
 - **Inputs**: `@Input() selectedCostUnit: CostUnit | null`
@@ -28,7 +33,9 @@ This module provides a modular selection system with separate components for Cos
   - Emits selection events to parent
 
 ### 3. Selection Bar (`selection-bar/`)
+
 **Purpose**: Container component that orchestrates the two selectors
+
 - **Selector**: `app-selection-bar`
 - **Features**:
   - Combines both selectors in a horizontal layout
@@ -53,21 +60,22 @@ Selection Bar (Container)
 ## Usage
 
 ### In Dashboard
+
 ```html
 <app-selection-bar></app-selection-bar>
 ```
 
 ### Individual Components (if needed)
+
 ```html
 <!-- Cost Unit only -->
-<app-costunit-selector
-  (costUnitSelected)="onCostUnitSelected($event)">
-</app-costunit-selector>
+<app-costunit-selector (costUnitSelected)="onCostUnitSelected($event)"> </app-costunit-selector>
 
 <!-- Workplace only -->
 <app-workplace-selector
   [selectedCostUnit]="selectedCostUnit"
-  (workplaceSelected)="onWorkplaceSelected($event)">
+  (workplaceSelected)="onWorkplaceSelected($event)"
+>
 </app-workplace-selector>
 ```
 
@@ -82,12 +90,14 @@ Selection Bar (Container)
 ## Mock Data
 
 ### Cost Units
+
 - CU001: Production Department A
 - CU002: Assembly Line B
 - CU003: Quality Control C
 - CU004: Maintenance Unit D
 
 ### Workplaces
+
 - WP001: Main Production Floor (CU001)
 - WP002: CNC Machining Center (CU001)
 - WP003: Assembly Station 1 (CU002)

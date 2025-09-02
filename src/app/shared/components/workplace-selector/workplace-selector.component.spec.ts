@@ -8,9 +8,8 @@ describe('WorkplaceSelectorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [WorkplaceSelectorComponent]
-    })
-    .compileComponents();
+      imports: [WorkplaceSelectorComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(WorkplaceSelectorComponent);
     component = fixture.componentInstance;

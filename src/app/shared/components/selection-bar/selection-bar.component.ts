@@ -1,18 +1,19 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { CostunitSelectorComponent, CostUnit } from '../costunit-selector/costunit-selector.component';
-import { WorkplaceSelectorComponent, Workplace } from '../workplace-selector/workplace-selector.component';
+import {
+  CostunitSelectorComponent,
+  CostUnit,
+} from '../costunit-selector/costunit-selector.component';
+import {
+  WorkplaceSelectorComponent,
+  Workplace,
+} from '../workplace-selector/workplace-selector.component';
 
 @Component({
   selector: 'app-selection-bar',
   standalone: true,
-  imports: [
-    CommonModule,
-    MatButtonModule,
-    CostunitSelectorComponent,
-    WorkplaceSelectorComponent,
-  ],
+  imports: [CommonModule, MatButtonModule, CostunitSelectorComponent, WorkplaceSelectorComponent],
   templateUrl: './selection-bar.component.html',
   styleUrls: ['./selection-bar.component.scss'],
 })

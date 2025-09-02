@@ -8,9 +8,8 @@ describe('CostunitSelectorComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CostunitSelectorComponent]
-    })
-    .compileComponents();
+      imports: [CostunitSelectorComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(CostunitSelectorComponent);
     component = fixture.componentInstance;

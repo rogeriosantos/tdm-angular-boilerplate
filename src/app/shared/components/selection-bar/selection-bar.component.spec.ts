@@ -8,9 +8,8 @@ describe('SelectionBarComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SelectionBarComponent]
-    })
-    .compileComponents();
+      imports: [SelectionBarComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(SelectionBarComponent);
     component = fixture.componentInstance;
