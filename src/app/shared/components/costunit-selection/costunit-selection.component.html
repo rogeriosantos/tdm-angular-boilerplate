@@ -2,38 +2,38 @@
   <div class="basis-1/3"></div>
   <div class="basis-1/3">
     <div class="flex-grow flex justify-center items-center space-x-4">
-      <!-- select machine combobox -->
+      <!-- select costunit combobox -->
       <div class="flex flex-col w-96">
-        <label for="machine" class="text-gray-700 font-medium mb-1 flex items-center">
+        <label for="costunit" class="text-gray-700 font-medium mb-1 flex items-center">
           <span class="mr-2">🏭</span>
-          Machine Select
+          Cost Unit Select
         </label>
 
         <mat-form-field appearance="outline" class="custom-combobox">
           <input
             type="text"
-            placeholder="Select a machine..."
+            placeholder="Select a cost unit..."
             matInput
-            [formControl]="selectMachinesControl"
-            [matAutocomplete]="autoMachine"
+            [formControl]="selectCostUnitsControl"
+            [matAutocomplete]="autoCostUnit"
           />
           <span
             matSuffix
-            *ngIf="selectMachinesControl.value"
-            (click)="clearMachineSelection($event)"
+            *ngIf="selectCostUnitsControl.value"
+            (click)="clearCostUnitSelection($event)"
             class="cursor-pointer text-gray-500 hover:text-gray-700"
             >✕</span
           >
         </mat-form-field>
 
         <mat-autocomplete
-          #autoMachine="matAutocomplete"
-          [displayWith]="displayFnMachine"
-          (optionSelected)="onMachineOptionSelected($event)"
+          #autoCostUnit="matAutocomplete"
+          [displayWith]="displayFnCostUnit"
+          (optionSelected)="onCostUnitOptionSelected($event)"
         >
-          <mat-option *ngFor="let option of mockMachines" [value]="option">
-            <div class="option-content-machine">
-              <div class="machine-icon">🏭</div>
+          <mat-option *ngFor="let option of mockCostUnits" [value]="option">
+            <div class="option-content-costunit">
+              <div class="costunit-icon">🏭</div>
               <div class="option-text">
                 <div>{{ option.id }}</div>
                 <div class="option-name">{{ option.name }}</div>
@@ -48,37 +48,37 @@
         <div class="arrow">➤</div>
       </div>
 
-      <!-- Jobs selection combobox-->
+      <!-- Workplace selection combobox-->
       <div class="flex flex-col w-96">
-        <label for="job" class="text-gray-700 font-medium mb-1 flex items-center">
-          <span class="mr-2">⚙️</span>
-          Job Select
+        <label for="workplace" class="text-gray-700 font-medium mb-1 flex items-center">
+          <span class="mr-2">🏢</span>
+          Workplace
         </label>
 
         <mat-form-field appearance="outline" class="custom-combobox">
           <input
             type="text"
-            placeholder="Select a job..."
+            placeholder="Select a workplace..."
             matInput
-            [formControl]="selectJobsControl"
-            [matAutocomplete]="autoJob"
-            [disabled]="!selectedMachine"
+            [formControl]="selectWorkplacesControl"
+            [matAutocomplete]="autoWorkplace"
+            [disabled]="!selectedCostUnit"
           />
           <span
             matSuffix
-            *ngIf="selectJobsControl.value"
-            (click)="clearJobSelection($event)"
+            *ngIf="selectWorkplacesControl.value"
+            (click)="clearWorkplaceSelection($event)"
             class="cursor-pointer text-gray-500 hover:text-gray-700"
             >✕</span
           >
         </mat-form-field>
 
         <mat-autocomplete
-          #autoJob="matAutocomplete"
-          [displayWith]="displayFnJob"
-          (optionSelected)="onJobOptionSelected($event)"
+          #autoWorkplace="matAutocomplete"
+          [displayWith]="displayFnWorkplace"
+          (optionSelected)="onWorkplaceOptionSelected($event)"
         >
-          <mat-option *ngFor="let option of filteredJobs" [value]="option">
+          <mat-option *ngFor="let option of filteredWorkplaces" [value]="option">
             <div class="option-content">
               <div>{{ option.id }}</div>
               <div class="job-description">{{ option.description }}</div>
@@ -92,10 +92,10 @@
     <div>
       <button
         mat-flat-button
-        [disabled]="!selectedJob"
+        [disabled]="!selectedWorkplace"
         class="job-details-button px-4 py-2 rounded-md hover:bg-gray-300 hover:text-white right_button"
       >
-        Show Job Details
+        Show Workplace Details
       </button>
     </div>
   </div>
