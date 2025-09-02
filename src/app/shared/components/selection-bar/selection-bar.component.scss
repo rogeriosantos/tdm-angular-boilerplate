@@ -1,0 +1,38 @@
+.flex-grow {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.right_button,
+button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+.right_button {
+  margin-top: 2rem;
+}
+
+.details-button {
+  display: flex;
+  height: 2.5rem;
+  padding: 0 1.5rem;
+  justify-content: center;
+  align-items: center;
+  gap: 0.625rem;
+  border-radius: 0.25rem;
+  border: 1px solid #d9d9d9;
+}
+
+.arrow {
+  width: 3rem;
+  height: 3rem;
+  margin: 1.5rem 0.5rem 0;
+  align-self: flex-end;
+  font-size: 2rem;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

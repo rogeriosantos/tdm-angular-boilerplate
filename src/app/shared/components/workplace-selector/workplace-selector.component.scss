@@ -1,0 +1,34 @@
+.option-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.workplace-description {
+  font-size: 0.875rem;
+  color: gray;
+}
+
+.mat-form-field {
+  width: 100%;
+}
+
+.custom-combobox {
+  .mat-mdc-form-field {
+    width: 100%;
+  }
+}
+
+// Override Material autocomplete panel height
+:host ::ng-deep .mat-mdc-autocomplete-panel {
+  max-height: 400px !important;
+  height: auto !important;
+}
+
+// Style disabled state
+.mat-mdc-form-field.mat-form-field-disabled {
+  opacity: 0.6;
+}
+
+.mat-mdc-form-field.mat-form-field-disabled .mat-mdc-form-field-outline {
+  color: rgba(0, 0, 0, 0.26);
+}

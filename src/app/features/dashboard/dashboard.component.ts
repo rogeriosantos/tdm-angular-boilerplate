@@ -4,7 +4,7 @@ import { AuthService } from '../auth/services/auth.service';
 import { UserProfileService } from '../../core/services/user-profile.service';
 import { Router } from '@angular/router';
 import { ToolbarComponent } from '../../layout/toolbar/toolbar.component';
-import { CostunitSelectionComponent } from '../../shared/components/costunit-selection/costunit-selection.component';
+import { SelectionBarComponent } from '../../shared/components/selection-bar/selection-bar.component';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -14,7 +14,7 @@ import { MatButtonModule } from '@angular/material/button';
   imports: [
     CommonModule,
     ToolbarComponent,
-    CostunitSelectionComponent,
+    SelectionBarComponent,
     TranslocoDirective,
     MatButtonModule,
   ],

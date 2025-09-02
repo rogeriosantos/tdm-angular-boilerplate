@@ -1,0 +1,37 @@
+<div class="flex flex-col w-96">
+  <label for="workplace" class="text-gray-700 font-medium mb-1 flex items-center">
+    <span class="mr-2">🏢</span>
+    Workplace
+  </label>
+
+  <mat-form-field appearance="outline" class="custom-combobox">
+    <input
+      type="text"
+      placeholder="Select a workplace..."
+      matInput
+      [formControl]="selectWorkplacesControl"
+      [matAutocomplete]="autoWorkplace"
+      [disabled]="isDisabled"
+    />
+    <span
+      matSuffix
+      *ngIf="selectWorkplacesControl.value"
+      (click)="clearWorkplaceSelection($event)"
+      class="cursor-pointer text-gray-500 hover:text-gray-700"
+      >✕</span
+    >
+  </mat-form-field>
+
+  <mat-autocomplete
+    #autoWorkplace="matAutocomplete"
+    [displayWith]="displayFnWorkplace"
+    (optionSelected)="onWorkplaceOptionSelected($event)"
+  >
+    <mat-option *ngFor="let option of filteredWorkplaces" [value]="option">
+      <div class="option-content">
+        <div>{{ option.id }}</div>
+        <div class="workplace-description">{{ option.description }}</div>
+      </div>
+    </mat-option>
+  </mat-autocomplete>
+</div>

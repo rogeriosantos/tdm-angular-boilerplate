@@ -1,0 +1,39 @@
+<div class="flex flex-col w-96">
+  <label for="costunit" class="text-gray-700 font-medium mb-1 flex items-center">
+    <span class="mr-2">🏭</span>
+    Cost Unit
+  </label>
+
+  <mat-form-field appearance="outline" class="custom-combobox">
+    <input
+      type="text"
+      placeholder="Select a cost unit..."
+      matInput
+      [formControl]="selectCostUnitsControl"
+      [matAutocomplete]="autoCostUnit"
+    />
+    <span
+      matSuffix
+      *ngIf="selectCostUnitsControl.value"
+      (click)="clearCostUnitSelection($event)"
+      class="cursor-pointer text-gray-500 hover:text-gray-700"
+      >✕</span
+    >
+  </mat-form-field>
+
+  <mat-autocomplete
+    #autoCostUnit="matAutocomplete"
+    [displayWith]="displayFnCostUnit"
+    (optionSelected)="onCostUnitOptionSelected($event)"
+  >
+    <mat-option *ngFor="let option of mockCostUnits" [value]="option">
+      <div class="option-content-costunit">
+        <div class="costunit-icon">🏢</div>
+        <div class="option-text">
+          <div>{{ option.id }}</div>
+          <div class="option-name">{{ option.name }}</div>
+        </div>
+      </div>
+    </mat-option>
+  </mat-autocomplete>
+</div>
