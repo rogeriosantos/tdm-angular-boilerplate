@@ -79,6 +79,9 @@ export class BookingsTableComponent implements OnChanges {
   draggedColumn: string | null = null;
   dragOverColumn: string | null = null;
 
+  // Column resize state
+  resizing = false;
+
   get tableState(): TableState {
     if (this.loading) return 'loading';
     if (!this.hasCostUnit) return 'no-selection';
@@ -151,6 +154,41 @@ export class BookingsTableComponent implements OnChanges {
   onColumnDragEnd(): void {
     this.draggedColumn = null;
     this.dragOverColumn = null;
+  }
+
+  // --- Column resize (mousedown on handle) ---
+
+  onResizeStart(event: MouseEvent, column: string): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    this.resizing = true;
+
+    const th = (event.target as HTMLElement).closest('th') as HTMLElement;
+    if (!th) return;
+
+    const startX = event.pageX;
+    const startWidth = th.offsetWidth;
+
+    const onMouseMove = (e: MouseEvent) => {
+      const delta = e.pageX - startX;
+      const newWidth = Math.max(40, startWidth + delta);
+      th.style.width = newWidth + 'px';
+      th.style.minWidth = newWidth + 'px';
+    };
+
+    const onMouseUp = () => {
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      this.resizing = false;
+    };
+
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
   }
 
   // --- Filter ---

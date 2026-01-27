@@ -70,6 +70,11 @@
             [class.column-drag-over]="dragOverColumn === 'toolAssembly'"
           >
             {{ t('columns.tool-assembly') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'toolAssembly')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             <div class="cell-content">
@@ -97,6 +102,11 @@
             [class.column-drag-over]="dragOverColumn === 'targetCostUnit'"
           >
             {{ t('columns.target-cost-unit') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'targetCostUnit')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             <div class="cell-content">
@@ -122,6 +132,11 @@
             [class.column-drag-over]="dragOverColumn === 'articleId'"
           >
             {{ t('columns.article-id') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'articleId')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             <div class="cell-content">
@@ -144,6 +159,11 @@
             [class.column-drag-over]="dragOverColumn === 'type'"
           >
             {{ t('columns.type') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'type')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             {{ row.type }}
@@ -162,6 +182,11 @@
             [class.column-drag-over]="dragOverColumn === 'quantity'"
           >
             {{ t('columns.quantity') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'quantity')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             {{ getQuantity(row) }}
@@ -180,6 +205,11 @@
             [class.column-drag-over]="dragOverColumn === 'stockPlaceId'"
           >
             {{ t('columns.stock-place-id') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'stockPlaceId')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             {{ row.stockplaceId }}
@@ -198,6 +228,11 @@
             [class.column-drag-over]="dragOverColumn === 'storageUnit'"
           >
             {{ t('columns.storage-unit') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'storageUnit')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             {{ row.hallId }}
@@ -216,6 +251,11 @@
             [class.column-drag-over]="dragOverColumn === 'shelf'"
           >
             {{ t('columns.shelf') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'shelf')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             {{ row.shelfId }}
@@ -234,6 +274,11 @@
             [class.column-drag-over]="dragOverColumn === 'width'"
           >
             {{ t('columns.width') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'width')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             {{ row.width }}
@@ -252,6 +297,11 @@
             [class.column-drag-over]="dragOverColumn === 'depth'"
           >
             {{ t('columns.depth') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'depth')"
+              (click)="$event.stopPropagation()">
+            </span>
           </th>
           <td mat-cell *matCellDef="let row">
             {{ row.depth }}
