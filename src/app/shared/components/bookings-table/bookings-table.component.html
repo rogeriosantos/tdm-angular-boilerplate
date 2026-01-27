@@ -41,6 +41,39 @@
           </button>
         }
       </mat-form-field>
+
+      <span class="filter-bar-spacer"></span>
+
+      <button
+        mat-icon-button
+        [matTooltip]="t('config.export')"
+        (click)="exportColumnConfig()"
+      >
+        <mat-icon>file_download</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        [matTooltip]="t('config.import')"
+        (click)="triggerImport()"
+      >
+        <mat-icon>file_upload</mat-icon>
+      </button>
+      <button
+        mat-icon-button
+        [matTooltip]="t('config.reset')"
+        (click)="resetColumnConfig()"
+      >
+        <mat-icon>settings_backup_restore</mat-icon>
+      </button>
+
+      <!-- Hidden file input for import -->
+      <input
+        #fileInput
+        type="file"
+        accept=".json"
+        class="hidden-file-input"
+        (change)="onImportFile($event)"
+      />
     </div>
 
     <!-- Loading State -->
@@ -340,6 +373,7 @@
         <tr
           mat-header-row
           *matHeaderRowDef="displayedColumns"
+          (contextmenu)="onHeaderContextMenu($event)"
         ></tr>
         <tr
           mat-row
@@ -365,6 +399,28 @@
         </tr>
       </table>
     </div>
+
+    <!-- Column visibility context menu (hidden trigger + menu) -->
+    <div
+      class="context-menu-trigger"
+      [style.left.px]="contextMenuX"
+      [style.top.px]="contextMenuY"
+      [matMenuTriggerFor]="columnMenu"
+      #columnMenuTrigger="matMenuTrigger"
+    ></div>
+    <mat-menu #columnMenu="matMenu" class="column-context-menu">
+      @for (col of allColumns; track col.key) {
+        <button mat-menu-item (click)="toggleColumnVisibility(col.key); $event.stopPropagation()">
+          <mat-checkbox
+            [checked]="isColumnVisible(col.key)"
+            (click)="$event.stopPropagation()"
+            (change)="toggleColumnVisibility(col.key)"
+          >
+            {{ t(col.labelKey) }}
+          </mat-checkbox>
+        </button>
+      }
+    </mat-menu>
 
     <!-- Paginator -->
     <mat-paginator

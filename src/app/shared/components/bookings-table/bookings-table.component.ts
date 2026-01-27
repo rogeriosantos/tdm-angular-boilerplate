@@ -6,6 +6,8 @@ import {
   ViewChild,
   OnChanges,
   SimpleChanges,
+  ElementRef,
+  AfterViewInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -17,9 +19,16 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SelectionModel } from '@angular/cdk/collections';
 import { BookingToolItem } from '../../../core/services/booking.service';
+
+export interface ColumnDef {
+  key: string;
+  labelKey: string;
+}
 
 export type TableState =
   | 'no-selection'
@@ -27,6 +36,14 @@ export type TableState =
   | 'loading'
   | 'empty'
   | 'data';
+
+interface ColumnConfig {
+  order: string[];
+  visibility: Record<string, boolean>;
+  widths: Record<string, number>;
+}
+
+const STORAGE_KEY = 'bookings-table-column-config';
 
 @Component({
   selector: 'app-bookings-table',
@@ -42,12 +59,14 @@ export type TableState =
     MatButtonModule,
     MatCheckboxModule,
     MatProgressSpinnerModule,
+    MatMenuModule,
+    MatTooltipModule,
     TranslocoDirective,
   ],
   templateUrl: './bookings-table.component.html',
   styleUrls: ['./bookings-table.component.scss'],
 })
-export class BookingsTableComponent implements OnChanges {
+export class BookingsTableComponent implements OnChanges, AfterViewInit {
   @Input() bookings: BookingToolItem[] = [];
   @Input() loading = false;
   @Input() hasCostUnit = false;
@@ -56,20 +75,35 @@ export class BookingsTableComponent implements OnChanges {
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild('columnMenuTrigger', { read: MatMenuTrigger }) columnMenuTrigger!: MatMenuTrigger;
+  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  displayedColumns: string[] = [
-    'toolAssembly',
-    'targetCostUnit',
-    'articleId',
-    'type',
-    'quantity',
-    'stockPlaceId',
-    'storageUnit',
-    'shelf',
-    'width',
-    'depth',
-    'select',
+  // All available columns in default order
+  allColumns: ColumnDef[] = [
+    { key: 'toolAssembly', labelKey: 'columns.tool-assembly' },
+    { key: 'targetCostUnit', labelKey: 'columns.target-cost-unit' },
+    { key: 'articleId', labelKey: 'columns.article-id' },
+    { key: 'type', labelKey: 'columns.type' },
+    { key: 'quantity', labelKey: 'columns.quantity' },
+    { key: 'stockPlaceId', labelKey: 'columns.stock-place-id' },
+    { key: 'storageUnit', labelKey: 'columns.storage-unit' },
+    { key: 'shelf', labelKey: 'columns.shelf' },
+    { key: 'width', labelKey: 'columns.width' },
+    { key: 'depth', labelKey: 'columns.depth' },
+    { key: 'select', labelKey: 'columns.select' },
   ];
+
+  // Track visibility per column
+  columnVisibility: Record<string, boolean> = {};
+
+  // Track column widths
+  columnWidths: Record<string, number> = {};
+
+  // Current display order (visible columns only)
+  displayedColumns: string[] = [];
+
+  // Full ordered list (includes hidden columns for ordering)
+  private columnOrder: string[] = [];
 
   dataSource = new MatTableDataSource<BookingToolItem>();
   selection = new SelectionModel<BookingToolItem>(true, []);
@@ -81,6 +115,19 @@ export class BookingsTableComponent implements OnChanges {
 
   // Column resize state
   resizing = false;
+
+  // Context menu position
+  contextMenuX = 0;
+  contextMenuY = 0;
+
+  private readonly defaultOrder: string[];
+
+  constructor() {
+    this.defaultOrder = this.allColumns.map((c) => c.key);
+    this.initDefaults();
+    this.loadFromStorage();
+    this.updateDisplayedColumns();
+  }
 
   get tableState(): TableState {
     if (this.loading) return 'loading';
@@ -117,6 +164,177 @@ export class BookingsTableComponent implements OnChanges {
         (data.type || '').toLowerCase().includes(searchStr)
       );
     };
+
+    // Apply saved widths after view is ready
+    this.applySavedWidths();
+  }
+
+  // --- Persistence (localStorage) ---
+
+  private initDefaults(): void {
+    this.columnOrder = [...this.defaultOrder];
+    for (const col of this.allColumns) {
+      this.columnVisibility[col.key] = true;
+    }
+    this.columnWidths = {};
+  }
+
+  private loadFromStorage(): void {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return;
+      this.applyConfig(JSON.parse(raw));
+    } catch {
+      // Corrupted data — use defaults
+    }
+  }
+
+  private saveToStorage(): void {
+    const config: ColumnConfig = {
+      order: this.columnOrder,
+      visibility: { ...this.columnVisibility },
+      widths: { ...this.columnWidths },
+    };
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+    } catch {
+      // Storage full or unavailable — silently ignore
+    }
+  }
+
+  private applyConfig(config: ColumnConfig): void {
+    const validKeys = new Set(this.allColumns.map((c) => c.key));
+
+    // Validate and apply order
+    if (Array.isArray(config.order)) {
+      const validOrder = config.order.filter((k) => validKeys.has(k));
+      // Add any missing columns at the end
+      for (const key of this.defaultOrder) {
+        if (!validOrder.includes(key)) {
+          validOrder.push(key);
+        }
+      }
+      this.columnOrder = validOrder;
+    }
+
+    // Apply visibility
+    if (config.visibility && typeof config.visibility === 'object') {
+      for (const key of this.defaultOrder) {
+        this.columnVisibility[key] =
+          key in config.visibility ? !!config.visibility[key] : true;
+      }
+    }
+
+    // Apply widths
+    if (config.widths && typeof config.widths === 'object') {
+      this.columnWidths = {};
+      for (const [key, width] of Object.entries(config.widths)) {
+        if (validKeys.has(key) && typeof width === 'number' && width > 0) {
+          this.columnWidths[key] = width;
+        }
+      }
+    }
+  }
+
+  private applySavedWidths(): void {
+    // Apply saved widths to <th> elements after render
+    setTimeout(() => {
+      const table = document.querySelector('.bookings-mat-table');
+      if (!table) return;
+      for (const [colKey, width] of Object.entries(this.columnWidths)) {
+        const th = table.querySelector(
+          `th.mat-column-${colKey}`
+        ) as HTMLElement;
+        if (th) {
+          th.style.width = width + 'px';
+          th.style.minWidth = width + 'px';
+        }
+      }
+    });
+  }
+
+  resetColumnConfig(): void {
+    this.initDefaults();
+    this.updateDisplayedColumns();
+    this.saveToStorage();
+
+    // Clear inline widths
+    const table = document.querySelector('.bookings-mat-table');
+    if (table) {
+      table.querySelectorAll('th.mat-mdc-header-cell').forEach((th) => {
+        (th as HTMLElement).style.width = '';
+        (th as HTMLElement).style.minWidth = '';
+      });
+    }
+  }
+
+  // --- Export / Import ---
+
+  exportColumnConfig(): void {
+    const config: ColumnConfig = {
+      order: this.columnOrder,
+      visibility: { ...this.columnVisibility },
+      widths: { ...this.columnWidths },
+    };
+    const json = JSON.stringify(config, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'bookings-table-config.json';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  triggerImport(): void {
+    this.fileInput.nativeElement.click();
+  }
+
+  onImportFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const config: ColumnConfig = JSON.parse(reader.result as string);
+        this.applyConfig(config);
+        this.updateDisplayedColumns();
+        this.saveToStorage();
+        this.applySavedWidths();
+      } catch {
+        console.error('Invalid column config file');
+      }
+      // Reset file input so the same file can be re-imported
+      input.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  // --- Column visibility (context menu) ---
+
+  onHeaderContextMenu(event: MouseEvent): void {
+    event.preventDefault();
+    this.contextMenuX = event.clientX;
+    this.contextMenuY = event.clientY;
+    this.columnMenuTrigger.openMenu();
+  }
+
+  isColumnVisible(key: string): boolean {
+    return this.columnVisibility[key] ?? true;
+  }
+
+  toggleColumnVisibility(key: string): void {
+    this.columnVisibility[key] = !this.columnVisibility[key];
+    this.updateDisplayedColumns();
+    this.saveToStorage();
+  }
+
+  private updateDisplayedColumns(): void {
+    this.displayedColumns = this.columnOrder.filter(
+      (key) => this.columnVisibility[key]
+    );
   }
 
   // --- Column drag-and-drop (native HTML5) ---
@@ -140,11 +358,13 @@ export class BookingsTableComponent implements OnChanges {
   onColumnDrop(event: DragEvent, targetColumn: string): void {
     event.preventDefault();
     if (this.draggedColumn && this.draggedColumn !== targetColumn) {
-      const fromIndex = this.displayedColumns.indexOf(this.draggedColumn);
-      const toIndex = this.displayedColumns.indexOf(targetColumn);
+      const fromIndex = this.columnOrder.indexOf(this.draggedColumn);
+      const toIndex = this.columnOrder.indexOf(targetColumn);
       if (fromIndex !== -1 && toIndex !== -1) {
-        this.displayedColumns.splice(fromIndex, 1);
-        this.displayedColumns.splice(toIndex, 0, this.draggedColumn);
+        this.columnOrder.splice(fromIndex, 1);
+        this.columnOrder.splice(toIndex, 0, this.draggedColumn);
+        this.updateDisplayedColumns();
+        this.saveToStorage();
       }
     }
     this.draggedColumn = null;
@@ -183,6 +403,10 @@ export class BookingsTableComponent implements OnChanges {
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
       this.resizing = false;
+
+      // Save the final width
+      this.columnWidths[column] = th.offsetWidth;
+      this.saveToStorage();
     };
 
     document.body.style.cursor = 'col-resize';

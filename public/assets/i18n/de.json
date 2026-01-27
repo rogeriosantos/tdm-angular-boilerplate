@@ -29,6 +29,11 @@
     "empty": "Keine Buchungen gefunden",
     "select-cost-unit-and-workplace": "Bitte wählen Sie eine Kostenstelle und einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
     "select-workplace": "Bitte wählen Sie einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
+    "config": {
+      "export": "Spalteneinstellung exportieren",
+      "import": "Spalteneinstellung importieren",
+      "reset": "Auf Standard zurücksetzen"
+    },
     "columns": {
       "tool-assembly": "Komplettwerkzeug",
       "target-cost-unit": "Zielkostenstelle",
@@ -39,7 +44,8 @@
       "storage-unit": "Lagereinheit",
       "shelf": "Fachboden",
       "width": "Breite",
-      "depth": "Tiefe"
+      "depth": "Tiefe",
+      "select": "Auswahl"
     }
   }
 }
