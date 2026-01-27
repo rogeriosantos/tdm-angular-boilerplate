@@ -28,7 +28,8 @@ import { Workplace } from '../../shared/components/workplace-selector/workplace-
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent {
-  bookings: BookingToolItem[] = [];
+  toolItems: BookingToolItem[] = [];
+  toolAssemblies: BookingToolItem[] = [];
   loadingBookings = false;
   selectedCostUnitId: string | null = null;
   selectedWorkplaceId: string | null = null;
@@ -48,13 +49,15 @@ export class DashboardComponent {
     this.selectedCostUnitId = costUnit?.id || null;
     // Reset workplace and bookings when cost unit changes
     this.selectedWorkplaceId = null;
-    this.bookings = [];
+    this.toolItems = [];
+    this.toolAssemblies = [];
   }
 
   onWorkplaceChanged(workplace: Workplace | null): void {
     this.selectedWorkplaceId = workplace?.id || null;
     if (!workplace) {
-      this.bookings = [];
+      this.toolItems = [];
+      this.toolAssemblies = [];
     }
   }
 
@@ -71,14 +74,19 @@ export class DashboardComponent {
 
     this.loadingBookings = true;
     this.bookingService
-      .getUnconfirmedBookings(this.selectedCostUnitId, this.selectedWorkplaceId)
+      .getUnconfirmedBookingsWithAssemblies(
+        this.selectedCostUnitId,
+        this.selectedWorkplaceId
+      )
       .subscribe({
-        next: (bookings) => {
-          this.bookings = bookings;
+        next: (result) => {
+          this.toolItems = result.toolItems;
+          this.toolAssemblies = result.toolAssemblies;
           this.loadingBookings = false;
         },
         error: () => {
-          this.bookings = [];
+          this.toolItems = [];
+          this.toolAssemblies = [];
           this.loadingBookings = false;
         },
       });

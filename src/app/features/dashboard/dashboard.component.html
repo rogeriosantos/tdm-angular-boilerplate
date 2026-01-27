@@ -12,7 +12,8 @@
   <!-- Bookings Table (always visible) -->
   <main class="dashboard-content">
     <app-bookings-table
-      [bookings]="bookings"
+      [toolItems]="toolItems"
+      [toolAssemblies]="toolAssemblies"
       [loading]="loadingBookings"
       [hasCostUnit]="!!selectedCostUnitId"
       [hasWorkplace]="!!selectedWorkplaceId"

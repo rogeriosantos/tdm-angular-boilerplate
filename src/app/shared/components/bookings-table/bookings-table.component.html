@@ -91,6 +91,22 @@
         matSort
         class="bookings-mat-table"
       >
+        <!-- Expand Column (always first, not draggable/resizable/sortable) -->
+        <ng-container matColumnDef="expand">
+          <th mat-header-cell *matHeaderCellDef class="expand-column"></th>
+          <td mat-cell *matCellDef="let row" class="expand-column">
+            @if (row.rowType === 'assembly') {
+              <button
+                mat-icon-button
+                class="expand-button"
+                (click)="toggleExpand(row); $event.stopPropagation()"
+              >
+                <mat-icon>{{ row.isExpanded ? 'expand_more' : 'chevron_right' }}</mat-icon>
+              </button>
+            }
+          </td>
+        </ng-container>
+
         <!-- Tool Assembly Column -->
         <ng-container matColumnDef="toolAssembly">
           <th mat-header-cell *matHeaderCellDef mat-sort-header
@@ -112,11 +128,11 @@
           <td mat-cell *matCellDef="let row">
             <div class="cell-content">
               <span class="primary-text">{{
-                row.relationToolAssemblyId || '-'
+                row.data.relationToolAssemblyId || '-'
               }}</span>
-              @if (row.relationToolAssemblyName) {
+              @if (row.data.relationToolAssemblyName) {
                 <span class="secondary-text">{{
-                  row.relationToolAssemblyName
+                  row.data.relationToolAssemblyName
                 }}</span>
               }
             </div>
@@ -144,10 +160,10 @@
           <td mat-cell *matCellDef="let row">
             <div class="cell-content">
               <span class="primary-text">{{
-                row.toCostunitId || '-'
+                row.data.toCostunitId || '-'
               }}</span>
-              @if (row.toCostunitName) {
-                <span class="secondary-text">{{ row.toCostunitName }}</span>
+              @if (row.data.toCostunitName) {
+                <span class="secondary-text">{{ row.data.toCostunitName }}</span>
               }
             </div>
           </td>
@@ -173,9 +189,9 @@
           </th>
           <td mat-cell *matCellDef="let row">
             <div class="cell-content">
-              <span class="primary-text article-id">{{ row.articleId }}</span>
-              <span class="secondary-text">{{ row.articleName }}</span>
-              <span class="tertiary-text">{{ row.articleDescription }}</span>
+              <span class="primary-text article-id">{{ row.data.articleId }}</span>
+              <span class="secondary-text">{{ row.data.articleName }}</span>
+              <span class="tertiary-text">{{ row.data.articleDescription }}</span>
             </div>
           </td>
         </ng-container>
@@ -199,7 +215,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.type }}
+            {{ row.data.type }}
           </td>
         </ng-container>
 
@@ -245,7 +261,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.stockplaceId }}
+            {{ row.data.stockplaceId }}
           </td>
         </ng-container>
 
@@ -268,7 +284,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.hallId }}
+            {{ row.data.hallId }}
           </td>
         </ng-container>
 
@@ -291,7 +307,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.shelfId }}
+            {{ row.data.shelfId }}
           </td>
         </ng-container>
 
@@ -314,7 +330,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.width }}
+            {{ row.data.width }}
           </td>
         </ng-container>
 
@@ -337,7 +353,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.depth }}
+            {{ row.data.depth }}
           </td>
         </ng-container>
 
@@ -380,6 +396,8 @@
           *matRowDef="let row; columns: displayedColumns"
           (click)="selection.toggle(row)"
           [class.selected-row]="selection.isSelected(row)"
+          [class.assembly-row]="row.rowType === 'assembly'"
+          [class.child-row]="row.rowType === 'child'"
         ></tr>
 
         <!-- Empty State (no data after loading) -->

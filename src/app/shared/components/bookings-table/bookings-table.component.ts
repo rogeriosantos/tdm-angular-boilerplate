@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
-import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -36,6 +36,16 @@ export type TableState =
   | 'loading'
   | 'empty'
   | 'data';
+
+export type RowType = 'assembly' | 'child' | 'standalone';
+
+export interface BookingTableRow {
+  data: BookingToolItem;
+  rowType: RowType;
+  isExpanded: boolean;
+  parentAssemblyId: string | null;
+  childCount: number;
+}
 
 interface ColumnConfig {
   order: string[];
@@ -67,7 +77,8 @@ const STORAGE_KEY = 'bookings-table-column-config';
   styleUrls: ['./bookings-table.component.scss'],
 })
 export class BookingsTableComponent implements OnChanges, AfterViewInit {
-  @Input() bookings: BookingToolItem[] = [];
+  @Input() toolItems: BookingToolItem[] = [];
+  @Input() toolAssemblies: BookingToolItem[] = [];
   @Input() loading = false;
   @Input() hasCostUnit = false;
   @Input() hasWorkplace = false;
@@ -78,7 +89,7 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
   @ViewChild('columnMenuTrigger', { read: MatMenuTrigger }) columnMenuTrigger!: MatMenuTrigger;
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  // All available columns in default order
+  // All available columns in default order (expand is always prepended, not in this list)
   allColumns: ColumnDef[] = [
     { key: 'toolAssembly', labelKey: 'columns.tool-assembly' },
     { key: 'targetCostUnit', labelKey: 'columns.target-cost-unit' },
@@ -99,15 +110,22 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
   // Track column widths
   columnWidths: Record<string, number> = {};
 
-  // Current display order (visible columns only)
+  // Current display order (visible columns only, expand always first)
   displayedColumns: string[] = [];
 
-  // Full ordered list (includes hidden columns for ordering)
+  // Full ordered list (includes hidden columns for ordering — does NOT include 'expand')
   private columnOrder: string[] = [];
 
-  dataSource = new MatTableDataSource<BookingToolItem>();
-  selection = new SelectionModel<BookingToolItem>(true, []);
+  dataSource = new MatTableDataSource<BookingTableRow>();
+  selection = new SelectionModel<BookingTableRow>(true, []);
   filterValue = '';
+
+  // Expand state tracking: assemblyId -> expanded
+  private expandedAssemblies = new Set<string>();
+
+  // All built rows (parents/standalone + children hidden until expand)
+  private allRows: BookingTableRow[] = [];
+  private childrenByAssembly = new Map<string, BookingTableRow[]>();
 
   // Column drag state
   draggedColumn: string | null = null;
@@ -133,13 +151,15 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     if (this.loading) return 'loading';
     if (!this.hasCostUnit) return 'no-selection';
     if (!this.hasWorkplace) return 'no-workplace';
-    if (this.bookings.length === 0) return 'empty';
+    if (this.toolItems.length === 0 && this.toolAssemblies.length === 0)
+      return 'empty';
     return 'data';
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['bookings']) {
-      this.dataSource.data = this.bookings;
+    if (changes['toolItems'] || changes['toolAssemblies']) {
+      this.buildTableRows();
+      this.refreshDataSource();
       this.selection.clear();
     }
   }
@@ -149,9 +169,10 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     this.dataSource.paginator = this.paginator;
 
     this.dataSource.filterPredicate = (
-      data: BookingToolItem,
+      row: BookingTableRow,
       filter: string
     ) => {
+      const data = row.data;
       const searchStr = filter.toLowerCase();
       return (
         (data.articleId || '').toLowerCase().includes(searchStr) ||
@@ -165,8 +186,169 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
       );
     };
 
+    this.dataSource.sortingDataAccessor = (
+      row: BookingTableRow,
+      sortHeaderId: string
+    ): string | number => {
+      const data = row.data;
+      switch (sortHeaderId) {
+        case 'toolAssembly':
+          return data.relationToolAssemblyId || '';
+        case 'targetCostUnit':
+          return data.toCostunitId || '';
+        case 'articleId':
+          return data.articleId || '';
+        case 'type':
+          return data.type || '';
+        case 'quantity':
+          return data.countNew + data.countUsed + data.countRepair;
+        case 'stockPlaceId':
+          return data.stockplaceId || '';
+        case 'storageUnit':
+          return data.hallId || '';
+        case 'shelf':
+          return data.shelfId || '';
+        case 'width':
+          return data.width;
+        case 'depth':
+          return data.depth;
+        default:
+          return '';
+      }
+    };
+
+    // Custom sort: sort parents/standalone normally, keep children grouped after their parent
+    this.dataSource.sortData = (
+      data: BookingTableRow[],
+      sort: MatSort
+    ): BookingTableRow[] => {
+      if (!sort.active || sort.direction === '') {
+        return data;
+      }
+
+      // Separate parents/standalone from children
+      const topLevel = data.filter((r) => r.rowType !== 'child');
+      const children = data.filter((r) => r.rowType === 'child');
+
+      // Sort top-level rows
+      const sorted = topLevel.sort((a, b) => {
+        const valA = this.dataSource.sortingDataAccessor(a, sort.active);
+        const valB = this.dataSource.sortingDataAccessor(b, sort.active);
+        const compare =
+          typeof valA === 'string' && typeof valB === 'string'
+            ? valA.localeCompare(valB)
+            : (valA as number) - (valB as number);
+        return sort.direction === 'asc' ? compare : -compare;
+      });
+
+      // Re-inject children after their parent
+      const result: BookingTableRow[] = [];
+      for (const row of sorted) {
+        result.push(row);
+        if (row.rowType === 'assembly' && row.isExpanded) {
+          const assemblyChildren = children.filter(
+            (c) => c.parentAssemblyId === row.data.relationToolAssemblyId
+          );
+          result.push(...assemblyChildren);
+        }
+      }
+
+      return result;
+    };
+
     // Apply saved widths after view is ready
     this.applySavedWidths();
+  }
+
+  // --- Row building ---
+
+  private buildTableRows(): void {
+    this.allRows = [];
+    this.childrenByAssembly.clear();
+
+    // Index tool items by their relationToolAssemblyId
+    const childMap = new Map<string, BookingToolItem[]>();
+    const standaloneItems: BookingToolItem[] = [];
+
+    for (const item of this.toolItems) {
+      if (item.relationToolAssemblyId) {
+        const key = item.relationToolAssemblyId;
+        if (!childMap.has(key)) {
+          childMap.set(key, []);
+        }
+        childMap.get(key)!.push(item);
+      } else {
+        standaloneItems.push(item);
+      }
+    }
+
+    // Build assembly (parent) rows
+    for (const assembly of this.toolAssemblies) {
+      const assemblyId = assembly.relationToolAssemblyId || assembly.articleId;
+      const children = childMap.get(assemblyId) || [];
+
+      const parentRow: BookingTableRow = {
+        data: assembly,
+        rowType: 'assembly',
+        isExpanded: this.expandedAssemblies.has(assemblyId),
+        parentAssemblyId: null,
+        childCount: children.length,
+      };
+      this.allRows.push(parentRow);
+
+      // Build child rows
+      const childRows: BookingTableRow[] = children.map((child) => ({
+        data: child,
+        rowType: 'child' as RowType,
+        isExpanded: false,
+        parentAssemblyId: assemblyId,
+        childCount: 0,
+      }));
+      this.childrenByAssembly.set(assemblyId, childRows);
+    }
+
+    // Build standalone rows (tool items without an assembly)
+    for (const item of standaloneItems) {
+      this.allRows.push({
+        data: item,
+        rowType: 'standalone',
+        isExpanded: false,
+        parentAssemblyId: null,
+        childCount: 0,
+      });
+    }
+  }
+
+  private refreshDataSource(): void {
+    const rows: BookingTableRow[] = [];
+
+    for (const row of this.allRows) {
+      rows.push(row);
+      if (row.rowType === 'assembly' && row.isExpanded) {
+        const assemblyId =
+          row.data.relationToolAssemblyId || row.data.articleId;
+        const children = this.childrenByAssembly.get(assemblyId) || [];
+        rows.push(...children);
+      }
+    }
+
+    this.dataSource.data = rows;
+  }
+
+  toggleExpand(row: BookingTableRow): void {
+    if (row.rowType !== 'assembly') return;
+
+    const assemblyId =
+      row.data.relationToolAssemblyId || row.data.articleId;
+    row.isExpanded = !row.isExpanded;
+
+    if (row.isExpanded) {
+      this.expandedAssemblies.add(assemblyId);
+    } else {
+      this.expandedAssemblies.delete(assemblyId);
+    }
+
+    this.refreshDataSource();
   }
 
   // --- Persistence (localStorage) ---
@@ -332,9 +514,11 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
   }
 
   private updateDisplayedColumns(): void {
-    this.displayedColumns = this.columnOrder.filter(
+    const visible = this.columnOrder.filter(
       (key) => this.columnVisibility[key]
     );
+    // 'expand' column always first
+    this.displayedColumns = ['expand', ...visible];
   }
 
   // --- Column drag-and-drop (native HTML5) ---
@@ -436,8 +620,8 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     this.refresh.emit();
   }
 
-  getQuantity(item: BookingToolItem): number {
-    return item.countNew + item.countUsed + item.countRepair;
+  getQuantity(row: BookingTableRow): number {
+    return row.data.countNew + row.data.countUsed + row.data.countRepair;
   }
 
   isAllSelected(): boolean {

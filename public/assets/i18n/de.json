@@ -45,7 +45,8 @@
       "shelf": "Fachboden",
       "width": "Breite",
       "depth": "Tiefe",
-      "select": "Auswahl"
+      "select": "Auswahl",
+      "expand": "Erweitern"
     }
   }
 }

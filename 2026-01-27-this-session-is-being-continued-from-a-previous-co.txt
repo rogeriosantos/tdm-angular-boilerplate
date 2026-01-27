@@ -1,0 +1,1839 @@
+
+ ▐▛███▜▌   Claude Code v2.1.19
+▝▜█████▛▘  Opus 4.5 · Claude Max
+  ▘▘ ▝▝    D:\TDM\DEV\custom\pEBE\scr\webui
+══════════════════ Conversation compacted · ctrl+o for history ═════════════════
+  ⎿  Read src\app\core\services\booking.service.ts (116 lines)
+  ⎿ Read src\app\shared\components\bookings-table\bookings-table.component.scss 
+    (229 lines)
+
+  ⎿  Read public\assets\i18n\de.json (52 lines)
+  ⎿  Read public\assets\i18n\en.json (52 lines)
+  ⎿ Read src\app\shared\components\bookings-table\bookings-table.component.html 
+    (434 lines)
+
+  ⎿ Plan file referenced 
+    (C:\Users\md9488\.claude\plans\smooth-yawning-lagoon.md)
+
+● Let me continue with Task #2 — refactoring the BookingsTableComponent for
+  expandable parent/child rows. First, let me read the current component
+  TypeScript file.
+
+● Read(src\app\shared\components\bookings-table\bookings-table.component.ts)
+  ⎿  Read 457 lines
+4 tasks (0 done, 1 in progress, 3 open)
+
+■ #1 Add getUnconfirmedToolAssemblies and combined forkJoin method to 
+     BookingService
+■ #2 Refactor BookingsTableComponent for expandable parent/child rows
+■ #3 Update Dashboard to use combined bookings data and dual inputs
+■ #4 Add translations and build verification
+
+● Now let me read the dashboard component files.
+
+● Read(src\app\features\dashboard\dashboard.component.ts)
+  ⎿  Read 91 lines
+
+● Read(src\app\features\dashboard\dashboard.component.html)
+  ⎿  Read 23 lines
+
+● Good, I have the full picture. Let me mark Task #1 as complete and start Task
+  #2.
+√ Task #1 updated: status → completed
+√ Task #2 updated: status → in progress
+
+● Now I'll implement the full BookingsTableComponent refactor. This is the
+  largest change — adding BookingTableRow wrapper, expand column,
+  buildTableRows(), toggleExpand(), custom sort, and updating all references.
+
+● Write(src\app\shared\components\bookings-table\bookings-table.component.ts)
+  ⎿  Added 198 lines, removed 14 lines
+      11  } from '@angular/core';
+      12  import { CommonModule } from '@angular/common';
+      13  import { MatTableModule, MatTableDataSource } from '@angular/ma
+          terial/table';
+      14 -import { MatSortModule, MatSort } from '@angular/material/sort'
+         -;                                                              
+      14 +import { MatSortModule, MatSort, Sort } from '@angular/material
+         +/sort';                                                        
+      15  import { MatPaginatorModule, MatPaginator } from '@angular/mate
+          rial/paginator';
+      16  import { MatFormFieldModule } from '@angular/material/form-fiel
+          d';
+      17  import { MatInputModule } from '@angular/material/input';
+     ...
+      37    | 'empty'
+      38    | 'data';
+      39  
+      40 +export type RowType = 'assembly' | 'child' | 'standalone';     
+      41 +                                                               
+      42 +export interface BookingTableRow {                             
+      43 +  data: BookingToolItem;                                       
+      44 +  rowType: RowType;                                            
+      45 +  isExpanded: boolean;                                         
+      46 +  parentAssemblyId: string | null;                             
+      47 +  childCount: number;                                          
+      48 +}                                                              
+      49 +                                                               
+      50  interface ColumnConfig {
+      51    order: string[];
+      52    visibility: Record<string, boolean>;
+     ...
+      77    styleUrls: ['./bookings-table.component.scss'],
+      78  })
+      79  export class BookingsTableComponent implements OnChanges, After
+          ViewInit {
+      70 -  @Input() bookings: BookingToolItem[] = [];                   
+      80 +  @Input() toolItems: BookingToolItem[] = [];                  
+      81 +  @Input() toolAssemblies: BookingToolItem[] = [];             
+      82    @Input() loading = false;
+      83    @Input() hasCostUnit = false;
+      84    @Input() hasWorkplace = false;
+     ...
+      89    @ViewChild('columnMenuTrigger', { read: MatMenuTrigger }) col
+          umnMenuTrigger!: MatMenuTrigger;
+      90    @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputEleme
+          nt>;
+      91  
+      81 -  // All available columns in default order                    
+      92 +  // All available columns in default order (expand is always p
+         +repended, not in this list)                                    
+      93    allColumns: ColumnDef[] = [
+      94      { key: 'toolAssembly', labelKey: 'columns.tool-assembly' },
+      95      { key: 'targetCostUnit', labelKey: 'columns.target-cost-uni
+          t' },
+     ...
+      110    // Track column widths
+      111    columnWidths: Record<string, number> = {};
+      112  
+      102 -  // Current display order (visible columns only)             
+      113 +  // Current display order (visible columns only, expand alway
+          +s first)                                                      
+      114    displayedColumns: string[] = [];
+      115  
+      105 -  // Full ordered list (includes hidden columns for ordering) 
+      116 +  // Full ordered list (includes hidden columns for ordering —
+          + does NOT include 'expand')                                   
+      117    private columnOrder: string[] = [];
+      118  
+      108 -  dataSource = new MatTableDataSource<BookingToolItem>();     
+      109 -  selection = new SelectionModel<BookingToolItem>(true, []);  
+      119 +  dataSource = new MatTableDataSource<BookingTableRow>();     
+      120 +  selection = new SelectionModel<BookingTableRow>(true, []);  
+      121    filterValue = '';
+      122  
+      123 +  // Expand state tracking: assemblyId -> expanded            
+      124 +  private expandedAssemblies = new Set<string>();             
+      125 +                                                              
+      126 +  // All built rows (parents/standalone + children hidden unti
+          +l expand)                                                     
+      127 +  private allRows: BookingTableRow[] = [];                    
+      128 +  private childrenByAssembly = new Map<string, BookingTableRow
+          +[]>();                                                        
+      129 +                                                              
+      130    // Column drag state
+      131    draggedColumn: string | null = null;
+      132    dragOverColumn: string | null = null;
+     ...
+      151      if (this.loading) return 'loading';
+      152      if (!this.hasCostUnit) return 'no-selection';
+      153      if (!this.hasWorkplace) return 'no-workplace';
+      136 -    if (this.bookings.length === 0) return 'empty';           
+      154 +    if (this.toolItems.length === 0 && this.toolAssemblies.len
+          +gth === 0)                                                    
+      155 +      return 'empty';                                         
+      156      return 'data';
+      157    }
+      158  
+      159    ngOnChanges(changes: SimpleChanges): void {
+      141 -    if (changes['bookings']) {                                
+      142 -      this.dataSource.data = this.bookings;                   
+      160 +    if (changes['toolItems'] || changes['toolAssemblies']) {  
+      161 +      this.buildTableRows();                                  
+      162 +      this.refreshDataSource();                               
+      163        this.selection.clear();
+      164      }
+      165    }
+     ...
+      169      this.dataSource.paginator = this.paginator;
+      170  
+      171      this.dataSource.filterPredicate = (
+      152 -      data: BookingToolItem,                                  
+      172 +      row: BookingTableRow,                                   
+      173        filter: string
+      174      ) => {
+      175 +      const data = row.data;                                  
+      176        const searchStr = filter.toLowerCase();
+      177        return (
+      178          (data.articleId || '').toLowerCase().includes(searchSt
+           r) ||
+     ...
+      186        );
+      187      };
+      188  
+      189 +    this.dataSource.sortingDataAccessor = (                   
+      190 +      row: BookingTableRow,                                   
+      191 +      sortHeaderId: string                                    
+      192 +    ): string | number => {                                   
+      193 +      const data = row.data;                                  
+      194 +      switch (sortHeaderId) {                                 
+      195 +        case 'toolAssembly':                                  
+      196 +          return data.relationToolAssemblyId || '';           
+      197 +        case 'targetCostUnit':                                
+      198 +          return data.toCostunitId || '';                     
+      199 +        case 'articleId':                                     
+      200 +          return data.articleId || '';                        
+      201 +        case 'type':                                          
+      202 +          return data.type || '';                             
+      203 +        case 'quantity':                                      
+      204 +          return data.countNew + data.countUsed + data.countRe
+          +pair;                                                         
+      205 +        case 'stockPlaceId':                                  
+      206 +          return data.stockplaceId || '';                     
+      207 +        case 'storageUnit':                                   
+      208 +          return data.hallId || '';                           
+      209 +        case 'shelf':                                         
+      210 +          return data.shelfId || '';                          
+      211 +        case 'width':                                         
+      212 +          return data.width;                                  
+      213 +        case 'depth':                                         
+      214 +          return data.depth;                                  
+      215 +        default:                                              
+      216 +          return '';                                          
+      217 +      }                                                       
+      218 +    };                                                        
+      219 +                                                              
+      220 +    // Custom sort: sort parents/standalone normally, keep chi
+          +ldren grouped after their parent                              
+      221 +    this.dataSource.sortData = (                              
+      222 +      data: BookingTableRow[],                                
+      223 +      sort: MatSort                                           
+      224 +    ): BookingTableRow[] => {                                 
+      225 +      if (!sort.active || sort.direction === '') {            
+      226 +        return data;                                          
+      227 +      }                                                       
+      228 +                                                              
+      229 +      // Separate parents/standalone from children            
+      230 +      const topLevel = data.filter((r) => r.rowType !== 'child
+          +');                                                           
+      231 +      const children = data.filter((r) => r.rowType === 'child
+          +');                                                           
+      232 +                                                              
+      233 +      // Sort top-level rows                                  
+      234 +      const sorted = topLevel.sort((a, b) => {                
+      235 +        const valA = this.dataSource.sortingDataAccessor(a, so
+          +rt.active);                                                   
+      236 +        const valB = this.dataSource.sortingDataAccessor(b, so
+          +rt.active);                                                   
+      237 +        const compare =                                       
+      238 +          typeof valA === 'string' && typeof valB === 'string'
+      239 +            ? valA.localeCompare(valB)                        
+      240 +            : (valA as number) - (valB as number);            
+      241 +        return sort.direction === 'asc' ? compare : -compare; 
+      242 +      });                                                     
+      243 +                                                              
+      244 +      // Re-inject children after their parent                
+      245 +      const result: BookingTableRow[] = [];                   
+      246 +      for (const row of sorted) {                             
+      247 +        result.push(row);                                     
+      248 +        if (row.rowType === 'assembly' && row.isExpanded) {   
+      249 +          const assemblyChildren = children.filter(           
+      250 +            (c) => c.parentAssemblyId === row.data.relationToo
+          +lAssemblyId                                                   
+      251 +          );                                                  
+      252 +          result.push(...assemblyChildren);                   
+      253 +        }                                                     
+      254 +      }                                                       
+      255 +                                                              
+      256 +      return result;                                          
+      257 +    };                                                        
+      258 +                                                              
+      259      // Apply saved widths after view is ready
+      260      this.applySavedWidths();
+      261    }
+      262  
+      263 +  // --- Row building ---                                     
+      264 +                                                              
+      265 +  private buildTableRows(): void {                            
+      266 +    this.allRows = [];                                        
+      267 +    this.childrenByAssembly.clear();                          
+      268 +                                                              
+      269 +    // Index tool items by their relationToolAssemblyId       
+      270 +    const childMap = new Map<string, BookingToolItem[]>();    
+      271 +    const standaloneItems: BookingToolItem[] = [];            
+      272 +                                                              
+      273 +    for (const item of this.toolItems) {                      
+      274 +      if (item.relationToolAssemblyId) {                      
+      275 +        const key = item.relationToolAssemblyId;              
+      276 +        if (!childMap.has(key)) {                             
+      277 +          childMap.set(key, []);                              
+      278 +        }                                                     
+      279 +        childMap.get(key)!.push(item);                        
+      280 +      } else {                                                
+      281 +        standaloneItems.push(item);                           
+      282 +      }                                                       
+      283 +    }                                                         
+      284 +                                                              
+      285 +    // Build assembly (parent) rows                           
+      286 +    for (const assembly of this.toolAssemblies) {             
+      287 +      const assemblyId = assembly.relationToolAssemblyId || as
+          +sembly.articleId;                                             
+      288 +      const children = childMap.get(assemblyId) || [];        
+      289 +                                                              
+      290 +      const parentRow: BookingTableRow = {                    
+      291 +        data: assembly,                                       
+      292 +        rowType: 'assembly',                                  
+      293 +        isExpanded: this.expandedAssemblies.has(assemblyId),  
+      294 +        parentAssemblyId: null,                               
+      295 +        childCount: children.length,                          
+      296 +      };                                                      
+      297 +      this.allRows.push(parentRow);                           
+      298 +                                                              
+      299 +      // Build child rows                                     
+      300 +      const childRows: BookingTableRow[] = children.map((child
+          +) => ({                                                       
+      301 +        data: child,                                          
+      302 +        rowType: 'child' as RowType,                          
+      303 +        isExpanded: false,                                    
+      304 +        parentAssemblyId: assemblyId,                         
+      305 +        childCount: 0,                                        
+      306 +      }));                                                    
+      307 +      this.childrenByAssembly.set(assemblyId, childRows);     
+      308 +    }                                                         
+      309 +                                                              
+      310 +    // Build standalone rows (tool items without an assembly) 
+      311 +    for (const item of standaloneItems) {                     
+      312 +      this.allRows.push({                                     
+      313 +        data: item,                                           
+      314 +        rowType: 'standalone',                                
+      315 +        isExpanded: false,                                    
+      316 +        parentAssemblyId: null,                               
+      317 +        childCount: 0,                                        
+      318 +      });                                                     
+      319 +    }                                                         
+      320 +  }                                                           
+      321 +                                                              
+      322 +  private refreshDataSource(): void {                         
+      323 +    const rows: BookingTableRow[] = [];                       
+      324 +                                                              
+      325 +    for (const row of this.allRows) {                         
+      326 +      rows.push(row);                                         
+      327 +      if (row.rowType === 'assembly' && row.isExpanded) {     
+      328 +        const assemblyId =                                    
+      329 +          row.data.relationToolAssemblyId || row.data.articleI
+          +d;                                                            
+      330 +        const children = this.childrenByAssembly.get(assemblyI
+          +d) || [];                                                     
+      331 +        rows.push(...children);                               
+      332 +      }                                                       
+      333 +    }                                                         
+      334 +                                                              
+      335 +    this.dataSource.data = rows;                              
+      336 +  }                                                           
+      337 +                                                              
+      338 +  toggleExpand(row: BookingTableRow): void {                  
+      339 +    if (row.rowType !== 'assembly') return;                   
+      340 +                                                              
+      341 +    const assemblyId =                                        
+      342 +      row.data.relationToolAssemblyId || row.data.articleId;  
+      343 +    row.isExpanded = !row.isExpanded;                         
+      344 +                                                              
+      345 +    if (row.isExpanded) {                                     
+      346 +      this.expandedAssemblies.add(assemblyId);                
+      347 +    } else {                                                  
+      348 +      this.expandedAssemblies.delete(assemblyId);             
+      349 +    }                                                         
+      350 +                                                              
+      351 +    this.refreshDataSource();                                 
+      352 +  }                                                           
+      353 +                                                              
+      354    // --- Persistence (localStorage) ---
+      355  
+      356    private initDefaults(): void {
+     ...
+      514    }
+      515  
+      516    private updateDisplayedColumns(): void {
+      335 -    this.displayedColumns = this.columnOrder.filter(          
+      517 +    const visible = this.columnOrder.filter(                  
+      518        (key) => this.columnVisibility[key]
+      519      );
+      520 +    // 'expand' column always first                           
+      521 +    this.displayedColumns = ['expand', ...visible];           
+      522    }
+      523  
+      524    // --- Column drag-and-drop (native HTML5) ---
+     ...
+      620      this.refresh.emit();
+      621    }
+      622  
+      439 -  getQuantity(item: BookingToolItem): number {                
+      440 -    return item.countNew + item.countUsed + item.countRepair; 
+      623 +  getQuantity(row: BookingTableRow): number {                 
+      624 +    return row.data.countNew + row.data.countUsed + row.data.c
+          +ountRepair;                                                   
+      625    }
+      626  
+      627    isAllSelected(): boolean {
+
+● Now update the template — add expand column, update all row.field to
+  row.data.field, add row type CSS classes.
+
+● Write(src\app\shared\components\bookings-table\bookings-table.component.html)
+  ⎿  Added 33 lines, removed 15 lines
+       91          matSort
+       92          class="bookings-mat-table"
+       93        >
+       94 +        <!-- Expand Column (always first, not draggable/resiza
+          +ble/sortable) -->                                             
+       95 +        <ng-container matColumnDef="expand">                  
+       96 +          <th mat-header-cell *matHeaderCellDef class="expand-
+          +column"></th>                                                 
+       97 +          <td mat-cell *matCellDef="let row" class="expand-col
+          +umn">                                                         
+       98 +            @if (row.rowType === 'assembly') {                
+       99 +              <button                                         
+      100 +                mat-icon-button                               
+      101 +                class="expand-button"                         
+      102 +                (click)="toggleExpand(row); $event.stopPropaga
+          +tion()"                                                       
+      103 +              >                                               
+      104 +                <mat-icon>{{ row.isExpanded ? 'expand_more' : 
+          +'chevron_right' }}</mat-icon>                                 
+      105 +              </button>                                       
+      106 +            }                                                 
+      107 +          </td>                                               
+      108 +        </ng-container>                                       
+      109 +                                                              
+      110          <!-- Tool Assembly Column -->
+      111          <ng-container matColumnDef="toolAssembly">
+      112            <th mat-header-cell *matHeaderCellDef mat-sort-heade
+           r
+     ...
+      128            <td mat-cell *matCellDef="let row">
+      129              <div class="cell-content">
+      130                <span class="primary-text">{{
+      115 -                row.relationToolAssemblyId || '-'             
+      131 +                row.data.relationToolAssemblyId || '-'        
+      132                }}</span>
+      117 -              @if (row.relationToolAssemblyName) {            
+      133 +              @if (row.data.relationToolAssemblyName) {       
+      134                  <span class="secondary-text">{{
+      119 -                  row.relationToolAssemblyName                
+      135 +                  row.data.relationToolAssemblyName           
+      136                  }}</span>
+      137                }
+      138              </div>
+     ...
+      160            <td mat-cell *matCellDef="let row">
+      161              <div class="cell-content">
+      162                <span class="primary-text">{{
+      147 -                row.toCostunitId || '-'                       
+      163 +                row.data.toCostunitId || '-'                  
+      164                }}</span>
+      149 -              @if (row.toCostunitName) {                      
+      150 -                <span class="secondary-text">{{ row.toCostunit
+          -Name }}</span>                                                
+      165 +              @if (row.data.toCostunitName) {                 
+      166 +                <span class="secondary-text">{{ row.data.toCos
+          +tunitName }}</span>                                           
+      167                }
+      168              </div>
+      169            </td>
+     ...
+      189            </th>
+      190            <td mat-cell *matCellDef="let row">
+      191              <div class="cell-content">
+      176 -              <span class="primary-text article-id">{{ row.art
+          -icleId }}</span>                                              
+      177 -              <span class="secondary-text">{{ row.articleName 
+          -}}</span>                                                     
+      178 -              <span class="tertiary-text">{{ row.articleDescri
+          -ption }}</span>                                               
+      192 +              <span class="primary-text article-id">{{ row.dat
+          +a.articleId }}</span>                                         
+      193 +              <span class="secondary-text">{{ row.data.article
+          +Name }}</span>                                                
+      194 +              <span class="tertiary-text">{{ row.data.articleD
+          +escription }}</span>                                          
+      195              </div>
+      196            </td>
+      197          </ng-container>
+     ...
+      215              </span>
+      216            </th>
+      217            <td mat-cell *matCellDef="let row">
+      202 -            {{ row.type }}                                    
+      218 +            {{ row.data.type }}                               
+      219            </td>
+      220          </ng-container>
+      221  
+     ...
+      261              </span>
+      262            </th>
+      263            <td mat-cell *matCellDef="let row">
+      248 -            {{ row.stockplaceId }}                            
+      264 +            {{ row.data.stockplaceId }}                       
+      265            </td>
+      266          </ng-container>
+      267  
+     ...
+      284              </span>
+      285            </th>
+      286            <td mat-cell *matCellDef="let row">
+      271 -            {{ row.hallId }}                                  
+      287 +            {{ row.data.hallId }}                             
+      288            </td>
+      289          </ng-container>
+      290  
+     ...
+      307              </span>
+      308            </th>
+      309            <td mat-cell *matCellDef="let row">
+      294 -            {{ row.shelfId }}                                 
+      310 +            {{ row.data.shelfId }}                            
+      311            </td>
+      312          </ng-container>
+      313  
+     ...
+      330              </span>
+      331            </th>
+      332            <td mat-cell *matCellDef="let row">
+      317 -            {{ row.width }}                                   
+      333 +            {{ row.data.width }}                              
+      334            </td>
+      335          </ng-container>
+      336  
+     ...
+      353              </span>
+      354            </th>
+      355            <td mat-cell *matCellDef="let row">
+      340 -            {{ row.depth }}                                   
+      356 +            {{ row.data.depth }}                              
+      357            </td>
+      358          </ng-container>
+      359  
+     ...
+      396            *matRowDef="let row; columns: displayedColumns"
+      397            (click)="selection.toggle(row)"
+      398            [class.selected-row]="selection.isSelected(row)"
+      399 +          [class.assembly-row]="row.rowType === 'assembly'"   
+      400 +          [class.child-row]="row.rowType === 'child'"         
+      401          ></tr>
+      402  
+      403          <!-- Empty State (no data after loading) -->
+
+● Now update the SCSS to add expand column and row type styles.
+
+● Read(src\app\shared\components\bookings-table\bookings-table.component.scss)
+  ⎿  Read 229 lines
+
+● Update(src\app\shared\components\bookings-table\bookings-table.component.scss)
+  ⎿  Added 53 lines
+      222    visibility: hidden;
+      223  }
+      224  
+      225 +// Expand column                                              
+      226 +.expand-column {                                              
+      227 +  width: 40px;                                                
+      228 +  min-width: 40px;                                            
+      229 +  max-width: 40px;                                            
+      230 +  padding: 0 !important;                                      
+      231 +  text-align: center;                                         
+      232 +}                                                             
+      233 +                                                              
+      234 +.expand-button {                                              
+      235 +  width: 32px;                                                
+      236 +  height: 32px;                                               
+      237 +  line-height: 32px;                                          
+      238 +  color: #616161;                                             
+      239 +                                                              
+      240 +  .mat-icon {                                                 
+      241 +    font-size: 20px;                                          
+      242 +    width: 20px;                                              
+      243 +    height: 20px;                                             
+      244 +  }                                                           
+      245 +}                                                             
+      246 +                                                              
+      247 +// Assembly (parent) rows                                     
+      248 +tr.assembly-row {                                             
+      249 +  background-color: #f5f5f5;                                  
+      250 +                                                              
+      251 +  td.mat-mdc-cell {                                           
+      252 +    font-weight: 500;                                         
+      253 +  }                                                           
+      254 +                                                              
+      255 +  &:hover {                                                   
+      256 +    background-color: #eeeeee;                                
+      257 +  }                                                           
+      258 +}                                                             
+      259 +                                                              
+      260 +// Child rows (indented)                                      
+      261 +tr.child-row {                                                
+      262 +  background-color: #ffffff;                                  
+      263 +                                                              
+      264 +  td.mat-mdc-cell {                                           
+      265 +    border-bottom-color: #f5f5f5;                             
+      266 +  }                                                           
+      267 +                                                              
+      268 +  // Indent the first content cell after expand column        
+      269 +  td.mat-mdc-cell:nth-child(2) {                              
+      270 +    padding-left: 24px;                                       
+      271 +  }                                                           
+      272 +                                                              
+      273 +  &:hover {                                                   
+      274 +    background-color: #fafafa;                                
+      275 +  }                                                           
+      276 +}                                                             
+      277 +                                                              
+      278  // Paginator styling
+      279  ::ng-deep .mat-mdc-paginator {
+      280    border-top: 1px solid #e0e0e0;
+
+● Task #2 done. Now Task #3 — update Dashboard component.
+√ Task #2 updated: status → completed
+√ Task #3 updated: status → in progress
+
+● Write(src\app\features\dashboard\dashboard.component.ts)
+  ⎿  Added 98 lines, removed 90 lines
+       1 -import { Component } from '@angular/core';                    
+       2 -import { CommonModule } from '@angular/common';               
+       3 -import { AuthService } from '../auth/services/auth.service';  
+       4 -import { Router } from '@angular/router';                     
+       5 -import { ToolbarComponent } from '../../layout/toolbar/toolbar.
+         -component';                                                   
+       6 -import {                                                      
+       7 -  SelectionBarComponent,                                      
+       8 -  SelectionChangedEvent,                                      
+       9 -} from '../../shared/components/selection-bar/selection-bar.com
+         -ponent';                                                      
+      10 -import { BookingsTableComponent } from '../../shared/components
+         -/bookings-table/bookings-table.component';                    
+      11 -import {                                                      
+      12 -  BookingService,                                             
+      13 -  BookingToolItem,                                            
+      14 -} from '../../core/services/booking.service';                 
+      15 -import { CostUnit } from '../../shared/components/costunit-sele
+         -ctor/costunit-selector.component';                            
+      16 -import { Workplace } from '../../shared/components/workplace-se
+         -lector/workplace-selector.component';                         
+      17 -                                                              
+      18 -@Component({                                                  
+      19 -  selector: 'app-dashboard',                                  
+      20 -  standalone: true,                                           
+      21 -  imports: [                                                  
+      22 -    CommonModule,                                             
+      23 -    ToolbarComponent,                                         
+      24 -    SelectionBarComponent,                                    
+      25 -    BookingsTableComponent,                                   
+      26 -  ],                                                          
+      27 -  templateUrl: './dashboard.component.html',                  
+      28 -  styleUrls: ['./dashboard.component.scss'],                  
+      29 -})                                                            
+      30 -export class DashboardComponent {                             
+      31 -  bookings: BookingToolItem[] = [];                           
+      32 -  loadingBookings = false;                                    
+      33 -  selectedCostUnitId: string | null = null;                   
+      34 -  selectedWorkplaceId: string | null = null;                  
+      35 -                                                              
+      36 -  constructor(                                                
+      37 -    private authService: AuthService,                         
+      38 -    private router: Router,                                   
+      39 -    private bookingService: BookingService                    
+      40 -  ) {}                                                        
+      41 -                                                              
+      42 -  logout() {                                                  
+      43 -    this.authService.logout();                                
+      44 -    this.router.navigate(['/login']);                         
+      45 -  }                                                           
+      46 -                                                              
+      47 -  onCostUnitChanged(costUnit: CostUnit | null): void {        
+      48 -    this.selectedCostUnitId = costUnit?.id || null;           
+      49 -    // Reset workplace and bookings when cost unit changes    
+      50 -    this.selectedWorkplaceId = null;                          
+      51 -    this.bookings = [];                                       
+      52 -  }                                                           
+      53 -                                                              
+      54 -  onWorkplaceChanged(workplace: Workplace | null): void {     
+      55 -    this.selectedWorkplaceId = workplace?.id || null;         
+      56 -    if (!workplace) {                                         
+      57 -      this.bookings = [];                                     
+      58 -    }                                                         
+      59 -  }                                                           
+      60 -                                                              
+      61 -  onSelectionChanged(event: SelectionChangedEvent): void {    
+      62 -    this.selectedCostUnitId = event.costUnit.id;              
+      63 -    this.selectedWorkplaceId = event.workplace.id;            
+      64 -    this.loadBookings();                                      
+      65 -  }                                                           
+      66 -                                                              
+      67 -  loadBookings(): void {                                      
+      68 -    if (!this.selectedCostUnitId || !this.selectedWorkplaceId) 
+         -{                                                             
+      69 -      return;                                                 
+      70 -    }                                                         
+      71 -                                                              
+      72 -    this.loadingBookings = true;                              
+      73 -    this.bookingService                                       
+      74 -      .getUnconfirmedBookings(this.selectedCostUnitId, this.sel
+         -ectedWorkplaceId)                                             
+      75 -      .subscribe({                                            
+      76 -        next: (bookings) => {                                 
+      77 -          this.bookings = bookings;                           
+      78 -          this.loadingBookings = false;                       
+      79 -        },                                                    
+      80 -        error: () => {                                        
+      81 -          this.bookings = [];                                 
+      82 -          this.loadingBookings = false;                       
+      83 -        },                                                    
+      84 -      });                                                     
+      85 -  }                                                           
+      86 -                                                              
+      87 -  onRefreshBookings(): void {                                 
+      88 -    this.loadBookings();                                      
+      89 -  }                                                           
+      90 -}                                                             
+       1 +import { Component } from '@angular/core';                     
+       2 +import { CommonModule } from '@angular/common';                
+       3 +import { AuthService } from '../auth/services/auth.service';   
+       4 +import { Router } from '@angular/router';                      
+       5 +import { ToolbarComponent } from '../../layout/toolbar/toolbar.
+         +component';                                                    
+       6 +import {                                                       
+       7 +  SelectionBarComponent,                                       
+       8 +  SelectionChangedEvent,                                       
+       9 +} from '../../shared/components/selection-bar/selection-bar.com
+         +ponent';                                                       
+      10 +import { BookingsTableComponent } from '../../shared/components
+         +/bookings-table/bookings-table.component';                     
+      11 +import {                                                       
+      12 +  BookingService,                                              
+      13 +  BookingToolItem,                                             
+      14 +} from '../../core/services/booking.service';                  
+      15 +import { CostUnit } from '../../shared/components/costunit-sele
+         +ctor/costunit-selector.component';                             
+      16 +import { Workplace } from '../../shared/components/workplace-se
+         +lector/workplace-selector.component';                          
+      17 +                                                               
+      18 +@Component({                                                   
+      19 +  selector: 'app-dashboard',                                   
+      20 +  standalone: true,                                            
+      21 +  imports: [                                                   
+      22 +    CommonModule,                                              
+      23 +    ToolbarComponent,                                          
+      24 +    SelectionBarComponent,                                     
+      25 +    BookingsTableComponent,                                    
+      26 +  ],                                                           
+      27 +  templateUrl: './dashboard.component.html',                   
+      28 +  styleUrls: ['./dashboard.component.scss'],                   
+      29 +})                                                             
+      30 +export class DashboardComponent {                              
+      31 +  toolItems: BookingToolItem[] = [];                           
+      32 +  toolAssemblies: BookingToolItem[] = [];                      
+      33 +  loadingBookings = false;                                     
+      34 +  selectedCostUnitId: string | null = null;                    
+      35 +  selectedWorkplaceId: string | null = null;                   
+      36 +                                                               
+      37 +  constructor(                                                 
+      38 +    private authService: AuthService,                          
+      39 +    private router: Router,                                    
+      40 +    private bookingService: BookingService                     
+      41 +  ) {}                                                         
+      42 +                                                               
+      43 +  logout() {                                                   
+      44 +    this.authService.logout();                                 
+      45 +    this.router.navigate(['/login']);                          
+      46 +  }                                                            
+      47 +                                                               
+      48 +  onCostUnitChanged(costUnit: CostUnit | null): void {         
+      49 +    this.selectedCostUnitId = costUnit?.id || null;            
+      50 +    // Reset workplace and bookings when cost unit changes     
+      51 +    this.selectedWorkplaceId = null;                           
+      52 +    this.toolItems = [];                                       
+      53 +    this.toolAssemblies = [];                                  
+      54 +  }                                                            
+      55 +                                                               
+      56 +  onWorkplaceChanged(workplace: Workplace | null): void {      
+      57 +    this.selectedWorkplaceId = workplace?.id || null;          
+      58 +    if (!workplace) {                                          
+      59 +      this.toolItems = [];                                     
+      60 +      this.toolAssemblies = [];                                
+      61 +    }                                                          
+      62 +  }                                                            
+      63 +                                                               
+      64 +  onSelectionChanged(event: SelectionChangedEvent): void {     
+      65 +    this.selectedCostUnitId = event.costUnit.id;               
+      66 +    this.selectedWorkplaceId = event.workplace.id;             
+      67 +    this.loadBookings();                                       
+      68 +  }                                                            
+      69 +                                                               
+      70 +  loadBookings(): void {                                       
+      71 +    if (!this.selectedCostUnitId || !this.selectedWorkplaceId) 
+         +{                                                              
+      72 +      return;                                                  
+      73 +    }                                                          
+      74 +                                                               
+      75 +    this.loadingBookings = true;                               
+      76 +    this.bookingService                                        
+      77 +      .getUnconfirmedBookingsWithAssemblies(                   
+      78 +        this.selectedCostUnitId,                               
+      79 +        this.selectedWorkplaceId                               
+      80 +      )                                                        
+      81 +      .subscribe({                                             
+      82 +        next: (result) => {                                    
+      83 +          this.toolItems = result.toolItems;                   
+      84 +          this.toolAssemblies = result.toolAssemblies;         
+      85 +          this.loadingBookings = false;                        
+      86 +        },                                                     
+      87 +        error: () => {                                         
+      88 +          this.toolItems = [];                                 
+      89 +          this.toolAssemblies = [];                            
+      90 +          this.loadingBookings = false;                        
+      91 +        },                                                     
+      92 +      });                                                      
+      93 +  }                                                            
+      94 +                                                               
+      95 +  onRefreshBookings(): void {                                  
+      96 +    this.loadBookings();                                       
+      97 +  }                                                            
+      98 +}                                                              
+
+● Write(src\app\features\dashboard\dashboard.component.html)
+  ⎿  Added 23 lines, removed 22 lines
+       1 -<div class="dashboard-container">                             
+       2 -  <!-- Machine Operator Toolbar Header -->                    
+       3 -  <app-toolbar></app-toolbar>                                 
+       4 -                                                              
+       5 -  <!-- Selection Bar (Cost Unit + Workplace) -->              
+       6 -  <app-selection-bar                                          
+       7 -    (selectionChanged)="onSelectionChanged($event)"           
+       8 -    (costUnitChanged)="onCostUnitChanged($event)"             
+       9 -    (workplaceChanged)="onWorkplaceChanged($event)"           
+      10 -  ></app-selection-bar>                                       
+      11 -                                                              
+      12 -  <!-- Bookings Table (always visible) -->                    
+      13 -  <main class="dashboard-content">                            
+      14 -    <app-bookings-table                                       
+      15 -      [bookings]="bookings"                                   
+      16 -      [loading]="loadingBookings"                             
+      17 -      [hasCostUnit]="!!selectedCostUnitId"                    
+      18 -      [hasWorkplace]="!!selectedWorkplaceId"                  
+      19 -      (refresh)="onRefreshBookings()"                         
+      20 -    ></app-bookings-table>                                    
+      21 -  </main>                                                     
+      22 -</div>                                                        
+       1 +<div class="dashboard-container">                              
+       2 +  <!-- Machine Operator Toolbar Header -->                     
+       3 +  <app-toolbar></app-toolbar>                                  
+       4 +                                                               
+       5 +  <!-- Selection Bar (Cost Unit + Workplace) -->               
+       6 +  <app-selection-bar                                           
+       7 +    (selectionChanged)="onSelectionChanged($event)"            
+       8 +    (costUnitChanged)="onCostUnitChanged($event)"              
+       9 +    (workplaceChanged)="onWorkplaceChanged($event)"            
+      10 +  ></app-selection-bar>                                        
+      11 +                                                               
+      12 +  <!-- Bookings Table (always visible) -->                     
+      13 +  <main class="dashboard-content">                             
+      14 +    <app-bookings-table                                        
+      15 +      [toolItems]="toolItems"                                  
+      16 +      [toolAssemblies]="toolAssemblies"                        
+      17 +      [loading]="loadingBookings"                              
+      18 +      [hasCostUnit]="!!selectedCostUnitId"                     
+      19 +      [hasWorkplace]="!!selectedWorkplaceId"                   
+      20 +      (refresh)="onRefreshBookings()"                          
+      21 +    ></app-bookings-table>                                     
+      22 +  </main>                                                      
+      23 +</div>                                                         
+√ Task #3 updated: status → completed
+√ Task #4 updated: status → in progress
+
+● Now Task #4 — add translation keys and verify the build.
+
+● Update(public\assets\i18n\en.json)
+  ⎿  Added 2 lines, removed 1 line
+      45        "shelf": "Shelf",
+      46        "width": "Width",
+      47        "depth": "Depth",
+      48 -      "select": "Selection"                                    
+      48 +      "select": "Selection",                                   
+      49 +      "expand": "Expand"                                       
+      50      }
+      51    }
+      52  }
+
+● Update(public\assets\i18n\de.json)
+  ⎿  Added 2 lines, removed 1 line
+      45        "shelf": "Fachboden",
+      46        "width": "Breite",
+      47        "depth": "Tiefe",
+      48 -      "select": "Auswahl"                                      
+      48 +      "select": "Auswahl",                                     
+      49 +      "expand": "Erweitern"                                    
+      50      }
+      51    }
+      52  }
+
+● Now let's build to verify everything compiles.
+
+● Bash(cd "D:\TDM\DEV\custom\pEBE\scr\webui" && npm run build:dev 2>&1)
+  ⎿ > angular-project@0.0.0 build:dev
+    > ng build --configuration development && copy src\assets\app-config.de
+    v.js dist\angular-project\browser\assets\app-config.js
+    … +27 lines (ctrl+o to expand)
+
+
+● Build successful with no errors.
+√ Task #4 updated: status → completed
+
+● All tasks complete. Here's a summary of what was implemented:
+
+  Task 1 - BookingService (booking.service.ts): Added
+  getUnconfirmedToolAssemblies() and getUnconfirmedBookingsWithAssemblies() 
+  using forkJoin to call both endpoints in parallel.
+
+  Task 2 - BookingsTableComponent (largest change):
+  - Added BookingTableRow wrapper interface with rowType (assembly | child |
+  standalone), isExpanded, parentAssemblyId, and childCount
+  - Replaced @Input() bookings with @Input() toolItems and @Input()
+  toolAssemblies
+  - Changed MatTableDataSource<BookingToolItem> to 
+  MatTableDataSource<BookingTableRow>
+  - Added buildTableRows() — groups tool items under their parent assemblies,
+  standalone items separate
+  - Added toggleExpand() — adds/removes children from the flat dataSource
+  - Added expand column (always first, not draggable/resizable/sortable) with
+  chevron icon
+  - Custom sortData override keeps children grouped after their parent during
+  sort
+  - Updated filterPredicate and sortingDataAccessor for the wrapper type
+  - Updated all template references from row.field to row.data.field
+  - Added assembly-row and child-row CSS classes on <tr mat-row>
+  - SCSS: expand column (40px fixed), assembly rows (gray background, bold),
+  child rows (white, indented, lighter borders)
+
+  Task 3 - Dashboard: Uses getUnconfirmedBookingsWithAssemblies(), passes 
+  [toolItems] and [toolAssemblies] separately to the table.
+
+  Task 4 - Translations: Added "expand" keys in EN/DE. Build passes cleanly.
+
+✻ Worked for 21m 18s
+ ▐▛███▜▌   Claude Code v2.1.19
+▝▜█████▛▘  Opus 4.5 · Claude Max
+  ▘▘ ▝▝    D:\TDM\DEV\custom\pEBE\scr\webui
+══════════════════ Conversation compacted · ctrl+o for history ═════════════════
+  ⎿  Read src\app\core\services\booking.service.ts (116 lines)
+  ⎿ Read src\app\shared\components\bookings-table\bookings-table.component.scss 
+    (229 lines)
+
+  ⎿  Read public\assets\i18n\de.json (52 lines)
+  ⎿  Read public\assets\i18n\en.json (52 lines)
+  ⎿ Read src\app\shared\components\bookings-table\bookings-table.component.html 
+    (434 lines)
+
+  ⎿ Plan file referenced 
+    (C:\Users\md9488\.claude\plans\smooth-yawning-lagoon.md)
+
+● Let me continue with Task #2 — refactoring the BookingsTableComponent for
+  expandable parent/child rows. First, let me read the current component
+  TypeScript file.
+
+● Read(src\app\shared\components\bookings-table\bookings-table.component.ts)
+  ⎿  Read 457 lines
+4 tasks (0 done, 1 in progress, 3 open)
+
+■ #1 Add getUnconfirmedToolAssemblies and combined forkJoin method to 
+     BookingService
+■ #2 Refactor BookingsTableComponent for expandable parent/child rows
+■ #3 Update Dashboard to use combined bookings data and dual inputs
+■ #4 Add translations and build verification
+
+● Now let me read the dashboard component files.
+
+● Read(src\app\features\dashboard\dashboard.component.ts)
+  ⎿  Read 91 lines
+
+● Read(src\app\features\dashboard\dashboard.component.html)
+  ⎿  Read 23 lines
+
+● Good, I have the full picture. Let me mark Task #1 as complete and start Task
+  #2.
+√ Task #1 updated: status → completed
+√ Task #2 updated: status → in progress
+
+● Now I'll implement the full BookingsTableComponent refactor. This is the
+  largest change — adding BookingTableRow wrapper, expand column,
+  buildTableRows(), toggleExpand(), custom sort, and updating all references.
+
+● Write(src\app\shared\components\bookings-table\bookings-table.component.ts)
+  ⎿  Added 198 lines, removed 14 lines
+      11  } from '@angular/core';
+      12  import { CommonModule } from '@angular/common';
+      13  import { MatTableModule, MatTableDataSource } from '@angular/ma
+          terial/table';
+      14 -import { MatSortModule, MatSort } from '@angular/material/sort'
+         -;                                                              
+      14 +import { MatSortModule, MatSort, Sort } from '@angular/material
+         +/sort';                                                        
+      15  import { MatPaginatorModule, MatPaginator } from '@angular/mate
+          rial/paginator';
+      16  import { MatFormFieldModule } from '@angular/material/form-fiel
+          d';
+      17  import { MatInputModule } from '@angular/material/input';
+     ...
+      37    | 'empty'
+      38    | 'data';
+      39  
+      40 +export type RowType = 'assembly' | 'child' | 'standalone';     
+      41 +                                                               
+      42 +export interface BookingTableRow {                             
+      43 +  data: BookingToolItem;                                       
+      44 +  rowType: RowType;                                            
+      45 +  isExpanded: boolean;                                         
+      46 +  parentAssemblyId: string | null;                             
+      47 +  childCount: number;                                          
+      48 +}                                                              
+      49 +                                                               
+      50  interface ColumnConfig {
+      51    order: string[];
+      52    visibility: Record<string, boolean>;
+     ...
+      77    styleUrls: ['./bookings-table.component.scss'],
+      78  })
+      79  export class BookingsTableComponent implements OnChanges, After
+          ViewInit {
+      70 -  @Input() bookings: BookingToolItem[] = [];                   
+      80 +  @Input() toolItems: BookingToolItem[] = [];                  
+      81 +  @Input() toolAssemblies: BookingToolItem[] = [];             
+      82    @Input() loading = false;
+      83    @Input() hasCostUnit = false;
+      84    @Input() hasWorkplace = false;
+     ...
+      89    @ViewChild('columnMenuTrigger', { read: MatMenuTrigger }) col
+          umnMenuTrigger!: MatMenuTrigger;
+      90    @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputEleme
+          nt>;
+      91  
+      81 -  // All available columns in default order                    
+      92 +  // All available columns in default order (expand is always p
+         +repended, not in this list)                                    
+      93    allColumns: ColumnDef[] = [
+      94      { key: 'toolAssembly', labelKey: 'columns.tool-assembly' },
+      95      { key: 'targetCostUnit', labelKey: 'columns.target-cost-uni
+          t' },
+     ...
+      110    // Track column widths
+      111    columnWidths: Record<string, number> = {};
+      112  
+      102 -  // Current display order (visible columns only)             
+      113 +  // Current display order (visible columns only, expand alway
+          +s first)                                                      
+      114    displayedColumns: string[] = [];
+      115  
+      105 -  // Full ordered list (includes hidden columns for ordering) 
+      116 +  // Full ordered list (includes hidden columns for ordering —
+          + does NOT include 'expand')                                   
+      117    private columnOrder: string[] = [];
+      118  
+      108 -  dataSource = new MatTableDataSource<BookingToolItem>();     
+      109 -  selection = new SelectionModel<BookingToolItem>(true, []);  
+      119 +  dataSource = new MatTableDataSource<BookingTableRow>();     
+      120 +  selection = new SelectionModel<BookingTableRow>(true, []);  
+      121    filterValue = '';
+      122  
+      123 +  // Expand state tracking: assemblyId -> expanded            
+      124 +  private expandedAssemblies = new Set<string>();             
+      125 +                                                              
+      126 +  // All built rows (parents/standalone + children hidden unti
+          +l expand)                                                     
+      127 +  private allRows: BookingTableRow[] = [];                    
+      128 +  private childrenByAssembly = new Map<string, BookingTableRow
+          +[]>();                                                        
+      129 +                                                              
+      130    // Column drag state
+      131    draggedColumn: string | null = null;
+      132    dragOverColumn: string | null = null;
+     ...
+      151      if (this.loading) return 'loading';
+      152      if (!this.hasCostUnit) return 'no-selection';
+      153      if (!this.hasWorkplace) return 'no-workplace';
+      136 -    if (this.bookings.length === 0) return 'empty';           
+      154 +    if (this.toolItems.length === 0 && this.toolAssemblies.len
+          +gth === 0)                                                    
+      155 +      return 'empty';                                         
+      156      return 'data';
+      157    }
+      158  
+      159    ngOnChanges(changes: SimpleChanges): void {
+      141 -    if (changes['bookings']) {                                
+      142 -      this.dataSource.data = this.bookings;                   
+      160 +    if (changes['toolItems'] || changes['toolAssemblies']) {  
+      161 +      this.buildTableRows();                                  
+      162 +      this.refreshDataSource();                               
+      163        this.selection.clear();
+      164      }
+      165    }
+     ...
+      169      this.dataSource.paginator = this.paginator;
+      170  
+      171      this.dataSource.filterPredicate = (
+      152 -      data: BookingToolItem,                                  
+      172 +      row: BookingTableRow,                                   
+      173        filter: string
+      174      ) => {
+      175 +      const data = row.data;                                  
+      176        const searchStr = filter.toLowerCase();
+      177        return (
+      178          (data.articleId || '').toLowerCase().includes(searchSt
+           r) ||
+     ...
+      186        );
+      187      };
+      188  
+      189 +    this.dataSource.sortingDataAccessor = (                   
+      190 +      row: BookingTableRow,                                   
+      191 +      sortHeaderId: string                                    
+      192 +    ): string | number => {                                   
+      193 +      const data = row.data;                                  
+      194 +      switch (sortHeaderId) {                                 
+      195 +        case 'toolAssembly':                                  
+      196 +          return data.relationToolAssemblyId || '';           
+      197 +        case 'targetCostUnit':                                
+      198 +          return data.toCostunitId || '';                     
+      199 +        case 'articleId':                                     
+      200 +          return data.articleId || '';                        
+      201 +        case 'type':                                          
+      202 +          return data.type || '';                             
+      203 +        case 'quantity':                                      
+      204 +          return data.countNew + data.countUsed + data.countRe
+          +pair;                                                         
+      205 +        case 'stockPlaceId':                                  
+      206 +          return data.stockplaceId || '';                     
+      207 +        case 'storageUnit':                                   
+      208 +          return data.hallId || '';                           
+      209 +        case 'shelf':                                         
+      210 +          return data.shelfId || '';                          
+      211 +        case 'width':                                         
+      212 +          return data.width;                                  
+      213 +        case 'depth':                                         
+      214 +          return data.depth;                                  
+      215 +        default:                                              
+      216 +          return '';                                          
+      217 +      }                                                       
+      218 +    };                                                        
+      219 +                                                              
+      220 +    // Custom sort: sort parents/standalone normally, keep chi
+          +ldren grouped after their parent                              
+      221 +    this.dataSource.sortData = (                              
+      222 +      data: BookingTableRow[],                                
+      223 +      sort: MatSort                                           
+      224 +    ): BookingTableRow[] => {                                 
+      225 +      if (!sort.active || sort.direction === '') {            
+      226 +        return data;                                          
+      227 +      }                                                       
+      228 +                                                              
+      229 +      // Separate parents/standalone from children            
+      230 +      const topLevel = data.filter((r) => r.rowType !== 'child
+          +');                                                           
+      231 +      const children = data.filter((r) => r.rowType === 'child
+          +');                                                           
+      232 +                                                              
+      233 +      // Sort top-level rows                                  
+      234 +      const sorted = topLevel.sort((a, b) => {                
+      235 +        const valA = this.dataSource.sortingDataAccessor(a, so
+          +rt.active);                                                   
+      236 +        const valB = this.dataSource.sortingDataAccessor(b, so
+          +rt.active);                                                   
+      237 +        const compare =                                       
+      238 +          typeof valA === 'string' && typeof valB === 'string'
+      239 +            ? valA.localeCompare(valB)                        
+      240 +            : (valA as number) - (valB as number);            
+      241 +        return sort.direction === 'asc' ? compare : -compare; 
+      242 +      });                                                     
+      243 +                                                              
+      244 +      // Re-inject children after their parent                
+      245 +      const result: BookingTableRow[] = [];                   
+      246 +      for (const row of sorted) {                             
+      247 +        result.push(row);                                     
+      248 +        if (row.rowType === 'assembly' && row.isExpanded) {   
+      249 +          const assemblyChildren = children.filter(           
+      250 +            (c) => c.parentAssemblyId === row.data.relationToo
+          +lAssemblyId                                                   
+      251 +          );                                                  
+      252 +          result.push(...assemblyChildren);                   
+      253 +        }                                                     
+      254 +      }                                                       
+      255 +                                                              
+      256 +      return result;                                          
+      257 +    };                                                        
+      258 +                                                              
+      259      // Apply saved widths after view is ready
+      260      this.applySavedWidths();
+      261    }
+      262  
+      263 +  // --- Row building ---                                     
+      264 +                                                              
+      265 +  private buildTableRows(): void {                            
+      266 +    this.allRows = [];                                        
+      267 +    this.childrenByAssembly.clear();                          
+      268 +                                                              
+      269 +    // Index tool items by their relationToolAssemblyId       
+      270 +    const childMap = new Map<string, BookingToolItem[]>();    
+      271 +    const standaloneItems: BookingToolItem[] = [];            
+      272 +                                                              
+      273 +    for (const item of this.toolItems) {                      
+      274 +      if (item.relationToolAssemblyId) {                      
+      275 +        const key = item.relationToolAssemblyId;              
+      276 +        if (!childMap.has(key)) {                             
+      277 +          childMap.set(key, []);                              
+      278 +        }                                                     
+      279 +        childMap.get(key)!.push(item);                        
+      280 +      } else {                                                
+      281 +        standaloneItems.push(item);                           
+      282 +      }                                                       
+      283 +    }                                                         
+      284 +                                                              
+      285 +    // Build assembly (parent) rows                           
+      286 +    for (const assembly of this.toolAssemblies) {             
+      287 +      const assemblyId = assembly.relationToolAssemblyId || as
+          +sembly.articleId;                                             
+      288 +      const children = childMap.get(assemblyId) || [];        
+      289 +                                                              
+      290 +      const parentRow: BookingTableRow = {                    
+      291 +        data: assembly,                                       
+      292 +        rowType: 'assembly',                                  
+      293 +        isExpanded: this.expandedAssemblies.has(assemblyId),  
+      294 +        parentAssemblyId: null,                               
+      295 +        childCount: children.length,                          
+      296 +      };                                                      
+      297 +      this.allRows.push(parentRow);                           
+      298 +                                                              
+      299 +      // Build child rows                                     
+      300 +      const childRows: BookingTableRow[] = children.map((child
+          +) => ({                                                       
+      301 +        data: child,                                          
+      302 +        rowType: 'child' as RowType,                          
+      303 +        isExpanded: false,                                    
+      304 +        parentAssemblyId: assemblyId,                         
+      305 +        childCount: 0,                                        
+      306 +      }));                                                    
+      307 +      this.childrenByAssembly.set(assemblyId, childRows);     
+      308 +    }                                                         
+      309 +                                                              
+      310 +    // Build standalone rows (tool items without an assembly) 
+      311 +    for (const item of standaloneItems) {                     
+      312 +      this.allRows.push({                                     
+      313 +        data: item,                                           
+      314 +        rowType: 'standalone',                                
+      315 +        isExpanded: false,                                    
+      316 +        parentAssemblyId: null,                               
+      317 +        childCount: 0,                                        
+      318 +      });                                                     
+      319 +    }                                                         
+      320 +  }                                                           
+      321 +                                                              
+      322 +  private refreshDataSource(): void {                         
+      323 +    const rows: BookingTableRow[] = [];                       
+      324 +                                                              
+      325 +    for (const row of this.allRows) {                         
+      326 +      rows.push(row);                                         
+      327 +      if (row.rowType === 'assembly' && row.isExpanded) {     
+      328 +        const assemblyId =                                    
+      329 +          row.data.relationToolAssemblyId || row.data.articleI
+          +d;                                                            
+      330 +        const children = this.childrenByAssembly.get(assemblyI
+          +d) || [];                                                     
+      331 +        rows.push(...children);                               
+      332 +      }                                                       
+      333 +    }                                                         
+      334 +                                                              
+      335 +    this.dataSource.data = rows;                              
+      336 +  }                                                           
+      337 +                                                              
+      338 +  toggleExpand(row: BookingTableRow): void {                  
+      339 +    if (row.rowType !== 'assembly') return;                   
+      340 +                                                              
+      341 +    const assemblyId =                                        
+      342 +      row.data.relationToolAssemblyId || row.data.articleId;  
+      343 +    row.isExpanded = !row.isExpanded;                         
+      344 +                                                              
+      345 +    if (row.isExpanded) {                                     
+      346 +      this.expandedAssemblies.add(assemblyId);                
+      347 +    } else {                                                  
+      348 +      this.expandedAssemblies.delete(assemblyId);             
+      349 +    }                                                         
+      350 +                                                              
+      351 +    this.refreshDataSource();                                 
+      352 +  }                                                           
+      353 +                                                              
+      354    // --- Persistence (localStorage) ---
+      355  
+      356    private initDefaults(): void {
+     ...
+      514    }
+      515  
+      516    private updateDisplayedColumns(): void {
+      335 -    this.displayedColumns = this.columnOrder.filter(          
+      517 +    const visible = this.columnOrder.filter(                  
+      518        (key) => this.columnVisibility[key]
+      519      );
+      520 +    // 'expand' column always first                           
+      521 +    this.displayedColumns = ['expand', ...visible];           
+      522    }
+      523  
+      524    // --- Column drag-and-drop (native HTML5) ---
+     ...
+      620      this.refresh.emit();
+      621    }
+      622  
+      439 -  getQuantity(item: BookingToolItem): number {                
+      440 -    return item.countNew + item.countUsed + item.countRepair; 
+      623 +  getQuantity(row: BookingTableRow): number {                 
+      624 +    return row.data.countNew + row.data.countUsed + row.data.c
+          +ountRepair;                                                   
+      625    }
+      626  
+      627    isAllSelected(): boolean {
+
+● Now update the template — add expand column, update all row.field to
+  row.data.field, add row type CSS classes.
+
+● Write(src\app\shared\components\bookings-table\bookings-table.component.html)
+  ⎿  Added 33 lines, removed 15 lines
+       91          matSort
+       92          class="bookings-mat-table"
+       93        >
+       94 +        <!-- Expand Column (always first, not draggable/resiza
+          +ble/sortable) -->                                             
+       95 +        <ng-container matColumnDef="expand">                  
+       96 +          <th mat-header-cell *matHeaderCellDef class="expand-
+          +column"></th>                                                 
+       97 +          <td mat-cell *matCellDef="let row" class="expand-col
+          +umn">                                                         
+       98 +            @if (row.rowType === 'assembly') {                
+       99 +              <button                                         
+      100 +                mat-icon-button                               
+      101 +                class="expand-button"                         
+      102 +                (click)="toggleExpand(row); $event.stopPropaga
+          +tion()"                                                       
+      103 +              >                                               
+      104 +                <mat-icon>{{ row.isExpanded ? 'expand_more' : 
+          +'chevron_right' }}</mat-icon>                                 
+      105 +              </button>                                       
+      106 +            }                                                 
+      107 +          </td>                                               
+      108 +        </ng-container>                                       
+      109 +                                                              
+      110          <!-- Tool Assembly Column -->
+      111          <ng-container matColumnDef="toolAssembly">
+      112            <th mat-header-cell *matHeaderCellDef mat-sort-heade
+           r
+     ...
+      128            <td mat-cell *matCellDef="let row">
+      129              <div class="cell-content">
+      130                <span class="primary-text">{{
+      115 -                row.relationToolAssemblyId || '-'             
+      131 +                row.data.relationToolAssemblyId || '-'        
+      132                }}</span>
+      117 -              @if (row.relationToolAssemblyName) {            
+      133 +              @if (row.data.relationToolAssemblyName) {       
+      134                  <span class="secondary-text">{{
+      119 -                  row.relationToolAssemblyName                
+      135 +                  row.data.relationToolAssemblyName           
+      136                  }}</span>
+      137                }
+      138              </div>
+     ...
+      160            <td mat-cell *matCellDef="let row">
+      161              <div class="cell-content">
+      162                <span class="primary-text">{{
+      147 -                row.toCostunitId || '-'                       
+      163 +                row.data.toCostunitId || '-'                  
+      164                }}</span>
+      149 -              @if (row.toCostunitName) {                      
+      150 -                <span class="secondary-text">{{ row.toCostunit
+          -Name }}</span>                                                
+      165 +              @if (row.data.toCostunitName) {                 
+      166 +                <span class="secondary-text">{{ row.data.toCos
+          +tunitName }}</span>                                           
+      167                }
+      168              </div>
+      169            </td>
+     ...
+      189            </th>
+      190            <td mat-cell *matCellDef="let row">
+      191              <div class="cell-content">
+      176 -              <span class="primary-text article-id">{{ row.art
+          -icleId }}</span>                                              
+      177 -              <span class="secondary-text">{{ row.articleName 
+          -}}</span>                                                     
+      178 -              <span class="tertiary-text">{{ row.articleDescri
+          -ption }}</span>                                               
+      192 +              <span class="primary-text article-id">{{ row.dat
+          +a.articleId }}</span>                                         
+      193 +              <span class="secondary-text">{{ row.data.article
+          +Name }}</span>                                                
+      194 +              <span class="tertiary-text">{{ row.data.articleD
+          +escription }}</span>                                          
+      195              </div>
+      196            </td>
+      197          </ng-container>
+     ...
+      215              </span>
+      216            </th>
+      217            <td mat-cell *matCellDef="let row">
+      202 -            {{ row.type }}                                    
+      218 +            {{ row.data.type }}                               
+      219            </td>
+      220          </ng-container>
+      221  
+     ...
+      261              </span>
+      262            </th>
+      263            <td mat-cell *matCellDef="let row">
+      248 -            {{ row.stockplaceId }}                            
+      264 +            {{ row.data.stockplaceId }}                       
+      265            </td>
+      266          </ng-container>
+      267  
+     ...
+      284              </span>
+      285            </th>
+      286            <td mat-cell *matCellDef="let row">
+      271 -            {{ row.hallId }}                                  
+      287 +            {{ row.data.hallId }}                             
+      288            </td>
+      289          </ng-container>
+      290  
+     ...
+      307              </span>
+      308            </th>
+      309            <td mat-cell *matCellDef="let row">
+      294 -            {{ row.shelfId }}                                 
+      310 +            {{ row.data.shelfId }}                            
+      311            </td>
+      312          </ng-container>
+      313  
+     ...
+      330              </span>
+      331            </th>
+      332            <td mat-cell *matCellDef="let row">
+      317 -            {{ row.width }}                                   
+      333 +            {{ row.data.width }}                              
+      334            </td>
+      335          </ng-container>
+      336  
+     ...
+      353              </span>
+      354            </th>
+      355            <td mat-cell *matCellDef="let row">
+      340 -            {{ row.depth }}                                   
+      356 +            {{ row.data.depth }}                              
+      357            </td>
+      358          </ng-container>
+      359  
+     ...
+      396            *matRowDef="let row; columns: displayedColumns"
+      397            (click)="selection.toggle(row)"
+      398            [class.selected-row]="selection.isSelected(row)"
+      399 +          [class.assembly-row]="row.rowType === 'assembly'"   
+      400 +          [class.child-row]="row.rowType === 'child'"         
+      401          ></tr>
+      402  
+      403          <!-- Empty State (no data after loading) -->
+
+● Now update the SCSS to add expand column and row type styles.
+
+● Read(src\app\shared\components\bookings-table\bookings-table.component.scss)
+  ⎿  Read 229 lines
+
+● Update(src\app\shared\components\bookings-table\bookings-table.component.scss)
+  ⎿  Added 53 lines
+      222    visibility: hidden;
+      223  }
+      224  
+      225 +// Expand column                                              
+      226 +.expand-column {                                              
+      227 +  width: 40px;                                                
+      228 +  min-width: 40px;                                            
+      229 +  max-width: 40px;                                            
+      230 +  padding: 0 !important;                                      
+      231 +  text-align: center;                                         
+      232 +}                                                             
+      233 +                                                              
+      234 +.expand-button {                                              
+      235 +  width: 32px;                                                
+      236 +  height: 32px;                                               
+      237 +  line-height: 32px;                                          
+      238 +  color: #616161;                                             
+      239 +                                                              
+      240 +  .mat-icon {                                                 
+      241 +    font-size: 20px;                                          
+      242 +    width: 20px;                                              
+      243 +    height: 20px;                                             
+      244 +  }                                                           
+      245 +}                                                             
+      246 +                                                              
+      247 +// Assembly (parent) rows                                     
+      248 +tr.assembly-row {                                             
+      249 +  background-color: #f5f5f5;                                  
+      250 +                                                              
+      251 +  td.mat-mdc-cell {                                           
+      252 +    font-weight: 500;                                         
+      253 +  }                                                           
+      254 +                                                              
+      255 +  &:hover {                                                   
+      256 +    background-color: #eeeeee;                                
+      257 +  }                                                           
+      258 +}                                                             
+      259 +                                                              
+      260 +// Child rows (indented)                                      
+      261 +tr.child-row {                                                
+      262 +  background-color: #ffffff;                                  
+      263 +                                                              
+      264 +  td.mat-mdc-cell {                                           
+      265 +    border-bottom-color: #f5f5f5;                             
+      266 +  }                                                           
+      267 +                                                              
+      268 +  // Indent the first content cell after expand column        
+      269 +  td.mat-mdc-cell:nth-child(2) {                              
+      270 +    padding-left: 24px;                                       
+      271 +  }                                                           
+      272 +                                                              
+      273 +  &:hover {                                                   
+      274 +    background-color: #fafafa;                                
+      275 +  }                                                           
+      276 +}                                                             
+      277 +                                                              
+      278  // Paginator styling
+      279  ::ng-deep .mat-mdc-paginator {
+      280    border-top: 1px solid #e0e0e0;
+
+● Task #2 done. Now Task #3 — update Dashboard component.
+√ Task #2 updated: status → completed
+√ Task #3 updated: status → in progress
+
+● Write(src\app\features\dashboard\dashboard.component.ts)
+  ⎿  Added 98 lines, removed 90 lines
+       1 -import { Component } from '@angular/core';                    
+       2 -import { CommonModule } from '@angular/common';               
+       3 -import { AuthService } from '../auth/services/auth.service';  
+       4 -import { Router } from '@angular/router';                     
+       5 -import { ToolbarComponent } from '../../layout/toolbar/toolbar.
+         -component';                                                   
+       6 -import {                                                      
+       7 -  SelectionBarComponent,                                      
+       8 -  SelectionChangedEvent,                                      
+       9 -} from '../../shared/components/selection-bar/selection-bar.com
+         -ponent';                                                      
+      10 -import { BookingsTableComponent } from '../../shared/components
+         -/bookings-table/bookings-table.component';                    
+      11 -import {                                                      
+      12 -  BookingService,                                             
+      13 -  BookingToolItem,                                            
+      14 -} from '../../core/services/booking.service';                 
+      15 -import { CostUnit } from '../../shared/components/costunit-sele
+         -ctor/costunit-selector.component';                            
+      16 -import { Workplace } from '../../shared/components/workplace-se
+         -lector/workplace-selector.component';                         
+      17 -                                                              
+      18 -@Component({                                                  
+      19 -  selector: 'app-dashboard',                                  
+      20 -  standalone: true,                                           
+      21 -  imports: [                                                  
+      22 -    CommonModule,                                             
+      23 -    ToolbarComponent,                                         
+      24 -    SelectionBarComponent,                                    
+      25 -    BookingsTableComponent,                                   
+      26 -  ],                                                          
+      27 -  templateUrl: './dashboard.component.html',                  
+      28 -  styleUrls: ['./dashboard.component.scss'],                  
+      29 -})                                                            
+      30 -export class DashboardComponent {                             
+      31 -  bookings: BookingToolItem[] = [];                           
+      32 -  loadingBookings = false;                                    
+      33 -  selectedCostUnitId: string | null = null;                   
+      34 -  selectedWorkplaceId: string | null = null;                  
+      35 -                                                              
+      36 -  constructor(                                                
+      37 -    private authService: AuthService,                         
+      38 -    private router: Router,                                   
+      39 -    private bookingService: BookingService                    
+      40 -  ) {}                                                        
+      41 -                                                              
+      42 -  logout() {                                                  
+      43 -    this.authService.logout();                                
+      44 -    this.router.navigate(['/login']);                         
+      45 -  }                                                           
+      46 -                                                              
+      47 -  onCostUnitChanged(costUnit: CostUnit | null): void {        
+      48 -    this.selectedCostUnitId = costUnit?.id || null;           
+      49 -    // Reset workplace and bookings when cost unit changes    
+      50 -    this.selectedWorkplaceId = null;                          
+      51 -    this.bookings = [];                                       
+      52 -  }                                                           
+      53 -                                                              
+      54 -  onWorkplaceChanged(workplace: Workplace | null): void {     
+      55 -    this.selectedWorkplaceId = workplace?.id || null;         
+      56 -    if (!workplace) {                                         
+      57 -      this.bookings = [];                                     
+      58 -    }                                                         
+      59 -  }                                                           
+      60 -                                                              
+      61 -  onSelectionChanged(event: SelectionChangedEvent): void {    
+      62 -    this.selectedCostUnitId = event.costUnit.id;              
+      63 -    this.selectedWorkplaceId = event.workplace.id;            
+      64 -    this.loadBookings();                                      
+      65 -  }                                                           
+      66 -                                                              
+      67 -  loadBookings(): void {                                      
+      68 -    if (!this.selectedCostUnitId || !this.selectedWorkplaceId) 
+         -{                                                             
+      69 -      return;                                                 
+      70 -    }                                                         
+      71 -                                                              
+      72 -    this.loadingBookings = true;                              
+      73 -    this.bookingService                                       
+      74 -      .getUnconfirmedBookings(this.selectedCostUnitId, this.sel
+         -ectedWorkplaceId)                                             
+      75 -      .subscribe({                                            
+      76 -        next: (bookings) => {                                 
+      77 -          this.bookings = bookings;                           
+      78 -          this.loadingBookings = false;                       
+      79 -        },                                                    
+      80 -        error: () => {                                        
+      81 -          this.bookings = [];                                 
+      82 -          this.loadingBookings = false;                       
+      83 -        },                                                    
+      84 -      });                                                     
+      85 -  }                                                           
+      86 -                                                              
+      87 -  onRefreshBookings(): void {                                 
+      88 -    this.loadBookings();                                      
+      89 -  }                                                           
+      90 -}                                                             
+       1 +import { Component } from '@angular/core';                     
+       2 +import { CommonModule } from '@angular/common';                
+       3 +import { AuthService } from '../auth/services/auth.service';   
+       4 +import { Router } from '@angular/router';                      
+       5 +import { ToolbarComponent } from '../../layout/toolbar/toolbar.
+         +component';                                                    
+       6 +import {                                                       
+       7 +  SelectionBarComponent,                                       
+       8 +  SelectionChangedEvent,                                       
+       9 +} from '../../shared/components/selection-bar/selection-bar.com
+         +ponent';                                                       
+      10 +import { BookingsTableComponent } from '../../shared/components
+         +/bookings-table/bookings-table.component';                     
+      11 +import {                                                       
+      12 +  BookingService,                                              
+      13 +  BookingToolItem,                                             
+      14 +} from '../../core/services/booking.service';                  
+      15 +import { CostUnit } from '../../shared/components/costunit-sele
+         +ctor/costunit-selector.component';                             
+      16 +import { Workplace } from '../../shared/components/workplace-se
+         +lector/workplace-selector.component';                          
+      17 +                                                               
+      18 +@Component({                                                   
+      19 +  selector: 'app-dashboard',                                   
+      20 +  standalone: true,                                            
+      21 +  imports: [                                                   
+      22 +    CommonModule,                                              
+      23 +    ToolbarComponent,                                          
+      24 +    SelectionBarComponent,                                     
+      25 +    BookingsTableComponent,                                    
+      26 +  ],                                                           
+      27 +  templateUrl: './dashboard.component.html',                   
+      28 +  styleUrls: ['./dashboard.component.scss'],                   
+      29 +})                                                             
+      30 +export class DashboardComponent {                              
+      31 +  toolItems: BookingToolItem[] = [];                           
+      32 +  toolAssemblies: BookingToolItem[] = [];                      
+      33 +  loadingBookings = false;                                     
+      34 +  selectedCostUnitId: string | null = null;                    
+      35 +  selectedWorkplaceId: string | null = null;                   
+      36 +                                                               
+      37 +  constructor(                                                 
+      38 +    private authService: AuthService,                          
+      39 +    private router: Router,                                    
+      40 +    private bookingService: BookingService                     
+      41 +  ) {}                                                         
+      42 +                                                               
+      43 +  logout() {                                                   
+      44 +    this.authService.logout();                                 
+      45 +    this.router.navigate(['/login']);                          
+      46 +  }                                                            
+      47 +                                                               
+      48 +  onCostUnitChanged(costUnit: CostUnit | null): void {         
+      49 +    this.selectedCostUnitId = costUnit?.id || null;            
+      50 +    // Reset workplace and bookings when cost unit changes     
+      51 +    this.selectedWorkplaceId = null;                           
+      52 +    this.toolItems = [];                                       
+      53 +    this.toolAssemblies = [];                                  
+      54 +  }                                                            
+      55 +                                                               
+      56 +  onWorkplaceChanged(workplace: Workplace | null): void {      
+      57 +    this.selectedWorkplaceId = workplace?.id || null;          
+      58 +    if (!workplace) {                                          
+      59 +      this.toolItems = [];                                     
+      60 +      this.toolAssemblies = [];                                
+      61 +    }                                                          
+      62 +  }                                                            
+      63 +                                                               
+      64 +  onSelectionChanged(event: SelectionChangedEvent): void {     
+      65 +    this.selectedCostUnitId = event.costUnit.id;               
+      66 +    this.selectedWorkplaceId = event.workplace.id;             
+      67 +    this.loadBookings();                                       
+      68 +  }                                                            
+      69 +                                                               
+      70 +  loadBookings(): void {                                       
+      71 +    if (!this.selectedCostUnitId || !this.selectedWorkplaceId) 
+         +{                                                              
+      72 +      return;                                                  
+      73 +    }                                                          
+      74 +                                                               
+      75 +    this.loadingBookings = true;                               
+      76 +    this.bookingService                                        
+      77 +      .getUnconfirmedBookingsWithAssemblies(                   
+      78 +        this.selectedCostUnitId,                               
+      79 +        this.selectedWorkplaceId                               
+      80 +      )                                                        
+      81 +      .subscribe({                                             
+      82 +        next: (result) => {                                    
+      83 +          this.toolItems = result.toolItems;                   
+      84 +          this.toolAssemblies = result.toolAssemblies;         
+      85 +          this.loadingBookings = false;                        
+      86 +        },                                                     
+      87 +        error: () => {                                         
+      88 +          this.toolItems = [];                                 
+      89 +          this.toolAssemblies = [];                            
+      90 +          this.loadingBookings = false;                        
+      91 +        },                                                     
+      92 +      });                                                      
+      93 +  }                                                            
+      94 +                                                               
+      95 +  onRefreshBookings(): void {                                  
+      96 +    this.loadBookings();                                       
+      97 +  }                                                            
+      98 +}                                                              
+
+● Write(src\app\features\dashboard\dashboard.component.html)
+  ⎿  Added 23 lines, removed 22 lines
+       1 -<div class="dashboard-container">                             
+       2 -  <!-- Machine Operator Toolbar Header -->                    
+       3 -  <app-toolbar></app-toolbar>                                 
+       4 -                                                              
+       5 -  <!-- Selection Bar (Cost Unit + Workplace) -->              
+       6 -  <app-selection-bar                                          
+       7 -    (selectionChanged)="onSelectionChanged($event)"           
+       8 -    (costUnitChanged)="onCostUnitChanged($event)"             
+       9 -    (workplaceChanged)="onWorkplaceChanged($event)"           
+      10 -  ></app-selection-bar>                                       
+      11 -                                                              
+      12 -  <!-- Bookings Table (always visible) -->                    
+      13 -  <main class="dashboard-content">                            
+      14 -    <app-bookings-table                                       
+      15 -      [bookings]="bookings"                                   
+      16 -      [loading]="loadingBookings"                             
+      17 -      [hasCostUnit]="!!selectedCostUnitId"                    
+      18 -      [hasWorkplace]="!!selectedWorkplaceId"                  
+      19 -      (refresh)="onRefreshBookings()"                         
+      20 -    ></app-bookings-table>                                    
+      21 -  </main>                                                     
+      22 -</div>                                                        
+       1 +<div class="dashboard-container">                              
+       2 +  <!-- Machine Operator Toolbar Header -->                     
+       3 +  <app-toolbar></app-toolbar>                                  
+       4 +                                                               
+       5 +  <!-- Selection Bar (Cost Unit + Workplace) -->               
+       6 +  <app-selection-bar                                           
+       7 +    (selectionChanged)="onSelectionChanged($event)"            
+       8 +    (costUnitChanged)="onCostUnitChanged($event)"              
+       9 +    (workplaceChanged)="onWorkplaceChanged($event)"            
+      10 +  ></app-selection-bar>                                        
+      11 +                                                               
+      12 +  <!-- Bookings Table (always visible) -->                     
+      13 +  <main class="dashboard-content">                             
+      14 +    <app-bookings-table                                        
+      15 +      [toolItems]="toolItems"                                  
+      16 +      [toolAssemblies]="toolAssemblies"                        
+      17 +      [loading]="loadingBookings"                              
+      18 +      [hasCostUnit]="!!selectedCostUnitId"                     
+      19 +      [hasWorkplace]="!!selectedWorkplaceId"                   
+      20 +      (refresh)="onRefreshBookings()"                          
+      21 +    ></app-bookings-table>                                     
+      22 +  </main>                                                      
+      23 +</div>                                                         
+√ Task #3 updated: status → completed
+√ Task #4 updated: status → in progress
+
+● Now Task #4 — add translation keys and verify the build.
+
+● Update(public\assets\i18n\en.json)
+  ⎿  Added 2 lines, removed 1 line
+      45        "shelf": "Shelf",
+      46        "width": "Width",
+      47        "depth": "Depth",
+      48 -      "select": "Selection"                                    
+      48 +      "select": "Selection",                                   
+      49 +      "expand": "Expand"                                       
+      50      }
+      51    }
+      52  }
+
+● Update(public\assets\i18n\de.json)
+  ⎿  Added 2 lines, removed 1 line
+      45        "shelf": "Fachboden",
+      46        "width": "Breite",
+      47        "depth": "Tiefe",
+      48 -      "select": "Auswahl"                                      
+      48 +      "select": "Auswahl",                                     
+      49 +      "expand": "Erweitern"                                    
+      50      }
+      51    }
+      52  }
+
+● Now let's build to verify everything compiles.
+
+● Bash(cd "D:\TDM\DEV\custom\pEBE\scr\webui" && npm run build:dev 2>&1)
+  ⎿ > angular-project@0.0.0 build:dev
+    > ng build --configuration development && copy src\assets\app-config.de
+    v.js dist\angular-project\browser\assets\app-config.js
+    … +27 lines (ctrl+o to expand)
+
+
+● Build successful with no errors.
+√ Task #4 updated: status → completed
+
+● All tasks complete. Here's a summary of what was implemented:
+
+  Task 1 - BookingService (booking.service.ts): Added
+  getUnconfirmedToolAssemblies() and getUnconfirmedBookingsWithAssemblies() 
+  using forkJoin to call both endpoints in parallel.
+
+  Task 2 - BookingsTableComponent (largest change):
+  - Added BookingTableRow wrapper interface with rowType (assembly | child |
+  standalone), isExpanded, parentAssemblyId, and childCount
+  - Replaced @Input() bookings with @Input() toolItems and @Input()
+  toolAssemblies
+  - Changed MatTableDataSource<BookingToolItem> to 
+  MatTableDataSource<BookingTableRow>
+  - Added buildTableRows() — groups tool items under their parent assemblies,
+  standalone items separate
+  - Added toggleExpand() — adds/removes children from the flat dataSource
+  - Added expand column (always first, not draggable/resizable/sortable) with
+  chevron icon
+  - Custom sortData override keeps children grouped after their parent during
+  sort
+  - Updated filterPredicate and sortingDataAccessor for the wrapper type
+  - Updated all template references from row.field to row.data.field
+  - Added assembly-row and child-row CSS classes on <tr mat-row>
+  - SCSS: expand column (40px fixed), assembly rows (gray background, bold),
+  child rows (white, indented, lighter borders)
+
+  Task 3 - Dashboard: Uses getUnconfirmedBookingsWithAssemblies(), passes 
+  [toolItems] and [toolAssemblies] separately to the table.
+
+  Task 4 - Translations: Added "expand" keys in EN/DE. Build passes cleanly.
+
+✻ Worked for 21m 18s

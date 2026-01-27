@@ -45,7 +45,8 @@
       "shelf": "Shelf",
       "width": "Width",
       "depth": "Depth",
-      "select": "Selection"
+      "select": "Selection",
+      "expand": "Expand"
     }
   }
 }

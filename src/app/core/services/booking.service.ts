@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, map, catchError, of } from 'rxjs';
+import { Observable, forkJoin, map, catchError, of } from 'rxjs';
 import { environment } from '../config/environment';
 
 export interface BookingToolItem {
@@ -50,6 +50,11 @@ export interface BookingToolItem {
   countRepair: number;
 }
 
+export interface BookingsResult {
+  toolItems: BookingToolItem[];
+  toolAssemblies: BookingToolItem[];
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -69,21 +74,42 @@ export class BookingService {
       take: take.toString(),
     };
 
-    console.log('BookingService: Fetching unconfirmed bookings from:', url);
-
     return this.http.get<BookingToolItem[]>(url, { params }).pipe(
-      map((response) => {
-        console.log(
-          'BookingService: Received response:',
-          response.length,
-          'items'
-        );
-        return response;
-      }),
       catchError((error) => {
-        console.error('BookingService: Error fetching bookings:', error);
+        console.error('BookingService: Error fetching tool items:', error);
         return of([]);
       })
     );
+  }
+
+  getUnconfirmedToolAssemblies(
+    costunitId: string,
+    workplaceId: string,
+    skip: number = 0,
+    take: number = 50
+  ): Observable<BookingToolItem[]> {
+    const encodedWorkplace = encodeURIComponent(workplaceId);
+    const url = `${environment.stockApiUrl}/Bookings/ToolAssemblies/Unconfirmed/${costunitId}/${encodedWorkplace}`;
+    const params = {
+      skip: skip.toString(),
+      take: take.toString(),
+    };
+
+    return this.http.get<BookingToolItem[]>(url, { params }).pipe(
+      catchError((error) => {
+        console.error('BookingService: Error fetching tool assemblies:', error);
+        return of([]);
+      })
+    );
+  }
+
+  getUnconfirmedBookingsWithAssemblies(
+    costunitId: string,
+    workplaceId: string
+  ): Observable<BookingsResult> {
+    return forkJoin({
+      toolItems: this.getUnconfirmedBookings(costunitId, workplaceId),
+      toolAssemblies: this.getUnconfirmedToolAssemblies(costunitId, workplaceId),
+    });
   }
 }
