@@ -60,7 +60,15 @@
       >
         <!-- Tool Assembly Column -->
         <ng-container matColumnDef="toolAssembly">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'toolAssembly')"
+            (dragover)="onColumnDragOver($event, 'toolAssembly')"
+            (drop)="onColumnDrop($event, 'toolAssembly')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'toolAssembly'"
+            [class.column-drag-over]="dragOverColumn === 'toolAssembly'"
+          >
             {{ t('columns.tool-assembly') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -79,7 +87,15 @@
 
         <!-- Target Cost Unit Column -->
         <ng-container matColumnDef="targetCostUnit">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'targetCostUnit')"
+            (dragover)="onColumnDragOver($event, 'targetCostUnit')"
+            (drop)="onColumnDrop($event, 'targetCostUnit')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'targetCostUnit'"
+            [class.column-drag-over]="dragOverColumn === 'targetCostUnit'"
+          >
             {{ t('columns.target-cost-unit') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -96,7 +112,15 @@
 
         <!-- Article ID Column -->
         <ng-container matColumnDef="articleId">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'articleId')"
+            (dragover)="onColumnDragOver($event, 'articleId')"
+            (drop)="onColumnDrop($event, 'articleId')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'articleId'"
+            [class.column-drag-over]="dragOverColumn === 'articleId'"
+          >
             {{ t('columns.article-id') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -110,7 +134,15 @@
 
         <!-- Type Column -->
         <ng-container matColumnDef="type">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'type')"
+            (dragover)="onColumnDragOver($event, 'type')"
+            (drop)="onColumnDrop($event, 'type')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'type'"
+            [class.column-drag-over]="dragOverColumn === 'type'"
+          >
             {{ t('columns.type') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -120,7 +152,15 @@
 
         <!-- Quantity Column -->
         <ng-container matColumnDef="quantity">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'quantity')"
+            (dragover)="onColumnDragOver($event, 'quantity')"
+            (drop)="onColumnDrop($event, 'quantity')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'quantity'"
+            [class.column-drag-over]="dragOverColumn === 'quantity'"
+          >
             {{ t('columns.quantity') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -130,7 +170,15 @@
 
         <!-- Stock Place ID Column -->
         <ng-container matColumnDef="stockPlaceId">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'stockPlaceId')"
+            (dragover)="onColumnDragOver($event, 'stockPlaceId')"
+            (drop)="onColumnDrop($event, 'stockPlaceId')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'stockPlaceId'"
+            [class.column-drag-over]="dragOverColumn === 'stockPlaceId'"
+          >
             {{ t('columns.stock-place-id') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -140,7 +188,15 @@
 
         <!-- Storage Unit Column -->
         <ng-container matColumnDef="storageUnit">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'storageUnit')"
+            (dragover)="onColumnDragOver($event, 'storageUnit')"
+            (drop)="onColumnDrop($event, 'storageUnit')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'storageUnit'"
+            [class.column-drag-over]="dragOverColumn === 'storageUnit'"
+          >
             {{ t('columns.storage-unit') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -150,7 +206,15 @@
 
         <!-- Shelf Column -->
         <ng-container matColumnDef="shelf">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'shelf')"
+            (dragover)="onColumnDragOver($event, 'shelf')"
+            (drop)="onColumnDrop($event, 'shelf')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'shelf'"
+            [class.column-drag-over]="dragOverColumn === 'shelf'"
+          >
             {{ t('columns.shelf') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -160,7 +224,15 @@
 
         <!-- Width Column -->
         <ng-container matColumnDef="width">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'width')"
+            (dragover)="onColumnDragOver($event, 'width')"
+            (drop)="onColumnDrop($event, 'width')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'width'"
+            [class.column-drag-over]="dragOverColumn === 'width'"
+          >
             {{ t('columns.width') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -170,7 +242,15 @@
 
         <!-- Depth Column -->
         <ng-container matColumnDef="depth">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'depth')"
+            (dragover)="onColumnDragOver($event, 'depth')"
+            (drop)="onColumnDrop($event, 'depth')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'depth'"
+            [class.column-drag-over]="dragOverColumn === 'depth'"
+          >
             {{ t('columns.depth') }}
           </th>
           <td mat-cell *matCellDef="let row">
@@ -180,7 +260,15 @@
 
         <!-- Selection Column -->
         <ng-container matColumnDef="select">
-          <th mat-header-cell *matHeaderCellDef>
+          <th mat-header-cell *matHeaderCellDef
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'select')"
+            (dragover)="onColumnDragOver($event, 'select')"
+            (drop)="onColumnDrop($event, 'select')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'select'"
+            [class.column-drag-over]="dragOverColumn === 'select'"
+          >
             <mat-checkbox
               (change)="$event ? toggleAllRows() : null"
               [checked]="selection.hasValue() && isAllSelected()"
@@ -199,7 +287,10 @@
         </ng-container>
 
         <!-- Header and Row Definitions -->
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-header-row
+          *matHeaderRowDef="displayedColumns"
+        ></tr>
         <tr
           mat-row
           *matRowDef="let row; columns: displayedColumns"

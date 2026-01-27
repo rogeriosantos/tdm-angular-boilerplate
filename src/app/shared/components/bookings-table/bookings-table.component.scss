@@ -154,6 +154,26 @@
   color: #43424a;
 }
 
+// Column drag-and-drop reordering (native HTML5)
+.bookings-mat-table th.mat-mdc-header-cell[draggable='true'] {
+  cursor: grab;
+  user-select: none;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.column-dragging {
+  opacity: 0.4;
+  background-color: #e3f2fd !important;
+}
+
+.column-drag-over {
+  background-color: #bbdefb !important;
+  box-shadow: inset 0 0 0 2px #42a5f5;
+}
+
 // Paginator styling
 ::ng-deep .mat-mdc-paginator {
   border-top: 1px solid #e0e0e0;

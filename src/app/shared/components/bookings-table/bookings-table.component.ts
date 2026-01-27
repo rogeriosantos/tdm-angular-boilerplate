@@ -75,6 +75,10 @@ export class BookingsTableComponent implements OnChanges {
   selection = new SelectionModel<BookingToolItem>(true, []);
   filterValue = '';
 
+  // Column drag state
+  draggedColumn: string | null = null;
+  dragOverColumn: string | null = null;
+
   get tableState(): TableState {
     if (this.loading) return 'loading';
     if (!this.hasCostUnit) return 'no-selection';
@@ -111,6 +115,45 @@ export class BookingsTableComponent implements OnChanges {
       );
     };
   }
+
+  // --- Column drag-and-drop (native HTML5) ---
+
+  onColumnDragStart(event: DragEvent, column: string): void {
+    this.draggedColumn = column;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', column);
+    }
+  }
+
+  onColumnDragOver(event: DragEvent, column: string): void {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+    this.dragOverColumn = column;
+  }
+
+  onColumnDrop(event: DragEvent, targetColumn: string): void {
+    event.preventDefault();
+    if (this.draggedColumn && this.draggedColumn !== targetColumn) {
+      const fromIndex = this.displayedColumns.indexOf(this.draggedColumn);
+      const toIndex = this.displayedColumns.indexOf(targetColumn);
+      if (fromIndex !== -1 && toIndex !== -1) {
+        this.displayedColumns.splice(fromIndex, 1);
+        this.displayedColumns.splice(toIndex, 0, this.draggedColumn);
+      }
+    }
+    this.draggedColumn = null;
+    this.dragOverColumn = null;
+  }
+
+  onColumnDragEnd(): void {
+    this.draggedColumn = null;
+    this.dragOverColumn = null;
+  }
+
+  // --- Filter ---
 
   applyFilter(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
