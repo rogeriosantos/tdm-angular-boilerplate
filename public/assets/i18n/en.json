@@ -1,6 +1,6 @@
 {
   "main": {
-    "module-name": "CRIB Maintenance",
+    "module-name": "Acknowledge Management",
     "home-button-aria": "Home",
     "tdm-logo-alt": "TDM Systems Logo",
     "user-menu-aria": "User menu",
@@ -20,5 +20,26 @@
     "title": "Dashboard",
     "welcome": "Welcome! You are successfully logged in.",
     "content-placeholder": "Add your dashboard content here"
+  },
+  "selection-bar": {
+    "show-details": "Show Details"
+  },
+  "bookings": {
+    "filter": "Filter",
+    "empty": "No bookings found",
+    "select-cost-unit-and-workplace": "Please select a cost unit and workplace to see the bookings",
+    "select-workplace": "Please select a workplace to see the bookings",
+    "columns": {
+      "tool-assembly": "Tool Assembly",
+      "target-cost-unit": "Target Cost Unit",
+      "article-id": "ID",
+      "type": "Type",
+      "quantity": "Quantity",
+      "stock-place-id": "Stock Place ID",
+      "storage-unit": "Storage Unit",
+      "shelf": "Shelf",
+      "width": "Width",
+      "depth": "Depth"
+    }
   }
 }

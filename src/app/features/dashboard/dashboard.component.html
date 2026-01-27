@@ -3,25 +3,20 @@
   <app-toolbar></app-toolbar>
 
   <!-- Selection Bar (Cost Unit + Workplace) -->
-  <app-selection-bar></app-selection-bar>
+  <app-selection-bar
+    (selectionChanged)="onSelectionChanged($event)"
+    (costUnitChanged)="onCostUnitChanged($event)"
+    (workplaceChanged)="onWorkplaceChanged($event)"
+  ></app-selection-bar>
 
-  <main class="dashboard-content" *transloco="let t; read: 'dashboard'">
-    <h1>{{ t('title') }}</h1>
-    <p>{{ t('welcome') }}</p>
-
-    <!-- Test Buttons for User Profile API -->
-    <div class="test-buttons mt-8 p-4 border rounded-lg bg-gray-50">
-      <h3 class="text-lg font-semibold mb-4">API Testing</h3>
-      <div class="space-x-4">
-        <button mat-raised-button color="warn" (click)="testUserProfileLocale()">
-          🌍 Test User Locale
-        </button>
-        <span>UI Language: {{ uilanguage }}</span>
-        <span>dataLanguage Language: {{ dataLanguage }}</span>
-      </div>
-      <p class="text-sm text-gray-600 mt-2">Check browser console for API response details</p>
-    </div>
-
-    <!-- {{ t('content-placeholder') }} -->
+  <!-- Bookings Table (always visible) -->
+  <main class="dashboard-content">
+    <app-bookings-table
+      [bookings]="bookings"
+      [loading]="loadingBookings"
+      [hasCostUnit]="!!selectedCostUnitId"
+      [hasWorkplace]="!!selectedWorkplaceId"
+      (refresh)="onRefreshBookings()"
+    ></app-bookings-table>
   </main>
 </div>

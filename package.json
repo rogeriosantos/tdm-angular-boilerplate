@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve",
+    "start": "ng serve --proxy-config proxy.conf.json",
     "build": "ng build",
     "build:prod": "ng build --configuration production && copy src\\assets\\app-config.prod.js dist\\angular-project\\browser\\assets\\app-config.js && powershell -Command \"(Get-Content dist\\angular-project\\browser\\index.html) -replace 'assets/app-config.dev.js', 'assets/app-config.js' | Set-Content dist\\angular-project\\browser\\index.html\" && powershell -Command \"(Get-Content dist\\angular-project\\browser\\index.html) -replace '<base href=\\\"/\\\"', '<base href=\\\"/202501hf01local/crib/\\\"' | Set-Content dist\\angular-project\\browser\\index.html\"",
     "build:dev": "ng build --configuration development && copy src\\assets\\app-config.dev.js dist\\angular-project\\browser\\assets\\app-config.js",

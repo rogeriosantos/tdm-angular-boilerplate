@@ -7,13 +7,13 @@ import {
 } from '@angular/material/autocomplete';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { CostUnit } from '../costunit-selector/costunit-selector.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Observable, map, startWith } from 'rxjs';
+import { CostUnit } from '../../../core/services/costunit.service';
+import { WorkplaceService, Workplace } from '../../../core/services/workplace.service';
 
-export interface Workplace {
-  id: string;
-  description: string;
-  costUnitId: string;
-}
+export type { Workplace } from '../../../core/services/workplace.service';
 
 @Component({
   selector: 'app-workplace-selector',
@@ -24,6 +24,8 @@ export interface Workplace {
     MatAutocompleteModule,
     MatFormFieldModule,
     MatInputModule,
+    MatIconModule,
+    MatProgressSpinnerModule,
   ],
   templateUrl: './workplace-selector.component.html',
   styleUrls: ['./workplace-selector.component.scss'],
@@ -35,40 +37,68 @@ export class WorkplaceSelectorComponent implements OnChanges {
   selectWorkplacesControl = new FormControl('');
   selectedWorkplace: Workplace | null = null;
 
-  // Mock data
-  mockWorkplaces: Workplace[] = [
-    { id: 'WP001', description: 'Main Production Floor', costUnitId: 'CU001' },
-    { id: 'WP002', description: 'CNC Machining Center', costUnitId: 'CU001' },
-    { id: 'WP003', description: 'Assembly Station 1', costUnitId: 'CU002' },
-    { id: 'WP004', description: 'Quality Lab', costUnitId: 'CU003' },
-    { id: 'WP005', description: 'Maintenance Workshop', costUnitId: 'CU004' },
-    { id: 'WP006', description: 'Packaging Area', costUnitId: 'CU001' },
-  ];
+  workplaces: Workplace[] = [];
+  filteredWorkplaces$!: Observable<Workplace[]>;
+  isLoading = false;
 
-  get filteredWorkplaces(): Workplace[] {
-    if (!this.selectedCostUnit) {
-      return [];
-    }
-    return this.mockWorkplaces.filter(
-      (workplace) => workplace.costUnitId === this.selectedCostUnit?.id
-    );
-  }
+  constructor(private workplaceService: WorkplaceService) {}
 
   get isDisabled(): boolean {
     return !this.selectedCostUnit;
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['selectedCostUnit'] && this.selectedCostUnit === null) {
-      // Reset workplace selection when cost unit is cleared
+    if (changes['selectedCostUnit']) {
+      // Reset workplace selection when cost unit changes
       this.selectWorkplacesControl.setValue('');
       this.selectedWorkplace = null;
       this.workplaceSelected.emit(null);
+      this.workplaces = [];
+
+      // Load workplaces for the new cost unit
+      if (this.selectedCostUnit) {
+        this.loadWorkplaces(this.selectedCostUnit.id);
+      }
     }
   }
 
+  private loadWorkplaces(costUnitId: string): void {
+    this.isLoading = true;
+    this.workplaceService.getWorkplaces(costUnitId).subscribe({
+      next: (workplaces) => {
+        this.workplaces = workplaces;
+        this.isLoading = false;
+        this.setupFiltering();
+        console.log('Loaded workplaces:', workplaces.length);
+      },
+      error: (error) => {
+        console.error('Failed to load workplaces:', error);
+        this.isLoading = false;
+      },
+    });
+  }
+
+  private setupFiltering(): void {
+    this.filteredWorkplaces$ = this.selectWorkplacesControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => {
+        const filterValue = typeof value === 'string' ? value : '';
+        return this.filterWorkplaces(filterValue);
+      })
+    );
+  }
+
+  private filterWorkplaces(value: string): Workplace[] {
+    const filterValue = value.toLowerCase();
+    return this.workplaces.filter(
+      (workplace) =>
+        workplace.id.toLowerCase().includes(filterValue) ||
+        workplace.name.toLowerCase().includes(filterValue)
+    );
+  }
+
   displayFnWorkplace = (workplace: Workplace): string => {
-    return workplace ? `${workplace.id} - ${workplace.description}` : '';
+    return workplace ? `${workplace.id} - ${workplace.name}` : '';
   };
 
   onWorkplaceOptionSelected(event: MatAutocompleteSelectedEvent): void {

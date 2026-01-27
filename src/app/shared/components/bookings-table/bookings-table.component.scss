@@ -1,0 +1,160 @@
+.bookings-table-container {
+  width: 100%;
+}
+
+// Placeholder - empty state before selection (matches reference project)
+.placeholder-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+  gap: 16px;
+}
+
+.placeholder-image {
+  width: 80px;
+  height: 70px;
+  opacity: 0.8;
+}
+
+.placeholder-image-small {
+  width: 60px;
+  height: 52px;
+  opacity: 0.7;
+}
+
+.placeholder-text {
+  font-size: 0.938rem;
+  color: #43424a;
+  text-align: center;
+}
+
+// Filter Bar - matches reference project layout
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+.refresh-button {
+  color: #43424a;
+}
+
+.filter-field {
+  width: 300px;
+
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+}
+
+// Loading
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 0;
+}
+
+.hidden {
+  display: none;
+}
+
+// Table Wrapper
+.table-wrapper {
+  overflow-x: auto;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.bookings-mat-table {
+  width: 100%;
+
+  // Header styling
+  th.mat-mdc-header-cell {
+    font-weight: 500;
+    font-size: 0.813rem;
+    color: #43424a;
+    background-color: #fafafa;
+    border-bottom: 2px solid #e0e0e0;
+    white-space: nowrap;
+    padding: 0 12px;
+  }
+
+  // Cell styling
+  td.mat-mdc-cell {
+    font-size: 0.813rem;
+    color: #43424a;
+    padding: 8px 12px;
+    border-bottom: 1px solid #eeeeee;
+    vertical-align: top;
+  }
+
+  // Row hover - matches reference project
+  tr.mat-mdc-row:hover {
+    background-color: #eef8fd;
+  }
+
+  // Selected row
+  tr.selected-row {
+    background-color: #e3f2fd;
+  }
+}
+
+// Cell content with multi-line display (like reference tool-container)
+.cell-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 0;
+}
+
+.primary-text {
+  font-weight: 500;
+  font-size: 0.813rem;
+  color: #43424a;
+}
+
+.article-id {
+  color: #4778f6;
+  font-weight: 500;
+}
+
+.secondary-text {
+  font-size: 0.75rem;
+  color: #757575;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+.tertiary-text {
+  font-size: 0.688rem;
+  color: #9e9e9e;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 200px;
+}
+
+// Empty state
+.empty-row {
+  text-align: center;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 48px 0;
+  color: #43424a;
+}
+
+// Paginator styling
+::ng-deep .mat-mdc-paginator {
+  border-top: 1px solid #e0e0e0;
+}

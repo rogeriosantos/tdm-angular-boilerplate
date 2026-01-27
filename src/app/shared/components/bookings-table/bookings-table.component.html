@@ -1,0 +1,236 @@
+<div class="bookings-table-container" *transloco="let t; read: 'bookings'">
+
+  <!-- Empty state placeholder (no selection / no workplace) -->
+  @if (tableState === 'no-selection' || tableState === 'no-workplace') {
+    <div class="placeholder-container">
+      <img
+        src="assets/icons/empty-box.svg"
+        alt="empty box"
+        class="placeholder-image"
+      />
+      <p class="placeholder-text">
+        @if (tableState === 'no-selection') {
+          {{ t('select-cost-unit-and-workplace') }}
+        } @else {
+          {{ t('select-workplace') }}
+        }
+      </p>
+    </div>
+  } @else {
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <button
+        mat-icon-button
+        class="refresh-button"
+        (click)="onRefresh()"
+        [disabled]="loading"
+      >
+        <mat-icon>refresh</mat-icon>
+      </button>
+
+      <mat-form-field class="filter-field" appearance="outline">
+        <input
+          matInput
+          [placeholder]="t('filter')"
+          [value]="filterValue"
+          (input)="applyFilter($event)"
+        />
+        @if (filterValue) {
+          <button matSuffix mat-icon-button (click)="resetFilter()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+    </div>
+
+    <!-- Loading State -->
+    @if (loading) {
+      <div class="loading-container">
+        <mat-spinner diameter="40"></mat-spinner>
+      </div>
+    }
+
+    <!-- Table -->
+    <div class="table-wrapper" [class.hidden]="loading">
+      <table
+        mat-table
+        [dataSource]="dataSource"
+        matSort
+        class="bookings-mat-table"
+      >
+        <!-- Tool Assembly Column -->
+        <ng-container matColumnDef="toolAssembly">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.tool-assembly') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <div class="cell-content">
+              <span class="primary-text">{{
+                row.relationToolAssemblyId || '-'
+              }}</span>
+              @if (row.relationToolAssemblyName) {
+                <span class="secondary-text">{{
+                  row.relationToolAssemblyName
+                }}</span>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Target Cost Unit Column -->
+        <ng-container matColumnDef="targetCostUnit">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.target-cost-unit') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <div class="cell-content">
+              <span class="primary-text">{{
+                row.toCostunitId || '-'
+              }}</span>
+              @if (row.toCostunitName) {
+                <span class="secondary-text">{{ row.toCostunitName }}</span>
+              }
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Article ID Column -->
+        <ng-container matColumnDef="articleId">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.article-id') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <div class="cell-content">
+              <span class="primary-text article-id">{{ row.articleId }}</span>
+              <span class="secondary-text">{{ row.articleName }}</span>
+              <span class="tertiary-text">{{ row.articleDescription }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Type Column -->
+        <ng-container matColumnDef="type">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.type') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.type }}
+          </td>
+        </ng-container>
+
+        <!-- Quantity Column -->
+        <ng-container matColumnDef="quantity">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.quantity') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ getQuantity(row) }}
+          </td>
+        </ng-container>
+
+        <!-- Stock Place ID Column -->
+        <ng-container matColumnDef="stockPlaceId">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.stock-place-id') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.stockplaceId }}
+          </td>
+        </ng-container>
+
+        <!-- Storage Unit Column -->
+        <ng-container matColumnDef="storageUnit">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.storage-unit') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.hallId }}
+          </td>
+        </ng-container>
+
+        <!-- Shelf Column -->
+        <ng-container matColumnDef="shelf">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.shelf') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.shelfId }}
+          </td>
+        </ng-container>
+
+        <!-- Width Column -->
+        <ng-container matColumnDef="width">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.width') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.width }}
+          </td>
+        </ng-container>
+
+        <!-- Depth Column -->
+        <ng-container matColumnDef="depth">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header>
+            {{ t('columns.depth') }}
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.depth }}
+          </td>
+        </ng-container>
+
+        <!-- Selection Column -->
+        <ng-container matColumnDef="select">
+          <th mat-header-cell *matHeaderCellDef>
+            <mat-checkbox
+              (change)="$event ? toggleAllRows() : null"
+              [checked]="selection.hasValue() && isAllSelected()"
+              [indeterminate]="selection.hasValue() && !isAllSelected()"
+            >
+            </mat-checkbox>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            <mat-checkbox
+              (click)="$event.stopPropagation()"
+              (change)="$event ? selection.toggle(row) : null"
+              [checked]="selection.isSelected(row)"
+            >
+            </mat-checkbox>
+          </td>
+        </ng-container>
+
+        <!-- Header and Row Definitions -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns"
+          (click)="selection.toggle(row)"
+          [class.selected-row]="selection.isSelected(row)"
+        ></tr>
+
+        <!-- Empty State (no data after loading) -->
+        <tr class="mat-row" *matNoDataRow>
+          <td class="mat-cell empty-row" [attr.colspan]="displayedColumns.length">
+            @if (!loading) {
+              <div class="empty-state">
+                <img
+                  src="assets/icons/empty-box.svg"
+                  alt="empty box"
+                  class="placeholder-image-small"
+                />
+                <span>{{ t('empty') }}</span>
+              </div>
+            }
+          </td>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Paginator -->
+    <mat-paginator
+      [pageSizeOptions]="[10, 25, 50]"
+      [pageSize]="50"
+      showFirstLastButtons
+    >
+    </mat-paginator>
+  }
+</div>

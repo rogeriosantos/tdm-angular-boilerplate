@@ -20,5 +20,26 @@
     "title": "Dashboard",
     "welcome": "Willkommen! Sie sind erfolgreich angemeldet.",
     "content-placeholder": "Fügen Sie hier Ihre Dashboard-Inhalte hinzu"
+  },
+  "selection-bar": {
+    "show-details": "Details anzeigen"
+  },
+  "bookings": {
+    "filter": "Filter",
+    "empty": "Keine Buchungen gefunden",
+    "select-cost-unit-and-workplace": "Bitte wählen Sie eine Kostenstelle und einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
+    "select-workplace": "Bitte wählen Sie einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
+    "columns": {
+      "tool-assembly": "Komplettwerkzeug",
+      "target-cost-unit": "Zielkostenstelle",
+      "article-id": "ID",
+      "type": "Typ",
+      "quantity": "Stück",
+      "stock-place-id": "Lagerplatz ID",
+      "storage-unit": "Lagereinheit",
+      "shelf": "Fachboden",
+      "width": "Breite",
+      "depth": "Tiefe"
+    }
   }
 }

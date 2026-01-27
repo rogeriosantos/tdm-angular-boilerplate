@@ -12,9 +12,12 @@ export const authInterceptor = (
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  // Don't add auth token to external services or to auth calls (matching machine-operator pattern)
-  const shouldNotAddAuthToken =
-    !request.url.startsWith(environment.baseApiUrl) || authService.isAuthCall(request.url);
+  // Add auth token to API calls matching known base URLs or proxied paths
+  const isKnownApi =
+    request.url.startsWith(environment.baseApiUrl) ||
+    request.url.startsWith(environment.stockApiUrl);
+
+  const shouldNotAddAuthToken = !isKnownApi || authService.isAuthCall(request.url);
 
   if (shouldNotAddAuthToken) {
     return next(request);

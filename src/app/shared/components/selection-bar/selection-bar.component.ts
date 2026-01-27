@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { TranslocoDirective } from '@jsverse/transloco';
 import {
   CostunitSelectorComponent,
   CostUnit,
@@ -10,10 +11,21 @@ import {
   Workplace,
 } from '../workplace-selector/workplace-selector.component';
 
+export interface SelectionChangedEvent {
+  costUnit: CostUnit;
+  workplace: Workplace;
+}
+
 @Component({
   selector: 'app-selection-bar',
   standalone: true,
-  imports: [CommonModule, MatButtonModule, CostunitSelectorComponent, WorkplaceSelectorComponent],
+  imports: [
+    CommonModule,
+    MatButtonModule,
+    TranslocoDirective,
+    CostunitSelectorComponent,
+    WorkplaceSelectorComponent,
+  ],
   templateUrl: './selection-bar.component.html',
   styleUrls: ['./selection-bar.component.scss'],
 })
@@ -21,23 +33,36 @@ export class SelectionBarComponent {
   selectedCostUnit: CostUnit | null = null;
   selectedWorkplace: Workplace | null = null;
 
+  @Output() selectionChanged = new EventEmitter<SelectionChangedEvent>();
+  @Output() costUnitChanged = new EventEmitter<CostUnit | null>();
+  @Output() workplaceChanged = new EventEmitter<Workplace | null>();
+
   onCostUnitSelected(costUnit: CostUnit | null): void {
     this.selectedCostUnit = costUnit;
-    console.log('Cost unit selected in parent:', costUnit);
+    this.costUnitChanged.emit(costUnit);
   }
 
   onWorkplaceSelected(workplace: Workplace | null): void {
     this.selectedWorkplace = workplace;
-    console.log('Workplace selected in parent:', workplace);
+    this.workplaceChanged.emit(workplace);
+    this.emitIfBothSelected();
+  }
+
+  private emitIfBothSelected(): void {
+    if (this.selectedCostUnit && this.selectedWorkplace) {
+      this.selectionChanged.emit({
+        costUnit: this.selectedCostUnit,
+        workplace: this.selectedWorkplace,
+      });
+    }
   }
 
   onShowDetails(): void {
     if (this.selectedCostUnit && this.selectedWorkplace) {
-      console.log('Show details for:', {
+      this.selectionChanged.emit({
         costUnit: this.selectedCostUnit,
         workplace: this.selectedWorkplace,
       });
-      // Implement navigation or modal logic here
     }
   }
 }

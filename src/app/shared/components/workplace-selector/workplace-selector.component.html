@@ -1,24 +1,31 @@
 <div class="flex flex-col w-96">
   <label for="workplace" class="text-gray-700 font-medium mb-1 flex items-center">
-    <span class="mr-2">🏢</span>
+    <mat-icon class="mr-2">work</mat-icon>
     Workplace
   </label>
 
   <mat-form-field appearance="outline" class="custom-combobox">
+    <mat-progress-spinner
+      class="ml-2 mr-2"
+      matPrefix
+      *ngIf="isLoading"
+      mode="indeterminate"
+      diameter="20"
+    ></mat-progress-spinner>
     <input
       type="text"
-      placeholder="Select a workplace..."
+      [placeholder]="isLoading ? 'Loading...' : isDisabled ? 'Select a cost unit first...' : 'Select a workplace...'"
       matInput
       [formControl]="selectWorkplacesControl"
       [matAutocomplete]="autoWorkplace"
       [disabled]="isDisabled"
     />
-    <span
+    <mat-icon
       matSuffix
       *ngIf="selectWorkplacesControl.value"
       (click)="clearWorkplaceSelection($event)"
       class="cursor-pointer text-gray-500 hover:text-gray-700"
-      >✕</span
+      >close</mat-icon
     >
   </mat-form-field>
 
@@ -27,10 +34,10 @@
     [displayWith]="displayFnWorkplace"
     (optionSelected)="onWorkplaceOptionSelected($event)"
   >
-    <mat-option *ngFor="let option of filteredWorkplaces" [value]="option">
+    <mat-option *ngFor="let option of filteredWorkplaces$ | async" [value]="option">
       <div class="option-content">
         <div>{{ option.id }}</div>
-        <div class="workplace-description">{{ option.description }}</div>
+        <div class="workplace-description">{{ option.name }}</div>
       </div>
     </mat-option>
   </mat-autocomplete>

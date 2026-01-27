@@ -1,23 +1,30 @@
 <div class="flex flex-col w-96">
   <label for="costunit" class="text-gray-700 font-medium mb-1 flex items-center">
-    <span class="mr-2">🏭</span>
+    <mat-icon class="mr-2">factory</mat-icon>
     Cost Unit
   </label>
 
   <mat-form-field appearance="outline" class="custom-combobox">
+    <mat-progress-spinner
+      class="ml-2 mr-2"
+      matPrefix
+      *ngIf="isLoading"
+      mode="indeterminate"
+      diameter="20"
+    ></mat-progress-spinner>
     <input
       type="text"
-      placeholder="Select a cost unit..."
+      [placeholder]="isLoading ? 'Loading...' : 'Select a cost unit...'"
       matInput
       [formControl]="selectCostUnitsControl"
       [matAutocomplete]="autoCostUnit"
     />
-    <span
+    <mat-icon
       matSuffix
       *ngIf="selectCostUnitsControl.value"
       (click)="clearCostUnitSelection($event)"
       class="cursor-pointer text-gray-500 hover:text-gray-700"
-      >✕</span
+      >close</mat-icon
     >
   </mat-form-field>
 
@@ -26,9 +33,11 @@
     [displayWith]="displayFnCostUnit"
     (optionSelected)="onCostUnitOptionSelected($event)"
   >
-    <mat-option *ngFor="let option of mockCostUnits" [value]="option">
+    <mat-option *ngFor="let option of filteredCostUnits$ | async" [value]="option">
       <div class="option-content-costunit">
-        <div class="costunit-icon">🏢</div>
+        <div class="costunit-icon">
+          <mat-icon>business</mat-icon>
+        </div>
         <div class="option-text">
           <div>{{ option.id }}</div>
           <div class="option-name">{{ option.name }}</div>
