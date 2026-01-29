@@ -12,7 +12,7 @@
     "logLevel": "debug"
   },
   "/api/Stock_V1": {
-    "target": "https://pw-gkyr1t3/TDMGlobalLine25hf00pEBE",
+    "target": "https://pw-gkyr1t3/TDMGL202502HF01pEBE",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"

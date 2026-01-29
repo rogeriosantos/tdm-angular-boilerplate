@@ -8,7 +8,7 @@ window.APP_CONFIG = {
   basePath: '/', // Use root path for development
 
   // API endpoint path (will be combined with current host)
-  apiPath: 'https://localhost/TDMGlobalLine25hf00pEBE', // In dev, Angular proxy will handle this
+  apiPath: 'https://localhost/TDMGL202502HF01pEBE', // In dev, Angular proxy will handle this
 
   // WSAPISRV API endpoint (using proxy to avoid CORS)
   WSAPI: '/tdmapi/rest', // Proxied to localhost:8080 via proxy.conf.json
@@ -20,7 +20,7 @@ window.APP_CONFIG = {
   hostingUrl: 'http://localhost:4200', // Development server
 
   // Authentication server (separate from main API for development)
-  authUrl: 'https://localhost/TDMGlobalLine25hf00pEBE', // Production auth server for testing
+  authUrl: 'https://localhost/TDMGL202502HF01pEBE', // Production auth server for testing
 
   // Optional: Environment specific settings
   environment: 'development', // 'development' | 'production'

@@ -10,7 +10,7 @@ import {
 import { BookingsTableComponent } from '../../shared/components/bookings-table/bookings-table.component';
 import {
   BookingService,
-  BookingToolItem,
+  BookingRow,
 } from '../../core/services/booking.service';
 import { CostUnit } from '../../shared/components/costunit-selector/costunit-selector.component';
 import { Workplace } from '../../shared/components/workplace-selector/workplace-selector.component';
@@ -28,8 +28,8 @@ import { Workplace } from '../../shared/components/workplace-selector/workplace-
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent {
-  toolItems: BookingToolItem[] = [];
-  toolAssemblies: BookingToolItem[] = [];
+  toolItems: BookingRow[] = [];
+  toolAssemblies: BookingRow[] = [];
   loadingBookings = false;
   selectedCostUnitId: string | null = null;
   selectedWorkplaceId: string | null = null;
@@ -47,7 +47,6 @@ export class DashboardComponent {
 
   onCostUnitChanged(costUnit: CostUnit | null): void {
     this.selectedCostUnitId = costUnit?.id || null;
-    // Reset workplace and bookings when cost unit changes
     this.selectedWorkplaceId = null;
     this.toolItems = [];
     this.toolAssemblies = [];
@@ -74,7 +73,7 @@ export class DashboardComponent {
 
     this.loadingBookings = true;
     this.bookingService
-      .getUnconfirmedBookingsWithAssemblies(
+      .getUnconfirmedBookings(
         this.selectedCostUnitId,
         this.selectedWorkplaceId
       )

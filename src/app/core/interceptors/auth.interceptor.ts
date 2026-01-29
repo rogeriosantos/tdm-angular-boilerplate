@@ -15,7 +15,8 @@ export const authInterceptor = (
   // Add auth token to API calls matching known base URLs or proxied paths
   const isKnownApi =
     request.url.startsWith(environment.baseApiUrl) ||
-    request.url.startsWith(environment.stockApiUrl);
+    request.url.startsWith(environment.stockApiUrl) ||
+    request.url.startsWith(environment.wsApiUrl);
 
   const shouldNotAddAuthToken = !isKnownApi || authService.isAuthCall(request.url);
 

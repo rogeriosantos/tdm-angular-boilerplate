@@ -23,7 +23,7 @@ import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SelectionModel } from '@angular/cdk/collections';
-import { BookingToolItem } from '../../../core/services/booking.service';
+import { BookingRow } from '../../../core/services/booking.service';
 
 export interface ColumnDef {
   key: string;
@@ -40,10 +40,10 @@ export type TableState =
 export type RowType = 'assembly' | 'child' | 'standalone';
 
 export interface BookingTableRow {
-  data: BookingToolItem;
+  data: BookingRow;
   rowType: RowType;
   isExpanded: boolean;
-  parentAssemblyId: string | null;
+  parentCancelNrBase: number | null;
   childCount: number;
 }
 
@@ -77,8 +77,8 @@ const STORAGE_KEY = 'bookings-table-column-config';
   styleUrls: ['./bookings-table.component.scss'],
 })
 export class BookingsTableComponent implements OnChanges, AfterViewInit {
-  @Input() toolItems: BookingToolItem[] = [];
-  @Input() toolAssemblies: BookingToolItem[] = [];
+  @Input() toolItems: BookingRow[] = [];
+  @Input() toolAssemblies: BookingRow[] = [];
   @Input() loading = false;
   @Input() hasCostUnit = false;
   @Input() hasWorkplace = false;
@@ -120,12 +120,12 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
   selection = new SelectionModel<BookingTableRow>(true, []);
   filterValue = '';
 
-  // Expand state tracking: assemblyId -> expanded
-  private expandedAssemblies = new Set<string>();
+  // Expand state tracking: cancelNrBase -> expanded
+  private expandedAssemblies = new Set<number>();
 
   // All built rows (parents/standalone + children hidden until expand)
   private allRows: BookingTableRow[] = [];
-  private childrenByAssembly = new Map<string, BookingTableRow[]>();
+  private childrenByAssembly = new Map<number, BookingTableRow[]>();
 
   // Column drag state
   draggedColumn: string | null = null;
@@ -175,14 +175,13 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
       const data = row.data;
       const searchStr = filter.toLowerCase();
       return (
-        (data.articleId || '').toLowerCase().includes(searchStr) ||
-        (data.articleName || '').toLowerCase().includes(searchStr) ||
-        (data.articleDescription || '').toLowerCase().includes(searchStr) ||
-        (data.relationToolAssemblyId || '').toLowerCase().includes(searchStr) ||
-        (data.relationToolAssemblyName || '').toLowerCase().includes(searchStr) ||
-        (data.toCostunitName || '').toLowerCase().includes(searchStr) ||
+        (data.id || '').toLowerCase().includes(searchStr) ||
+        (data.name || '').toLowerCase().includes(searchStr) ||
+        (data.description || '').toLowerCase().includes(searchStr) ||
+        (data.costunitTo || '').toLowerCase().includes(searchStr) ||
         (data.stockplaceId || '').toLowerCase().includes(searchStr) ||
-        (data.type || '').toLowerCase().includes(searchStr)
+        String(data.type).includes(searchStr) ||
+        (data.cancelNr || '').includes(searchStr)
       );
     };
 
@@ -193,25 +192,25 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
       const data = row.data;
       switch (sortHeaderId) {
         case 'toolAssembly':
-          return data.relationToolAssemblyId || '';
+          return data.cancelNrBase;
         case 'targetCostUnit':
-          return data.toCostunitId || '';
+          return data.costunitTo || '';
         case 'articleId':
-          return data.articleId || '';
+          return data.id || '';
         case 'type':
-          return data.type || '';
+          return data.type;
         case 'quantity':
           return data.countNew + data.countUsed + data.countRepair;
         case 'stockPlaceId':
           return data.stockplaceId || '';
         case 'storageUnit':
-          return data.hallId || '';
+          return data.stockplaceId ? data.stockplaceId.substring(0, 2) : '';
         case 'shelf':
-          return data.shelfId || '';
+          return data.stockplaceId ? data.stockplaceId.substring(2, 4) : '';
         case 'width':
-          return data.width;
+          return 0; // No width from current endpoint
         case 'depth':
-          return data.depth;
+          return 0; // No depth from current endpoint
         default:
           return '';
       }
@@ -247,7 +246,7 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
         result.push(row);
         if (row.rowType === 'assembly' && row.isExpanded) {
           const assemblyChildren = children.filter(
-            (c) => c.parentAssemblyId === row.data.relationToolAssemblyId
+            (c) => c.parentCancelNrBase === row.data.cancelNrBase
           );
           result.push(...assemblyChildren);
         }
@@ -266,17 +265,22 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     this.allRows = [];
     this.childrenByAssembly.clear();
 
-    // Index tool items by their relationToolAssemblyId
-    const childMap = new Map<string, BookingToolItem[]>();
-    const standaloneItems: BookingToolItem[] = [];
+    // Group tool items by cancelNrBase to find which belong to an assembly
+    const childMap = new Map<number, BookingRow[]>();
+    const standaloneItems: BookingRow[] = [];
+
+    // Collect assembly cancelNrBases
+    const assemblyCancelNrBases = new Set(
+      this.toolAssemblies.map((a) => a.cancelNrBase)
+    );
 
     for (const item of this.toolItems) {
-      if (item.relationToolAssemblyId) {
-        const key = item.relationToolAssemblyId;
-        if (!childMap.has(key)) {
-          childMap.set(key, []);
+      if (assemblyCancelNrBases.has(item.cancelNrBase)) {
+        // This tool item belongs to an assembly group
+        if (!childMap.has(item.cancelNrBase)) {
+          childMap.set(item.cancelNrBase, []);
         }
-        childMap.get(key)!.push(item);
+        childMap.get(item.cancelNrBase)!.push(item);
       } else {
         standaloneItems.push(item);
       }
@@ -284,14 +288,14 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
 
     // Build assembly (parent) rows
     for (const assembly of this.toolAssemblies) {
-      const assemblyId = assembly.relationToolAssemblyId || assembly.articleId;
-      const children = childMap.get(assemblyId) || [];
+      const key = assembly.cancelNrBase;
+      const children = childMap.get(key) || [];
 
       const parentRow: BookingTableRow = {
         data: assembly,
         rowType: 'assembly',
-        isExpanded: this.expandedAssemblies.has(assemblyId),
-        parentAssemblyId: null,
+        isExpanded: this.expandedAssemblies.has(key),
+        parentCancelNrBase: null,
         childCount: children.length,
       };
       this.allRows.push(parentRow);
@@ -301,10 +305,10 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
         data: child,
         rowType: 'child' as RowType,
         isExpanded: false,
-        parentAssemblyId: assemblyId,
+        parentCancelNrBase: key,
         childCount: 0,
       }));
-      this.childrenByAssembly.set(assemblyId, childRows);
+      this.childrenByAssembly.set(key, childRows);
     }
 
     // Build standalone rows (tool items without an assembly)
@@ -313,7 +317,7 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
         data: item,
         rowType: 'standalone',
         isExpanded: false,
-        parentAssemblyId: null,
+        parentCancelNrBase: null,
         childCount: 0,
       });
     }
@@ -325,9 +329,8 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     for (const row of this.allRows) {
       rows.push(row);
       if (row.rowType === 'assembly' && row.isExpanded) {
-        const assemblyId =
-          row.data.relationToolAssemblyId || row.data.articleId;
-        const children = this.childrenByAssembly.get(assemblyId) || [];
+        const key = row.data.cancelNrBase;
+        const children = this.childrenByAssembly.get(key) || [];
         rows.push(...children);
       }
     }
@@ -338,14 +341,13 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
   toggleExpand(row: BookingTableRow): void {
     if (row.rowType !== 'assembly') return;
 
-    const assemblyId =
-      row.data.relationToolAssemblyId || row.data.articleId;
+    const key = row.data.cancelNrBase;
     row.isExpanded = !row.isExpanded;
 
     if (row.isExpanded) {
-      this.expandedAssemblies.add(assemblyId);
+      this.expandedAssemblies.add(key);
     } else {
-      this.expandedAssemblies.delete(assemblyId);
+      this.expandedAssemblies.delete(key);
     }
 
     this.refreshDataSource();
@@ -419,7 +421,6 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
   }
 
   private applySavedWidths(): void {
-    // Apply saved widths to <th> elements after render
     setTimeout(() => {
       const table = document.querySelector('.bookings-mat-table');
       if (!table) return;
@@ -440,7 +441,6 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     this.updateDisplayedColumns();
     this.saveToStorage();
 
-    // Clear inline widths
     const table = document.querySelector('.bookings-mat-table');
     if (table) {
       table.querySelectorAll('th.mat-mdc-header-cell').forEach((th) => {
@@ -488,7 +488,6 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
       } catch {
         console.error('Invalid column config file');
       }
-      // Reset file input so the same file can be re-imported
       input.value = '';
     };
     reader.readAsText(file);
@@ -517,7 +516,6 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     const visible = this.columnOrder.filter(
       (key) => this.columnVisibility[key]
     );
-    // 'expand' column always first
     this.displayedColumns = ['expand', ...visible];
   }
 
@@ -588,7 +586,6 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
       document.body.style.userSelect = '';
       this.resizing = false;
 
-      // Save the final width
       this.columnWidths[column] = th.offsetWidth;
       this.saveToStorage();
     };
