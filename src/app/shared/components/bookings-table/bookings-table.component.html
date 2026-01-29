@@ -132,6 +132,11 @@
                 @if (row.data.name) {
                   <span class="secondary-text">{{ row.data.name }}</span>
                 }
+              } @else if (row.rowType === 'child') {
+                <span class="child-assembly-id">{{ row.assemblyId }}</span>
+                @if (row.assemblyName) {
+                  <span class="child-assembly-name">{{ row.assemblyName }}</span>
+                }
               } @else {
                 <span class="primary-text">-</span>
               }
