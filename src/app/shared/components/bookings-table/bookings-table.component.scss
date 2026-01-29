@@ -99,7 +99,7 @@
     color: #43424a;
     padding: 8px 12px;
     border-bottom: 1px solid #eeeeee;
-    vertical-align: top;
+    vertical-align: middle;
   }
 
   // Row hover - matches reference project
@@ -229,6 +229,7 @@
   max-width: 40px;
   padding: 0 !important;
   text-align: center;
+  vertical-align: middle !important;
 }
 
 .expand-button {

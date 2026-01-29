@@ -38,6 +38,7 @@
       "tool-assembly": "Tool Assembly",
       "target-cost-unit": "Target Cost Unit",
       "article-id": "ID",
+      "id": "ID",
       "type": "Type",
       "quantity": "Quantity",
       "stock-place-id": "Stock Place ID",

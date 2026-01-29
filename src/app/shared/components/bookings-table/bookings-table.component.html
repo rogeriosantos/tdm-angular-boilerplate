@@ -127,7 +127,14 @@
           </th>
           <td mat-cell *matCellDef="let row">
             <div class="cell-content">
-              <span class="primary-text">{{ row.data.cancelNrBase || '-' }}</span>
+              @if (row.rowType === 'assembly') {
+                <span class="primary-text">{{ row.data.id }}</span>
+                @if (row.data.name) {
+                  <span class="secondary-text">{{ row.data.name }}</span>
+                }
+              } @else {
+                <span class="primary-text">-</span>
+              }
             </div>
           </td>
         </ng-container>
@@ -168,7 +175,7 @@
             [class.column-dragging]="draggedColumn === 'articleId'"
             [class.column-drag-over]="dragOverColumn === 'articleId'"
           >
-            {{ t('columns.article-id') }}
+            {{ t('columns.id') }}
             <span class="resize-handle"
               draggable="false"
               (mousedown)="onResizeStart($event, 'articleId')"
@@ -176,13 +183,15 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            <div class="cell-content">
-              <span class="primary-text article-id">{{ row.data.id }}</span>
-              <span class="secondary-text">{{ row.data.name }}</span>
-              @if (row.data.description) {
-                <span class="tertiary-text">{{ row.data.description }}</span>
-              }
-            </div>
+            @if (row.rowType !== 'assembly') {
+              <div class="cell-content">
+                <span class="primary-text article-id">{{ row.data.id }}</span>
+                <span class="secondary-text">{{ row.data.name }}</span>
+                @if (row.data.description) {
+                  <span class="tertiary-text">{{ row.data.description }}</span>
+                }
+              </div>
+            }
           </td>
         </ng-container>
 

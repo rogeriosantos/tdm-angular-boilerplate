@@ -45,6 +45,9 @@ export interface BookingTableRow {
   isExpanded: boolean;
   parentCancelNrBase: number | null;
   childCount: number;
+  /** Assembly ID for display — set on assembly rows and their children */
+  assemblyId: string;
+  assemblyName: string;
 }
 
 interface ColumnConfig {
@@ -93,7 +96,7 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
   allColumns: ColumnDef[] = [
     { key: 'toolAssembly', labelKey: 'columns.tool-assembly' },
     { key: 'targetCostUnit', labelKey: 'columns.target-cost-unit' },
-    { key: 'articleId', labelKey: 'columns.article-id' },
+    { key: 'articleId', labelKey: 'columns.id' },
     { key: 'type', labelKey: 'columns.type' },
     { key: 'quantity', labelKey: 'columns.quantity' },
     { key: 'stockPlaceId', labelKey: 'columns.stock-place-id' },
@@ -192,7 +195,7 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
       const data = row.data;
       switch (sortHeaderId) {
         case 'toolAssembly':
-          return data.cancelNrBase;
+          return row.assemblyId || '';
         case 'targetCostUnit':
           return data.costunitTo || '';
         case 'articleId':
@@ -297,6 +300,8 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
         isExpanded: this.expandedAssemblies.has(key),
         parentCancelNrBase: null,
         childCount: children.length,
+        assemblyId: assembly.id,
+        assemblyName: assembly.name,
       };
       this.allRows.push(parentRow);
 
@@ -307,6 +312,8 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
         isExpanded: false,
         parentCancelNrBase: key,
         childCount: 0,
+        assemblyId: assembly.id,
+        assemblyName: assembly.name,
       }));
       this.childrenByAssembly.set(key, childRows);
     }
@@ -319,6 +326,8 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
         isExpanded: false,
         parentCancelNrBase: null,
         childCount: 0,
+        assemblyId: '',
+        assemblyName: '',
       });
     }
   }

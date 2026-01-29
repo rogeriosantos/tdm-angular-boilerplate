@@ -38,6 +38,7 @@
       "tool-assembly": "Komplettwerkzeug",
       "target-cost-unit": "Zielkostenstelle",
       "article-id": "ID",
+      "id": "ID",
       "type": "Typ",
       "quantity": "Stück",
       "stock-place-id": "Lagerplatz ID",
