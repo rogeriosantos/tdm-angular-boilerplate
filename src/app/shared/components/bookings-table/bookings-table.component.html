@@ -399,6 +399,8 @@
           [class.selected-row]="selection.isSelected(row)"
           [class.assembly-row]="row.rowType === 'assembly'"
           [class.child-row]="row.rowType === 'child'"
+          [class.first-child-row]="row.isFirstChild"
+          [class.last-child-row]="row.isLastChild"
         ></tr>
 
         <!-- Empty State (no data after loading) -->

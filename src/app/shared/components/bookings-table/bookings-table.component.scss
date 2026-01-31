@@ -272,11 +272,25 @@ tr.child-row {
   background-color: #ffffff;
 
   td.mat-mdc-cell {
-    border-bottom-color: #f5f5f5;
+    border-bottom: 1px solid #f0f0f0;
     // Per-cell hover so child cells and merged assembly cell are independent
     &:not(.merged-assembly-cell):hover {
       background-color: #eef8fd;
     }
+  }
+}
+
+// First child row — strong top border to separate from previous group/row
+tr.first-child-row {
+  td.mat-mdc-cell {
+    border-top: 2px solid #90a4ae;
+  }
+}
+
+// Last child row — strong bottom border to separate from next group/row
+tr.last-child-row {
+  td.mat-mdc-cell {
+    border-bottom: 2px solid #90a4ae;
   }
 }
 

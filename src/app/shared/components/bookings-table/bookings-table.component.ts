@@ -57,6 +57,8 @@ export interface BookingTableRow {
   assemblyName: string;
   /** True only for the first child in an assembly group */
   isFirstChild: boolean;
+  /** True only for the last child in an assembly group */
+  isLastChild: boolean;
   /** Number of sibling children (including self) — set on first child for rowspan */
   siblingCount: number;
 }
@@ -326,6 +328,7 @@ export class BookingsTableComponent
         assemblyId: assembly.id,
         assemblyName: assembly.name,
         isFirstChild: false,
+        isLastChild: false,
         siblingCount: 0,
       };
       this.allRows.push(parentRow);
@@ -340,6 +343,7 @@ export class BookingsTableComponent
         assemblyId: assembly.id,
         assemblyName: assembly.name,
         isFirstChild: index === 0,
+        isLastChild: index === children.length - 1,
         siblingCount: index === 0 ? children.length : 0,
       }));
       this.childrenByAssembly.set(key, childRows);
@@ -356,6 +360,7 @@ export class BookingsTableComponent
         assemblyId: '',
         assemblyName: '',
         isFirstChild: false,
+        isLastChild: false,
         siblingCount: 0,
       });
     }
