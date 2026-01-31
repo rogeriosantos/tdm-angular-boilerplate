@@ -113,8 +113,14 @@ export class BookingsTableComponent
   private filterSubject = new Subject<string>();
   private filterSubscription!: Subscription;
 
-  @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  @ViewChild(MatSort) set matSortSetter(sort: MatSort) {
+    if (sort && this.dataSource) {
+      this.dataSource.sort = sort;
+      this.setupSortAccessors();
+    }
+  }
   @ViewChild('columnMenuTrigger', { read: MatMenuTrigger }) columnMenuTrigger!: MatMenuTrigger;
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
@@ -202,10 +208,11 @@ export class BookingsTableComponent
   }
 
   ngAfterViewInit(): void {
-    this.dataSource.sort = this.sort;
-    // Paginator is NOT connected to dataSource — pagination is server-side.
-    // We only use the paginator for display (length, pageSize) and events.
+    // Apply saved widths after view is ready
+    this.applySavedWidths();
+  }
 
+  private setupSortAccessors(): void {
     this.dataSource.sortingDataAccessor = (
       row: BookingTableRow,
       sortHeaderId: string
@@ -229,9 +236,9 @@ export class BookingsTableComponent
         case 'shelf':
           return data.stockplaceId ? data.stockplaceId.substring(2, 4) : '';
         case 'width':
-          return 0; // No width from current endpoint
+          return 0;
         case 'depth':
-          return 0; // No depth from current endpoint
+          return 0;
         case 'commissionId':
           return data.commissionId || '';
         default:
@@ -239,57 +246,7 @@ export class BookingsTableComponent
       }
     };
 
-    // Custom sort: sort parents/standalone normally, keep children grouped after their parent
-    this.dataSource.sortData = (
-      data: BookingTableRow[],
-      sort: MatSort
-    ): BookingTableRow[] => {
-      if (!sort.active || sort.direction === '') {
-        return data;
-      }
-
-      // Separate parents/standalone from children
-      const topLevel = data.filter((r) => r.rowType !== 'child');
-      const children = data.filter((r) => r.rowType === 'child');
-
-      // Sort top-level rows
-      const sorted = topLevel.sort((a, b) => {
-        const valA = this.dataSource.sortingDataAccessor(a, sort.active);
-        const valB = this.dataSource.sortingDataAccessor(b, sort.active);
-        const compare =
-          typeof valA === 'string' && typeof valB === 'string'
-            ? valA.localeCompare(valB)
-            : (valA as number) - (valB as number);
-        return sort.direction === 'asc' ? compare : -compare;
-      });
-
-      // Re-inject children after their parent assembly (grouped)
-      const result: BookingTableRow[] = [];
-      const childrenByBase = new Map<number, BookingTableRow[]>();
-      for (const c of children) {
-        const base = c.parentCancelNrBase!;
-        if (!childrenByBase.has(base)) {
-          childrenByBase.set(base, []);
-        }
-        childrenByBase.get(base)!.push(c);
-      }
-
-      // Children replace their parent in the sorted list
-      for (const row of sorted) {
-        if (row.rowType === 'assembly' && row.childCount > 0) {
-          const assemblyChildren =
-            childrenByBase.get(row.data.cancelNrBase) || [];
-          result.push(...assemblyChildren);
-        } else {
-          result.push(row);
-        }
-      }
-
-      return result;
-    };
-
-    // Apply saved widths after view is ready
-    this.applySavedWidths();
+    this.dataSource.sortData = this.groupSortData.bind(this);
   }
 
   // --- Row building ---
@@ -683,6 +640,84 @@ export class BookingsTableComponent
     } else {
       this.selection.select(...this.dataSource.data);
     }
+  }
+
+  // --- Sorting (grouped) ---
+
+  private groupSortData(
+    data: BookingTableRow[],
+    sort: MatSort
+  ): BookingTableRow[] {
+    if (!sort.active || sort.direction === '') {
+      return data;
+    }
+
+    const accessor = this.dataSource.sortingDataAccessor;
+    const active = sort.active;
+    const dir = sort.direction;
+
+    const compareFn = (a: BookingTableRow, b: BookingTableRow): number => {
+      const valA = accessor(a, active);
+      const valB = accessor(b, active);
+      let compare: number;
+      if (typeof valA === 'string' && typeof valB === 'string') {
+        compare = valA.localeCompare(valB);
+      } else {
+        compare = (valA as number) - (valB as number);
+      }
+      return dir === 'asc' ? compare : -compare;
+    };
+
+    // Build groups: children with same parentCancelNrBase form one group,
+    // standalone/assembly-without-children are individual groups
+    const groups: BookingTableRow[][] = [];
+    const childGroupMap = new Map<number, BookingTableRow[]>();
+
+    for (const row of data) {
+      if (row.rowType === 'child' && row.parentCancelNrBase != null) {
+        let group = childGroupMap.get(row.parentCancelNrBase);
+        if (!group) {
+          group = [];
+          childGroupMap.set(row.parentCancelNrBase, group);
+          groups.push(group);
+        }
+        group.push(row);
+      } else {
+        groups.push([row]);
+      }
+    }
+
+    // Sort children within each multi-row group
+    for (const group of groups) {
+      if (group.length > 1) {
+        group.sort(compareFn);
+      }
+    }
+
+    // Sort groups relative to each other using first row as representative
+    groups.sort((a, b) => compareFn(a[0], b[0]));
+
+    // Flatten, reassign groupIndex and fix first/last child flags
+    const result: BookingTableRow[] = [];
+    let groupIndex = 0;
+    for (const group of groups) {
+      if (group.length > 1) {
+        // Multi-row child group: reassign isFirstChild / isLastChild / siblingCount
+        for (let i = 0; i < group.length; i++) {
+          group[i].isFirstChild = i === 0;
+          group[i].isLastChild = i === group.length - 1;
+          group[i].siblingCount = i === 0 ? group.length : 0;
+          group[i].groupIndex = groupIndex;
+          result.push(group[i]);
+        }
+      } else {
+        group[0].groupIndex = groupIndex;
+        result.push(group[0]);
+      }
+      groupIndex++;
+    }
+
+    return result;
   }
 
   // --- Assembly group selection ---
