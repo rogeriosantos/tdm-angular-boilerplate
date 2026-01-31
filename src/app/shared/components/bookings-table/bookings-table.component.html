@@ -442,11 +442,13 @@
       }
     </mat-menu>
 
-    <!-- Paginator -->
+    <!-- Paginator (server-side) -->
     <mat-paginator
+      [length]="totalCount"
       [pageSizeOptions]="[10, 25, 50]"
       [pageSize]="50"
       showFirstLastButtons
+      (page)="onPageChange($event)"
     >
     </mat-paginator>
   }

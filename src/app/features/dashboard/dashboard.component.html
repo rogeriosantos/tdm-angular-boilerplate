@@ -17,7 +17,10 @@
       [loading]="loadingBookings"
       [hasCostUnit]="!!selectedCostUnitId"
       [hasWorkplace]="!!selectedWorkplaceId"
+      [totalCount]="totalBookingCount"
       (refresh)="onRefreshBookings()"
+      (pageChange)="onPageChange($event)"
+      (filterChange)="onFilterChange($event)"
     ></app-bookings-table>
   </main>
 </div>

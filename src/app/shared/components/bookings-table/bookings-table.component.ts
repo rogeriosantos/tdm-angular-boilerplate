@@ -5,6 +5,7 @@ import {
   EventEmitter,
   ViewChild,
   OnChanges,
+  OnDestroy,
   SimpleChanges,
   ElementRef,
   AfterViewInit,
@@ -12,7 +13,11 @@ import {
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
-import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
+import {
+  MatPaginatorModule,
+  MatPaginator,
+  PageEvent,
+} from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -23,6 +28,8 @@ import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SelectionModel } from '@angular/cdk/collections';
+import { Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { BookingRow } from '../../../core/services/booking.service';
 
 export interface ColumnDef {
@@ -79,13 +86,24 @@ const STORAGE_KEY = 'bookings-table-column-config';
   templateUrl: './bookings-table.component.html',
   styleUrls: ['./bookings-table.component.scss'],
 })
-export class BookingsTableComponent implements OnChanges, AfterViewInit {
+export class BookingsTableComponent
+  implements OnChanges, AfterViewInit, OnDestroy
+{
   @Input() toolItems: BookingRow[] = [];
   @Input() toolAssemblies: BookingRow[] = [];
   @Input() loading = false;
   @Input() hasCostUnit = false;
   @Input() hasWorkplace = false;
+  @Input() totalCount = 0;
   @Output() refresh = new EventEmitter<void>();
+  @Output() pageChange = new EventEmitter<{
+    pageIndex: number;
+    pageSize: number;
+  }>();
+  @Output() filterChange = new EventEmitter<string>();
+
+  private filterSubject = new Subject<string>();
+  private filterSubscription!: Subscription;
 
   @ViewChild(MatSort) sort!: MatSort;
   @ViewChild(MatPaginator) paginator!: MatPaginator;
@@ -148,6 +166,16 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     this.initDefaults();
     this.loadFromStorage();
     this.updateDisplayedColumns();
+
+    this.filterSubscription = this.filterSubject
+      .pipe(debounceTime(300), distinctUntilChanged())
+      .subscribe((value) => {
+        this.filterChange.emit(value);
+      });
+  }
+
+  ngOnDestroy(): void {
+    this.filterSubscription.unsubscribe();
   }
 
   get tableState(): TableState {
@@ -169,24 +197,8 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
 
   ngAfterViewInit(): void {
     this.dataSource.sort = this.sort;
-    this.dataSource.paginator = this.paginator;
-
-    this.dataSource.filterPredicate = (
-      row: BookingTableRow,
-      filter: string
-    ) => {
-      const data = row.data;
-      const searchStr = filter.toLowerCase();
-      return (
-        (data.id || '').toLowerCase().includes(searchStr) ||
-        (data.name || '').toLowerCase().includes(searchStr) ||
-        (data.description || '').toLowerCase().includes(searchStr) ||
-        (data.costunitTo || '').toLowerCase().includes(searchStr) ||
-        (data.stockplaceId || '').toLowerCase().includes(searchStr) ||
-        String(data.type).includes(searchStr) ||
-        (data.cancelNr || '').includes(searchStr)
-      );
-    };
+    // Paginator is NOT connected to dataSource — pagination is server-side.
+    // We only use the paginator for display (length, pageSize) and events.
 
     this.dataSource.sortingDataAccessor = (
       row: BookingTableRow,
@@ -605,21 +617,26 @@ export class BookingsTableComponent implements OnChanges, AfterViewInit {
     document.addEventListener('mouseup', onMouseUp);
   }
 
-  // --- Filter ---
+  // --- Filter (server-side, debounced) ---
 
   applyFilter(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
     this.filterValue = value;
-    this.dataSource.filter = value.trim().toLowerCase();
-
-    if (this.dataSource.paginator) {
-      this.dataSource.paginator.firstPage();
-    }
+    this.filterSubject.next(value.trim());
   }
 
   resetFilter(): void {
     this.filterValue = '';
-    this.dataSource.filter = '';
+    this.filterSubject.next('');
+  }
+
+  // --- Pagination (server-side) ---
+
+  onPageChange(event: PageEvent): void {
+    this.pageChange.emit({
+      pageIndex: event.pageIndex,
+      pageSize: event.pageSize,
+    });
   }
 
   onRefresh(): void {

@@ -34,6 +34,12 @@ export class DashboardComponent {
   selectedCostUnitId: string | null = null;
   selectedWorkplaceId: string | null = null;
 
+  // Server-side pagination state
+  totalBookingCount = 0;
+  currentPageIndex = 0;
+  currentPageSize = 50;
+  currentFilter = '';
+
   constructor(
     private authService: AuthService,
     private router: Router,
@@ -48,21 +54,33 @@ export class DashboardComponent {
   onCostUnitChanged(costUnit: CostUnit | null): void {
     this.selectedCostUnitId = costUnit?.id || null;
     this.selectedWorkplaceId = null;
-    this.toolItems = [];
-    this.toolAssemblies = [];
+    this.resetBookings();
   }
 
   onWorkplaceChanged(workplace: Workplace | null): void {
     this.selectedWorkplaceId = workplace?.id || null;
     if (!workplace) {
-      this.toolItems = [];
-      this.toolAssemblies = [];
+      this.resetBookings();
     }
   }
 
   onSelectionChanged(event: SelectionChangedEvent): void {
     this.selectedCostUnitId = event.costUnit.id;
     this.selectedWorkplaceId = event.workplace.id;
+    this.currentPageIndex = 0;
+    this.currentFilter = '';
+    this.loadBookings();
+  }
+
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
+    this.currentPageIndex = event.pageIndex;
+    this.currentPageSize = event.pageSize;
+    this.loadBookings();
+  }
+
+  onFilterChange(filter: string): void {
+    this.currentFilter = filter;
+    this.currentPageIndex = 0;
     this.loadBookings();
   }
 
@@ -73,19 +91,22 @@ export class DashboardComponent {
 
     this.loadingBookings = true;
     this.bookingService
-      .getUnconfirmedBookings(
-        this.selectedCostUnitId,
-        this.selectedWorkplaceId
-      )
+      .getUnconfirmedBookings({
+        costunitId: this.selectedCostUnitId,
+        workplaceId: this.selectedWorkplaceId,
+        skip: this.currentPageIndex * this.currentPageSize,
+        take: this.currentPageSize,
+        filter: this.currentFilter,
+      })
       .subscribe({
         next: (result) => {
           this.toolItems = result.toolItems;
           this.toolAssemblies = result.toolAssemblies;
+          this.totalBookingCount = result.totalCount;
           this.loadingBookings = false;
         },
         error: () => {
-          this.toolItems = [];
-          this.toolAssemblies = [];
+          this.resetBookings();
           this.loadingBookings = false;
         },
       });
@@ -93,5 +114,13 @@ export class DashboardComponent {
 
   onRefreshBookings(): void {
     this.loadBookings();
+  }
+
+  private resetBookings(): void {
+    this.toolItems = [];
+    this.toolAssemblies = [];
+    this.totalBookingCount = 0;
+    this.currentPageIndex = 0;
+    this.currentFilter = '';
   }
 }
