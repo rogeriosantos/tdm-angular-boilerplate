@@ -145,10 +145,7 @@ export class BookingsTableComponent
   selection = new SelectionModel<BookingTableRow>(true, []);
   filterValue = '';
 
-  // Expand state tracking: cancelNrBase -> expanded
-  private expandedAssemblies = new Set<number>();
-
-  // All built rows (parents/standalone + children hidden until expand)
+  // All built rows (parents/standalone + children)
   private allRows: BookingTableRow[] = [];
   private childrenByAssembly = new Map<number, BookingTableRow[]>();
 
@@ -259,15 +256,25 @@ export class BookingsTableComponent
         return sort.direction === 'asc' ? compare : -compare;
       });
 
-      // Re-inject children after their parent
+      // Re-inject children after their parent assembly (grouped)
       const result: BookingTableRow[] = [];
+      const childrenByBase = new Map<number, BookingTableRow[]>();
+      for (const c of children) {
+        const base = c.parentCancelNrBase!;
+        if (!childrenByBase.has(base)) {
+          childrenByBase.set(base, []);
+        }
+        childrenByBase.get(base)!.push(c);
+      }
+
+      // Children replace their parent in the sorted list
       for (const row of sorted) {
-        result.push(row);
-        if (row.rowType === 'assembly' && row.isExpanded) {
-          const assemblyChildren = children.filter(
-            (c) => c.parentCancelNrBase === row.data.cancelNrBase
-          );
+        if (row.rowType === 'assembly' && row.childCount > 0) {
+          const assemblyChildren =
+            childrenByBase.get(row.data.cancelNrBase) || [];
           result.push(...assemblyChildren);
+        } else {
+          result.push(row);
         }
       }
 
@@ -313,7 +320,7 @@ export class BookingsTableComponent
       const parentRow: BookingTableRow = {
         data: assembly,
         rowType: 'assembly',
-        isExpanded: this.expandedAssemblies.has(key),
+        isExpanded: false,
         parentCancelNrBase: null,
         childCount: children.length,
         assemblyId: assembly.id,
@@ -358,30 +365,18 @@ export class BookingsTableComponent
     const rows: BookingTableRow[] = [];
 
     for (const row of this.allRows) {
-      rows.push(row);
-      if (row.rowType === 'assembly' && row.isExpanded) {
+      if (row.rowType === 'assembly' && row.childCount > 0) {
+        // Assembly with children: skip parent, show children directly
         const key = row.data.cancelNrBase;
         const children = this.childrenByAssembly.get(key) || [];
         rows.push(...children);
+      } else {
+        // Assembly without children or standalone: show normally
+        rows.push(row);
       }
     }
 
     this.dataSource.data = rows;
-  }
-
-  toggleExpand(row: BookingTableRow): void {
-    if (row.rowType !== 'assembly') return;
-
-    const key = row.data.cancelNrBase;
-    row.isExpanded = !row.isExpanded;
-
-    if (row.isExpanded) {
-      this.expandedAssemblies.add(key);
-    } else {
-      this.expandedAssemblies.delete(key);
-    }
-
-    this.refreshDataSource();
   }
 
   // --- Persistence (localStorage) ---
@@ -547,7 +542,7 @@ export class BookingsTableComponent
     const visible = this.columnOrder.filter(
       (key) => this.columnVisibility[key]
     );
-    this.displayedColumns = ['expand', ...visible];
+    this.displayedColumns = [...visible];
   }
 
   // --- Column drag-and-drop (native HTML5) ---
