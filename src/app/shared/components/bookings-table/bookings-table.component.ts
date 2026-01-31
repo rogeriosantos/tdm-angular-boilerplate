@@ -61,6 +61,8 @@ export interface BookingTableRow {
   isLastChild: boolean;
   /** Number of sibling children (including self) — set on first child for rowspan */
   siblingCount: number;
+  /** Group index for alternating stripe colors */
+  groupIndex: number;
 }
 
 interface ColumnConfig {
@@ -330,6 +332,7 @@ export class BookingsTableComponent
         isFirstChild: false,
         isLastChild: false,
         siblingCount: 0,
+        groupIndex: 0,
       };
       this.allRows.push(parentRow);
 
@@ -345,6 +348,7 @@ export class BookingsTableComponent
         isFirstChild: index === 0,
         isLastChild: index === children.length - 1,
         siblingCount: index === 0 ? children.length : 0,
+        groupIndex: 0,
       }));
       this.childrenByAssembly.set(key, childRows);
     }
@@ -362,23 +366,30 @@ export class BookingsTableComponent
         isFirstChild: false,
         isLastChild: false,
         siblingCount: 0,
+        groupIndex: 0,
       });
     }
   }
 
   private refreshDataSource(): void {
     const rows: BookingTableRow[] = [];
+    let groupIndex = 0;
 
     for (const row of this.allRows) {
       if (row.rowType === 'assembly' && row.childCount > 0) {
         // Assembly with children: skip parent, show children directly
         const key = row.data.cancelNrBase;
         const children = this.childrenByAssembly.get(key) || [];
-        rows.push(...children);
+        for (const child of children) {
+          child.groupIndex = groupIndex;
+          rows.push(child);
+        }
       } else {
         // Assembly without children or standalone: show normally
+        row.groupIndex = groupIndex;
         rows.push(row);
       }
+      groupIndex++;
     }
 
     this.dataSource.data = rows;

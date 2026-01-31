@@ -154,8 +154,7 @@
 .merged-assembly-cell {
   vertical-align: middle !important;
   text-align: left;
-  background-color: #ffffff;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 3px solid #607d8b !important;
   border-right: 2px solid #d0d7e2;
   cursor: pointer;
 
@@ -283,15 +282,37 @@ tr.child-row {
 // First child row — strong top border to separate from previous group/row
 tr.first-child-row {
   td.mat-mdc-cell {
-    border-top: 2px solid #90a4ae;
+    border-top: 3px solid #607d8b;
   }
 }
 
 // Last child row — strong bottom border to separate from next group/row
 tr.last-child-row {
   td.mat-mdc-cell {
-    border-bottom: 2px solid #90a4ae;
+    border-bottom: 3px solid #607d8b;
   }
+}
+
+// Group striping — alternating background per group
+tr.group-even {
+  td.mat-mdc-cell:not(.merged-assembly-cell) {
+    background-color: #ffffff;
+  }
+}
+
+tr.group-odd {
+  td.mat-mdc-cell:not(.merged-assembly-cell) {
+    background-color: #f7f9fc;
+  }
+}
+
+// Merged assembly cell stripe
+.merged-group-even {
+  background-color: #ffffff !important;
+}
+
+.merged-group-odd {
+  background-color: #f7f9fc !important;
 }
 
 // Paginator styling

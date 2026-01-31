@@ -112,6 +112,8 @@
           <td mat-cell *matCellDef="let row"
             [attr.rowspan]="row.isFirstChild ? row.siblingCount : null"
             [class.merged-assembly-cell]="row.isFirstChild"
+            [class.merged-group-even]="row.isFirstChild && row.groupIndex % 2 === 0"
+            [class.merged-group-odd]="row.isFirstChild && row.groupIndex % 2 === 1"
             [style.display]="(row.rowType === 'child' && !row.isFirstChild) ? 'none' : null"
             (click)="row.isFirstChild ? toggleAssemblySelection(row) : null; $event.stopPropagation()"
           >
@@ -401,6 +403,8 @@
           [class.child-row]="row.rowType === 'child'"
           [class.first-child-row]="row.isFirstChild"
           [class.last-child-row]="row.isLastChild"
+          [class.group-even]="row.groupIndex % 2 === 0"
+          [class.group-odd]="row.groupIndex % 2 === 1"
         ></tr>
 
         <!-- Empty State (no data after loading) -->
