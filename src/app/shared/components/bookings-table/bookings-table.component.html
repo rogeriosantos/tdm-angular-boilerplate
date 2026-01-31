@@ -125,7 +125,11 @@
               (click)="$event.stopPropagation()">
             </span>
           </th>
-          <td mat-cell *matCellDef="let row">
+          <td mat-cell *matCellDef="let row"
+            [attr.rowspan]="row.isFirstChild ? row.siblingCount : null"
+            [class.merged-assembly-cell]="row.isFirstChild"
+            [style.display]="(row.rowType === 'child' && !row.isFirstChild) ? 'none' : null"
+          >
             <div class="cell-content">
               @if (row.rowType === 'assembly') {
                 <span class="primary-text">{{ row.data.id }}</span>
@@ -133,9 +137,9 @@
                   <span class="secondary-text">{{ row.data.name }}</span>
                 }
               } @else if (row.rowType === 'child') {
-                <span class="child-assembly-id">{{ row.assemblyId }}</span>
+                <span class="primary-text">{{ row.assemblyId }}</span>
                 @if (row.assemblyName) {
-                  <span class="child-assembly-name">{{ row.assemblyName }}</span>
+                  <span class="secondary-text">{{ row.assemblyName }}</span>
                 }
               } @else {
                 <span class="primary-text">-</span>

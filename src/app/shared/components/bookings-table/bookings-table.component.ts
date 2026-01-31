@@ -55,6 +55,10 @@ export interface BookingTableRow {
   /** Assembly ID for display — set on assembly rows and their children */
   assemblyId: string;
   assemblyName: string;
+  /** True only for the first child in an assembly group */
+  isFirstChild: boolean;
+  /** Number of sibling children (including self) — set on first child for rowspan */
+  siblingCount: number;
 }
 
 interface ColumnConfig {
@@ -314,11 +318,13 @@ export class BookingsTableComponent
         childCount: children.length,
         assemblyId: assembly.id,
         assemblyName: assembly.name,
+        isFirstChild: false,
+        siblingCount: 0,
       };
       this.allRows.push(parentRow);
 
       // Build child rows
-      const childRows: BookingTableRow[] = children.map((child) => ({
+      const childRows: BookingTableRow[] = children.map((child, index) => ({
         data: child,
         rowType: 'child' as RowType,
         isExpanded: false,
@@ -326,6 +332,8 @@ export class BookingsTableComponent
         childCount: 0,
         assemblyId: assembly.id,
         assemblyName: assembly.name,
+        isFirstChild: index === 0,
+        siblingCount: index === 0 ? children.length : 0,
       }));
       this.childrenByAssembly.set(key, childRows);
     }
@@ -340,6 +348,8 @@ export class BookingsTableComponent
         childCount: 0,
         assemblyId: '',
         assemblyName: '',
+        isFirstChild: false,
+        siblingCount: 0,
       });
     }
   }
