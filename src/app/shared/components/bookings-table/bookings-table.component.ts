@@ -665,4 +665,37 @@ export class BookingsTableComponent
       this.selection.select(...this.dataSource.data);
     }
   }
+
+  // --- Assembly group selection ---
+
+  private getAssemblyChildren(cancelNrBase: number): BookingTableRow[] {
+    return this.dataSource.data.filter(
+      (r) => r.rowType === 'child' && r.parentCancelNrBase === cancelNrBase
+    );
+  }
+
+  isAssemblyAllSelected(cancelNrBase: number): boolean {
+    const children = this.getAssemblyChildren(cancelNrBase);
+    return (
+      children.length > 0 && children.every((c) => this.selection.isSelected(c))
+    );
+  }
+
+  isAssemblyIndeterminate(cancelNrBase: number): boolean {
+    const children = this.getAssemblyChildren(cancelNrBase);
+    const selectedCount = children.filter((c) =>
+      this.selection.isSelected(c)
+    ).length;
+    return selectedCount > 0 && selectedCount < children.length;
+  }
+
+  toggleAssemblySelection(row: BookingTableRow): void {
+    const cancelNrBase = row.parentCancelNrBase!;
+    const children = this.getAssemblyChildren(cancelNrBase);
+    if (this.isAssemblyAllSelected(cancelNrBase)) {
+      this.selection.deselect(...children);
+    } else {
+      this.selection.select(...children);
+    }
+  }
 }

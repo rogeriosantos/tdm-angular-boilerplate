@@ -162,6 +162,19 @@
   }
 }
 
+// Assembly cell with checkbox and label side by side
+.assembly-cell-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.assembly-cell-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
 // Empty state
 .empty-row {
   text-align: center;

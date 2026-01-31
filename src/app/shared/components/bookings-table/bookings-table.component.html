@@ -121,10 +121,20 @@
                   <span class="secondary-text">{{ row.data.name }}</span>
                 }
               } @else if (row.rowType === 'child') {
-                <span class="primary-text">{{ row.assemblyId }}</span>
-                @if (row.assemblyName) {
-                  <span class="secondary-text">{{ row.assemblyName }}</span>
-                }
+                <div class="assembly-cell-row">
+                  <mat-checkbox
+                    (click)="$event.stopPropagation()"
+                    (change)="toggleAssemblySelection(row)"
+                    [checked]="isAssemblyAllSelected(row.parentCancelNrBase!)"
+                    [indeterminate]="isAssemblyIndeterminate(row.parentCancelNrBase!)"
+                  ></mat-checkbox>
+                  <div class="assembly-cell-label">
+                    <span class="primary-text">{{ row.assemblyId }}</span>
+                    @if (row.assemblyName) {
+                      <span class="secondary-text">{{ row.assemblyName }}</span>
+                    }
+                  </div>
+                </div>
               } @else {
                 <span class="primary-text">-</span>
               }
