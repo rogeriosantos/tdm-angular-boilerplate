@@ -113,6 +113,7 @@
             [attr.rowspan]="row.isFirstChild ? row.siblingCount : null"
             [class.merged-assembly-cell]="row.isFirstChild"
             [style.display]="(row.rowType === 'child' && !row.isFirstChild) ? 'none' : null"
+            (click)="row.isFirstChild ? toggleAssemblySelection(row) : null; $event.stopPropagation()"
           >
             <div class="cell-content">
               @if (row.rowType === 'assembly') {
