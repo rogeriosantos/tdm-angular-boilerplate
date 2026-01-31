@@ -131,6 +131,7 @@ export class BookingsTableComponent
     { key: 'width', labelKey: 'columns.width' },
     { key: 'depth', labelKey: 'columns.depth' },
     { key: 'select', labelKey: 'columns.select' },
+    { key: 'commissionId', labelKey: 'columns.commission-id' },
   ];
 
   // Track visibility per column
@@ -231,6 +232,8 @@ export class BookingsTableComponent
           return 0; // No width from current endpoint
         case 'depth':
           return 0; // No depth from current endpoint
+        case 'commissionId':
+          return data.commissionId || '';
         default:
           return '';
       }

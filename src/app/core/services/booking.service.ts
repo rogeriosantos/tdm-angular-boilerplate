@@ -36,6 +36,7 @@ export interface UnconfirmedBookingApiRow {
   STOCKPLACEID: string;
   LISTID: string;
   UNCONFIRMED: string;
+  COMMISSIONID: string;
 }
 
 /**
@@ -82,6 +83,7 @@ export interface BookingRow {
   userId: string;
   invId: string;
   listId: string;
+  commissionId: string;
 }
 
 export interface BookingsResult {
@@ -230,6 +232,7 @@ export class BookingService {
       userId: row.USERID || '',
       invId: row.INVID || '',
       listId: row.LISTID || '',
+      commissionId: row.COMMISSIONID || '',
     };
   }
 }

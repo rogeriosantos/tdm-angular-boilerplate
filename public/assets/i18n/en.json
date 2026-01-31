@@ -47,7 +47,8 @@
       "width": "Width",
       "depth": "Depth",
       "select": "Selection",
-      "expand": "Expand"
+      "expand": "Expand",
+      "commission-id": "Commission ID"
     }
   }
 }

@@ -47,7 +47,8 @@
       "width": "Breite",
       "depth": "Tiefe",
       "select": "Auswahl",
-      "expand": "Erweitern"
+      "expand": "Erweitern",
+      "commission-id": "Kommissionsauftrag"
     }
   }
 }

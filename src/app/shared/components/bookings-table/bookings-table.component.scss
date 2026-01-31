@@ -93,6 +93,32 @@
     overflow: visible;
   }
 
+  // Narrow columns — smaller width, allow header text to wrap
+  th.mat-column-type,
+  th.mat-column-quantity,
+  th.mat-column-storageUnit,
+  th.mat-column-shelf,
+  th.mat-column-width,
+  th.mat-column-depth {
+    white-space: normal;
+    text-align: center;
+    max-width: 70px;
+    min-width: 50px;
+    padding: 4px 6px;
+  }
+
+  td.mat-column-type,
+  td.mat-column-quantity,
+  td.mat-column-storageUnit,
+  td.mat-column-shelf,
+  td.mat-column-width,
+  td.mat-column-depth {
+    text-align: center;
+    max-width: 70px;
+    min-width: 50px;
+    padding: 8px 6px;
+  }
+
   // Cell styling
   td.mat-mdc-cell {
     font-size: 0.813rem;

@@ -388,6 +388,29 @@
           </td>
         </ng-container>
 
+        <!-- Commission ID Column -->
+        <ng-container matColumnDef="commissionId">
+          <th mat-header-cell *matHeaderCellDef mat-sort-header
+            draggable="true"
+            (dragstart)="onColumnDragStart($event, 'commissionId')"
+            (dragover)="onColumnDragOver($event, 'commissionId')"
+            (drop)="onColumnDrop($event, 'commissionId')"
+            (dragend)="onColumnDragEnd()"
+            [class.column-dragging]="draggedColumn === 'commissionId'"
+            [class.column-drag-over]="dragOverColumn === 'commissionId'"
+          >
+            {{ t('columns.commission-id') }}
+            <span class="resize-handle"
+              draggable="false"
+              (mousedown)="onResizeStart($event, 'commissionId')"
+              (click)="$event.stopPropagation()">
+            </span>
+          </th>
+          <td mat-cell *matCellDef="let row">
+            {{ row.data.commissionId }}
+          </td>
+        </ng-container>
+
         <!-- Header and Row Definitions -->
         <tr
           mat-header-row
