@@ -255,6 +255,8 @@ export class BookingService {
       .set('timestampFrom', params.timestampFrom.toString())
       .set('timestampTo', params.timestampTo.toString());
 
+    console.log('[History API]', `${url}?${httpParams.toString()}`);
+
     return this.http
       .get<UnconfirmedBookingApiRow[]>(url, { params: httpParams })
       .pipe(

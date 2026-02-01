@@ -174,6 +174,7 @@ export class DashboardComponent {
   }
 
   onDateRangeChange(key: string): void {
+    console.log('[History] Date range changed to:', key);
     this.selectedDateRange = key;
     this.loadHistory();
   }
@@ -229,6 +230,9 @@ export class DashboardComponent {
     if (!rangeOption) return;
 
     const range = rangeOption.getRange();
+    console.log('[History] Loading with range:', this.selectedDateRange,
+      'from:', new Date(range.from * 1000).toISOString(),
+      'to:', new Date(range.to * 1000).toISOString());
     this.loadingHistory = true;
     this.bookingService
       .getHistoryBookings({
