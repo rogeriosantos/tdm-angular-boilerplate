@@ -180,7 +180,10 @@
           </th>
           <td mat-cell *matCellDef="let row">
             <div class="cell-content">
-              <span class="primary-text">{{ row.data.costunitTo || '-' }}</span>
+              <span class="primary-text">{{ row.data.costunitTo || '-' }} - {{ row.data.machineId || '-' }}</span>
+              @if (row.data.machineName) {
+                <span class="secondary-text">{{ row.data.machineName }}</span>
+              }
             </div>
           </td>
         </ng-container>

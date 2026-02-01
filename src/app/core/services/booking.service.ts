@@ -37,6 +37,8 @@ export interface UnconfirmedBookingApiRow {
   LISTID: string;
   UNCONFIRMED: string;
   COMMISSIONID: string;
+  MACHINEID: string;
+  MACHINENAME: string;
 }
 
 /**
@@ -84,6 +86,8 @@ export interface BookingRow {
   invId: string;
   listId: string;
   commissionId: string;
+  machineId: string;
+  machineName: string;
 }
 
 export interface BookingsResult {
@@ -314,6 +318,8 @@ export class BookingService {
       invId: row.INVID || '',
       listId: row.LISTID || '',
       commissionId: row.COMMISSIONID || '',
+      machineId: row.MACHINEID || '',
+      machineName: row.MACHINENAME || '',
     };
   }
 }
