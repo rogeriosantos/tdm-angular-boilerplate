@@ -1,4 +1,4 @@
-<div class="dashboard-container">
+<div class="dashboard-container" *transloco="let t">
   <!-- Machine Operator Toolbar Header -->
   <app-toolbar></app-toolbar>
 
@@ -9,18 +9,43 @@
     (workplaceChanged)="onWorkplaceChanged($event)"
   ></app-selection-bar>
 
-  <!-- Bookings Table (always visible) -->
+  <!-- Tabs: Unconfirmed / History -->
   <main class="dashboard-content">
-    <app-bookings-table
-      [toolItems]="toolItems"
-      [toolAssemblies]="toolAssemblies"
-      [loading]="loadingBookings"
-      [hasCostUnit]="!!selectedCostUnitId"
-      [hasWorkplace]="!!selectedWorkplaceId"
-      [totalCount]="totalBookingCount"
-      (refresh)="onRefreshBookings()"
-      (pageChange)="onPageChange($event)"
-      (filterChange)="onFilterChange($event)"
-    ></app-bookings-table>
+    <mat-tab-group (selectedTabChange)="onTabChange($event)">
+      <!-- Unconfirmed Tab -->
+      <mat-tab [label]="t('bookings.tab-unconfirmed')">
+        <app-bookings-table
+          #bookingsTable
+          [toolItems]="toolItems"
+          [toolAssemblies]="toolAssemblies"
+          [loading]="loadingBookings"
+          [hasCostUnit]="!!selectedCostUnitId"
+          [hasWorkplace]="!!selectedWorkplaceId"
+          [totalCount]="totalBookingCount"
+          [readOnly]="false"
+          (refresh)="onRefreshBookings()"
+          (pageChange)="onPageChange($event)"
+          (filterChange)="onFilterChange($event)"
+          (confirmBookings)="onConfirmBookings($event)"
+        ></app-bookings-table>
+      </mat-tab>
+
+      <!-- History Tab -->
+      <mat-tab [label]="t('bookings.tab-history')">
+        <app-bookings-table
+          [toolItems]="historyToolItems"
+          [toolAssemblies]="historyToolAssemblies"
+          [loading]="loadingHistory"
+          [hasCostUnit]="!!selectedCostUnitId"
+          [hasWorkplace]="!!selectedWorkplaceId"
+          [totalCount]="0"
+          [readOnly]="true"
+          [dateRanges]="dateRanges"
+          [selectedDateRange]="selectedDateRange"
+          (dateRangeChange)="onDateRangeChange($event)"
+          (refresh)="onRefreshHistory()"
+        ></app-bookings-table>
+      </mat-tab>
+    </mat-tab-group>
   </main>
 </div>

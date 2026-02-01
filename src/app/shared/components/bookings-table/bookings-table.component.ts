@@ -26,6 +26,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSelectModule } from '@angular/material/select';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Subject, Subscription } from 'rxjs';
@@ -89,6 +90,7 @@ const STORAGE_KEY = 'bookings-table-column-config';
     MatProgressSpinnerModule,
     MatMenuModule,
     MatTooltipModule,
+    MatSelectModule,
     TranslocoDirective,
   ],
   templateUrl: './bookings-table.component.html',
@@ -103,12 +105,19 @@ export class BookingsTableComponent
   @Input() hasCostUnit = false;
   @Input() hasWorkplace = false;
   @Input() totalCount = 0;
+  @Input() readOnly = false;
+  @Input() dateRanges: { key: string; labelKey: string }[] = [];
+  @Input() selectedDateRange = '';
   @Output() refresh = new EventEmitter<void>();
+  @Output() dateRangeChange = new EventEmitter<string>();
   @Output() pageChange = new EventEmitter<{
     pageIndex: number;
     pageSize: number;
   }>();
   @Output() filterChange = new EventEmitter<string>();
+  @Output() confirmBookings = new EventEmitter<BookingRow[]>();
+
+  confirming = false;
 
   private filterSubject = new Subject<string>();
   private filterSubscription!: Subscription;
@@ -516,7 +525,7 @@ export class BookingsTableComponent
 
   private updateDisplayedColumns(): void {
     const visible = this.columnOrder.filter(
-      (key) => this.columnVisibility[key]
+      (key) => this.columnVisibility[key] && !(this.readOnly && key === 'select')
     );
     this.displayedColumns = [...visible];
   }
@@ -622,6 +631,21 @@ export class BookingsTableComponent
 
   onRefresh(): void {
     this.refresh.emit();
+  }
+
+  onConfirm(): void {
+    const selectedRows = this.selection.selected.map((r) => r.data);
+    if (selectedRows.length === 0) {
+      return;
+    }
+    this.confirming = true;
+    this.confirmBookings.emit(selectedRows);
+  }
+
+  /** Called by the parent after acknowledge completes (success or error). */
+  confirmComplete(): void {
+    this.confirming = false;
+    this.selection.clear();
   }
 
   getQuantity(row: BookingTableRow): number {

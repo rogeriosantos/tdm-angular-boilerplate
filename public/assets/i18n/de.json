@@ -29,6 +29,17 @@
     "empty": "Keine Buchungen gefunden",
     "select-cost-unit-and-workplace": "Bitte wählen Sie eine Kostenstelle und einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
     "select-workplace": "Bitte wählen Sie einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
+    "confirm": "Bestätigen",
+    "tab-unconfirmed": "Unbestätigt",
+    "tab-history": "Verlauf",
+    "history": {
+      "date-range": "Zeitraum",
+      "today": "Heute",
+      "last-7-days": "Letzte 7 Tage",
+      "last-30-days": "Letzte 30 Tage",
+      "this-month": "Dieser Monat",
+      "this-year": "Dieses Jahr"
+    },
     "config": {
       "export": "Spalteneinstellung exportieren",
       "import": "Spalteneinstellung importieren",

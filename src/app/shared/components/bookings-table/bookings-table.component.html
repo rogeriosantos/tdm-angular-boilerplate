@@ -42,6 +42,19 @@
         }
       </mat-form-field>
 
+      @if (dateRanges.length > 0) {
+        <mat-form-field class="date-range-field" appearance="outline">
+          <mat-label>{{ t('history.date-range') }}</mat-label>
+          <mat-select [value]="selectedDateRange" (selectionChange)="dateRangeChange.emit($event.value)">
+            @for (range of dateRanges; track range.key) {
+              <mat-option [value]="range.key">
+                {{ t(range.labelKey) }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+      }
+
       <span class="filter-bar-spacer"></span>
 
       <button
@@ -115,7 +128,7 @@
             [class.merged-group-even]="row.isFirstChild && row.groupIndex % 2 === 0"
             [class.merged-group-odd]="row.isFirstChild && row.groupIndex % 2 === 1"
             [style.display]="(row.rowType === 'child' && !row.isFirstChild) ? 'none' : null"
-            (click)="row.isFirstChild ? toggleAssemblySelection(row) : null; $event.stopPropagation()"
+            (click)="!readOnly && row.isFirstChild ? toggleAssemblySelection(row) : null; $event.stopPropagation()"
           >
             <div class="cell-content">
               @if (row.rowType === 'assembly') {
@@ -125,12 +138,14 @@
                 }
               } @else if (row.rowType === 'child') {
                 <div class="assembly-cell-row">
-                  <mat-checkbox
-                    (click)="$event.stopPropagation()"
-                    (change)="toggleAssemblySelection(row)"
-                    [checked]="isAssemblyAllSelected(row.parentCancelNrBase!)"
-                    [indeterminate]="isAssemblyIndeterminate(row.parentCancelNrBase!)"
-                  ></mat-checkbox>
+                  @if (!readOnly) {
+                    <mat-checkbox
+                      (click)="$event.stopPropagation()"
+                      (change)="toggleAssemblySelection(row)"
+                      [checked]="isAssemblyAllSelected(row.parentCancelNrBase!)"
+                      [indeterminate]="isAssemblyIndeterminate(row.parentCancelNrBase!)"
+                    ></mat-checkbox>
+                  }
                   <div class="assembly-cell-label">
                     <span class="primary-text">{{ row.assemblyId }}</span>
                     @if (row.assemblyName) {
@@ -479,5 +494,25 @@
       (page)="onPageChange($event)"
     >
     </mat-paginator>
+
+    <!-- Confirm button (hidden in readOnly mode) -->
+    @if (!readOnly) {
+      <div class="confirm-bar">
+        <button
+          mat-flat-button
+          color="primary"
+          class="confirm-button"
+          [disabled]="selection.selected.length === 0 || confirming"
+          (click)="onConfirm()"
+        >
+          @if (confirming) {
+            <mat-spinner diameter="20" class="confirm-spinner"></mat-spinner>
+          }
+          {{ t('confirm') }} @if (selection.selected.length > 0) {
+            ({{ selection.selected.length }})
+          }
+        </button>
+      </div>
+    }
   }
 </div>

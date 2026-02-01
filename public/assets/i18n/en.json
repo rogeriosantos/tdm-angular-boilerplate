@@ -29,6 +29,17 @@
     "empty": "No bookings found",
     "select-cost-unit-and-workplace": "Please select a cost unit and workplace to see the bookings",
     "select-workplace": "Please select a workplace to see the bookings",
+    "confirm": "Confirm",
+    "tab-unconfirmed": "Unconfirmed",
+    "tab-history": "History",
+    "history": {
+      "date-range": "Date Range",
+      "today": "Today",
+      "last-7-days": "Last 7 Days",
+      "last-30-days": "Last 30 Days",
+      "this-month": "This Month",
+      "this-year": "This Year"
+    },
     "config": {
       "export": "Export column setup",
       "import": "Import column setup",

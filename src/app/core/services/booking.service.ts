@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, forkJoin, map, catchError, of } from 'rxjs';
+import { Observable, forkJoin, map, catchError, of, concat, toArray } from 'rxjs';
 import { environment } from '../config/environment';
 
 /**
@@ -103,6 +103,13 @@ export interface BookingsPaginationParams {
   filter?: string;
 }
 
+export interface HistoryParams {
+  costunitId: string;
+  workplaceId: string;
+  timestampFrom: number;
+  timestampTo: number;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -191,6 +198,78 @@ export class BookingService {
             error
           );
           return of(0);
+        })
+      );
+  }
+
+  /**
+   * Acknowledge (confirm) a single booking row.
+   */
+  acknowledgeBooking(
+    row: BookingRow,
+    costunit: string,
+    workplace: string
+  ): Observable<unknown> {
+    const url = `${environment.wsApiUrl}/2025/lgm/acknowledge`;
+    const body = {
+      id: row.id,
+      cancelNr: row.cancelNr,
+      invId: row.invId,
+      costunit,
+      workplace,
+      stockPlaceId: row.stockplaceId,
+      historyUpdate: true,
+      uniqueId: '',
+      bookStateNr: row.state,
+      startUp: true,
+      stockTypeId: '',
+      userName: '',
+      idType: row.comporTool,
+    };
+    return this.http.post(url, body);
+  }
+
+  /**
+   * Acknowledge multiple booking rows sequentially.
+   * Returns an array of results (one per row).
+   */
+  acknowledgeBookings(
+    rows: BookingRow[],
+    costunit: string,
+    workplace: string
+  ): Observable<unknown[]> {
+    const requests = rows.map((row) =>
+      this.acknowledgeBooking(row, costunit, workplace)
+    );
+    return concat(...requests).pipe(toArray());
+  }
+
+  /**
+   * Fetches history bookings for a given date range.
+   */
+  getHistoryBookings(params: HistoryParams): Observable<BookingsResult> {
+    const url = `${environment.wsApiUrl}/2025/system/interfacereftab/TDMAPI/select/HISTORY`;
+    const httpParams = new HttpParams()
+      .set('costunit', params.costunitId)
+      .set('workplace', params.workplaceId)
+      .set('timestampFrom', params.timestampFrom.toString())
+      .set('timestampTo', params.timestampTo.toString());
+
+    return this.http
+      .get<UnconfirmedBookingApiRow[]>(url, { params: httpParams })
+      .pipe(
+        map((rows) => {
+          const mapped = rows.map((row) => this.mapApiRow(row));
+          const toolItems = mapped.filter((r) => r.comporTool === 1);
+          const toolAssemblies = mapped.filter((r) => r.comporTool === 2);
+          return { toolItems, toolAssemblies };
+        }),
+        catchError((error) => {
+          console.error(
+            'BookingService: Error fetching history bookings:',
+            error
+          );
+          return of({ toolItems: [], toolAssemblies: [] });
         })
       );
   }
