@@ -141,11 +141,7 @@ export class BookingsTableComponent
     { key: 'type', labelKey: 'columns.type' },
     { key: 'quantity', labelKey: 'columns.quantity' },
     { key: 'stockPlaceId', labelKey: 'columns.stock-place-id' },
-    { key: 'storageUnit', labelKey: 'columns.storage-unit' },
-    { key: 'shelf', labelKey: 'columns.shelf' },
-    { key: 'width', labelKey: 'columns.width' },
-    { key: 'depth', labelKey: 'columns.depth' },
-    { key: 'select', labelKey: 'columns.select' },
+{ key: 'bookingTime', labelKey: 'columns.booking-time' },
     { key: 'commissionId', labelKey: 'columns.commission-id' },
   ];
 
@@ -240,14 +236,8 @@ export class BookingsTableComponent
           return data.countNew + data.countUsed + data.countRepair;
         case 'stockPlaceId':
           return data.stockplaceId || '';
-        case 'storageUnit':
-          return data.stockplaceId ? data.stockplaceId.substring(0, 2) : '';
-        case 'shelf':
-          return data.stockplaceId ? data.stockplaceId.substring(2, 4) : '';
-        case 'width':
-          return 0;
-        case 'depth':
-          return 0;
+        case 'bookingTime':
+          return data.bookTimestamp;
         case 'commissionId':
           return data.commissionId || '';
         default:
@@ -525,7 +515,7 @@ export class BookingsTableComponent
 
   private updateDisplayedColumns(): void {
     const visible = this.columnOrder.filter(
-      (key) => this.columnVisibility[key] && !(this.readOnly && key === 'select')
+      (key) => this.columnVisibility[key]
     );
     this.displayedColumns = [...visible];
   }
@@ -646,6 +636,17 @@ export class BookingsTableComponent
   confirmComplete(): void {
     this.confirming = false;
     this.selection.clear();
+  }
+
+  formatBookingTime(row: BookingTableRow): string {
+    if (!row.data.bookTimestamp) return '';
+    const date = new Date(row.data.bookTimestamp * 1000);
+    const dd = String(date.getDate()).padStart(2, '0');
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const hh = String(date.getHours()).padStart(2, '0');
+    const min = String(date.getMinutes()).padStart(2, '0');
+    return `${dd}.${mm}.${yyyy} ${hh}:${min}`;
   }
 
   getQuantity(row: BookingTableRow): number {
