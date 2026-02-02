@@ -28,10 +28,15 @@ import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { MatDialog } from '@angular/material/dialog';
 import { SelectionModel } from '@angular/cdk/collections';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { BookingRow } from '../../../core/services/booking.service';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogResult,
+} from '../confirm-dialog/confirm-dialog.component';
 
 export interface ColumnDef {
   key: string;
@@ -201,7 +206,7 @@ export class BookingsTableComponent
     return `${STORAGE_KEY_PREFIX}-${this.mode}`;
   }
 
-  constructor() {
+  constructor(private dialog: MatDialog) {
     this.filterSubscription = this.filterSubject
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((value) => {
@@ -662,8 +667,18 @@ export class BookingsTableComponent
     if (selectedRows.length === 0) {
       return;
     }
-    this.confirming = true;
-    this.confirmBookings.emit(selectedRows);
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: { rows: selectedRows },
+      width: '500px',
+    });
+
+    dialogRef.afterClosed().subscribe((result?: ConfirmDialogResult) => {
+      this.selection.clear();
+      if (result && result.completed > 0) {
+        this.confirmBookings.emit([]);
+      }
+    });
   }
 
   /** Called by the parent after acknowledge completes (success or error). */

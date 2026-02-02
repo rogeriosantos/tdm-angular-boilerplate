@@ -11,6 +11,7 @@ import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatDialogModule } from '@angular/material/dialog';
 
 // Core imports
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -36,7 +37,7 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withInterceptors([errorInterceptor, authInterceptor, i18nInterceptor])),
 
     // Material modules
-    importProvidersFrom(MatSnackBarModule),
+    importProvidersFrom(MatSnackBarModule, MatDialogModule),
 
     // NgRx Store setup
     provideStore({

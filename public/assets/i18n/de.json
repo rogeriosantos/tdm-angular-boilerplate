@@ -40,6 +40,10 @@
       "this-month": "Dieser Monat",
       "this-year": "Dieses Jahr"
     },
+    "confirm-dialog": {
+      "title": "Buchungen bestätigen",
+      "close": "Schließen"
+    },
     "config": {
       "export": "Spalteneinstellung exportieren",
       "import": "Spalteneinstellung importieren",

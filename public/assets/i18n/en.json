@@ -40,6 +40,10 @@
       "this-month": "This Month",
       "this-year": "This Year"
     },
+    "confirm-dialog": {
+      "title": "Confirming Bookings",
+      "close": "Close"
+    },
     "config": {
       "export": "Export column setup",
       "import": "Import column setup",

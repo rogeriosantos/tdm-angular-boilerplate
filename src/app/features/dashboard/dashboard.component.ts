@@ -262,25 +262,9 @@ export class DashboardComponent {
     this.loadHistory();
   }
 
-  onConfirmBookings(rows: BookingRow[]): void {
-    if (rows.length === 0) {
-      return;
-    }
-
-    console.log('[Confirm] Starting confirmation for', rows.length, 'booking(s)');
-    this.bookingService
-      .confirmBookings(rows)
-      .subscribe({
-        next: (results) => {
-          console.log('[Confirm] All confirmations completed:', results.length, 'booking(s)');
-          this.bookingsTable?.confirmComplete();
-          this.loadBookings();
-        },
-        error: (err) => {
-          console.error('[Confirm] Confirmation sequence failed:', err);
-          this.bookingsTable?.confirmComplete();
-        },
-      });
+  onConfirmBookings(): void {
+    this.bookingsTable?.confirmComplete();
+    this.loadBookings();
   }
 
   private resetBookings(): void {
