@@ -1,7 +1,13 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, forkJoin, map, catchError, of, concat, toArray } from 'rxjs';
+import { Observable, forkJoin, map, catchError, of, concat, toArray, tap } from 'rxjs';
 import { environment } from '../config/environment';
+
+export interface ConfirmationPayload {
+  transactionNumber: number;
+  transactionListPosition: number;
+  cancelListPosition: number;
+}
 
 /**
  * Raw API response shape from the WSAPI UNCONFIRMED endpoint.
@@ -39,6 +45,8 @@ export interface UnconfirmedBookingApiRow {
   COMMISSIONID: string;
   MACHINEID: string;
   MACHINENAME: string;
+  TRANSACTIONNR: string;
+  TRANSACTIONLISTPOS: string;
 }
 
 /**
@@ -88,6 +96,8 @@ export interface BookingRow {
   commissionId: string;
   machineId: string;
   machineName: string;
+  transactionNr: number;
+  transactionListPos: number;
 }
 
 export interface BookingsResult {
@@ -249,6 +259,36 @@ export class BookingService {
   }
 
   /**
+   * Confirm a single booking via the Stock API.
+   */
+  confirmBooking(row: BookingRow): Observable<unknown> {
+    const url = `${environment.stockApiUrl}/Bookings/Confirmations?move=false`;
+    const payload: ConfirmationPayload[] = [
+      {
+        transactionNumber: row.transactionNr,
+        transactionListPosition: row.transactionListPos,
+        cancelListPosition: 1,
+      },
+    ];
+    console.log('[Confirm] Sending confirmation for:', row.id, payload);
+    return this.http.patch(url, payload).pipe(
+      tap(() => console.log('[Confirm] SUCCESS for:', row.id, '| transactionNr:', row.transactionNr, '| transactionListPos:', row.transactionListPos)),
+      catchError((error) => {
+        console.error('[Confirm] FAILED for:', row.id, '| transactionNr:', row.transactionNr, '| transactionListPos:', row.transactionListPos, '| Error:', error);
+        throw error;
+      })
+    );
+  }
+
+  /**
+   * Confirm multiple bookings sequentially via the Stock API.
+   */
+  confirmBookings(rows: BookingRow[]): Observable<unknown[]> {
+    const requests = rows.map((row) => this.confirmBooking(row));
+    return concat(...requests).pipe(toArray());
+  }
+
+  /**
    * Fetches history bookings for a given date range.
    */
   getHistoryBookings(params: HistoryParams): Observable<BookingsResult> {
@@ -320,6 +360,8 @@ export class BookingService {
       commissionId: row.COMMISSIONID || '',
       machineId: row.MACHINEID || '',
       machineName: row.MACHINENAME || '',
+      transactionNr: parseInt(row.TRANSACTIONNR, 10) || 0,
+      transactionListPos: parseInt(row.TRANSACTIONLISTPOS, 10) || 0,
     };
   }
 }

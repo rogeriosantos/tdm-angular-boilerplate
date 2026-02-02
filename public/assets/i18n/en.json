@@ -53,6 +53,11 @@
       "type": "Type",
       "quantity": "Quantity",
       "stock-place-id": "Stock Place ID",
+      "storage-unit": "Storage Unit",
+      "shelf": "Shelf",
+      "width": "Width",
+      "depth": "Depth",
+      "select": "Selection",
       "booking-time": "Booking Time",
       "expand": "Expand",
       "commission-id": "Picking Order"

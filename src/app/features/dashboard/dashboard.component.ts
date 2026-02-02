@@ -263,27 +263,21 @@ export class DashboardComponent {
   }
 
   onConfirmBookings(rows: BookingRow[]): void {
-    if (
-      !this.selectedCostUnitId ||
-      !this.selectedWorkplaceId ||
-      rows.length === 0
-    ) {
+    if (rows.length === 0) {
       return;
     }
 
+    console.log('[Confirm] Starting confirmation for', rows.length, 'booking(s)');
     this.bookingService
-      .acknowledgeBookings(
-        rows,
-        this.selectedCostUnitId,
-        this.selectedWorkplaceId
-      )
+      .confirmBookings(rows)
       .subscribe({
-        next: () => {
+        next: (results) => {
+          console.log('[Confirm] All confirmations completed:', results.length, 'booking(s)');
           this.bookingsTable?.confirmComplete();
           this.loadBookings();
         },
         error: (err) => {
-          console.error('Acknowledge failed:', err);
+          console.error('[Confirm] Confirmation sequence failed:', err);
           this.bookingsTable?.confirmComplete();
         },
       });

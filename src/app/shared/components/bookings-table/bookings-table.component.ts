@@ -72,7 +72,33 @@ interface ColumnConfig {
   widths: Record<string, number>;
 }
 
-const STORAGE_KEY = 'bookings-table-column-config';
+const STORAGE_KEY_PREFIX = 'bookings-table-column-config';
+
+const UNCONFIRMED_COLUMNS: ColumnDef[] = [
+  { key: 'toolAssembly', labelKey: 'columns.tool-assembly' },
+  { key: 'targetCostUnit', labelKey: 'columns.target-cost-unit' },
+  { key: 'articleId', labelKey: 'columns.id' },
+  { key: 'type', labelKey: 'columns.type' },
+  { key: 'quantity', labelKey: 'columns.quantity' },
+  { key: 'stockPlaceId', labelKey: 'columns.stock-place-id' },
+  { key: 'storageUnit', labelKey: 'columns.storage-unit' },
+  { key: 'shelf', labelKey: 'columns.shelf' },
+  { key: 'width', labelKey: 'columns.width' },
+  { key: 'depth', labelKey: 'columns.depth' },
+  { key: 'select', labelKey: 'columns.select' },
+  { key: 'commissionId', labelKey: 'columns.commission-id' },
+];
+
+const HISTORY_COLUMNS: ColumnDef[] = [
+  { key: 'toolAssembly', labelKey: 'columns.tool-assembly' },
+  { key: 'targetCostUnit', labelKey: 'columns.target-cost-unit' },
+  { key: 'articleId', labelKey: 'columns.id' },
+  { key: 'type', labelKey: 'columns.type' },
+  { key: 'quantity', labelKey: 'columns.quantity' },
+  { key: 'stockPlaceId', labelKey: 'columns.stock-place-id' },
+  { key: 'bookingTime', labelKey: 'columns.booking-time' },
+  { key: 'commissionId', labelKey: 'columns.commission-id' },
+];
 
 @Component({
   selector: 'app-bookings-table',
@@ -106,6 +132,7 @@ export class BookingsTableComponent
   @Input() hasWorkplace = false;
   @Input() totalCount = 0;
   @Input() readOnly = false;
+  @Input() mode: 'unconfirmed' | 'history' = 'unconfirmed';
   @Input() dateRanges: { key: string; labelKey: string }[] = [];
   @Input() selectedDateRange = '';
   @Output() refresh = new EventEmitter<void>();
@@ -133,17 +160,8 @@ export class BookingsTableComponent
   @ViewChild('columnMenuTrigger', { read: MatMenuTrigger }) columnMenuTrigger!: MatMenuTrigger;
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
 
-  // All available columns in default order (expand is always prepended, not in this list)
-  allColumns: ColumnDef[] = [
-    { key: 'toolAssembly', labelKey: 'columns.tool-assembly' },
-    { key: 'targetCostUnit', labelKey: 'columns.target-cost-unit' },
-    { key: 'articleId', labelKey: 'columns.id' },
-    { key: 'type', labelKey: 'columns.type' },
-    { key: 'quantity', labelKey: 'columns.quantity' },
-    { key: 'stockPlaceId', labelKey: 'columns.stock-place-id' },
-{ key: 'bookingTime', labelKey: 'columns.booking-time' },
-    { key: 'commissionId', labelKey: 'columns.commission-id' },
-  ];
+  // All available columns in default order — set based on mode
+  allColumns: ColumnDef[] = [];
 
   // Track visibility per column
   columnVisibility: Record<string, boolean> = {};
@@ -176,14 +194,14 @@ export class BookingsTableComponent
   contextMenuX = 0;
   contextMenuY = 0;
 
-  private readonly defaultOrder: string[];
+  private defaultOrder: string[] = [];
+  private modeInitialized = false;
+
+  private get storageKey(): string {
+    return `${STORAGE_KEY_PREFIX}-${this.mode}`;
+  }
 
   constructor() {
-    this.defaultOrder = this.allColumns.map((c) => c.key);
-    this.initDefaults();
-    this.loadFromStorage();
-    this.updateDisplayedColumns();
-
     this.filterSubscription = this.filterSubject
       .pipe(debounceTime(300), distinctUntilChanged())
       .subscribe((value) => {
@@ -205,6 +223,14 @@ export class BookingsTableComponent
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['mode'] || !this.modeInitialized) {
+      this.allColumns = this.mode === 'history' ? HISTORY_COLUMNS : UNCONFIRMED_COLUMNS;
+      this.defaultOrder = this.allColumns.map((c) => c.key);
+      this.initDefaults();
+      this.loadFromStorage();
+      this.updateDisplayedColumns();
+      this.modeInitialized = true;
+    }
     if (changes['toolItems'] || changes['toolAssemblies']) {
       this.buildTableRows();
       this.refreshDataSource();
@@ -236,6 +262,14 @@ export class BookingsTableComponent
           return data.countNew + data.countUsed + data.countRepair;
         case 'stockPlaceId':
           return data.stockplaceId || '';
+        case 'storageUnit':
+          return data.stockplaceId ? data.stockplaceId.substring(0, 2) : '';
+        case 'shelf':
+          return data.stockplaceId ? data.stockplaceId.substring(2, 4) : '';
+        case 'width':
+          return 0;
+        case 'depth':
+          return 0;
         case 'bookingTime':
           return data.bookTimestamp;
         case 'commissionId':
@@ -366,7 +400,7 @@ export class BookingsTableComponent
 
   private loadFromStorage(): void {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const raw = localStorage.getItem(this.storageKey);
       if (!raw) return;
       this.applyConfig(JSON.parse(raw));
     } catch {
@@ -381,7 +415,7 @@ export class BookingsTableComponent
       widths: { ...this.columnWidths },
     };
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+      localStorage.setItem(this.storageKey, JSON.stringify(config));
     } catch {
       // Storage full or unavailable — silently ignore
     }
@@ -515,7 +549,7 @@ export class BookingsTableComponent
 
   private updateDisplayedColumns(): void {
     const visible = this.columnOrder.filter(
-      (key) => this.columnVisibility[key]
+      (key) => this.columnVisibility[key] && !(this.readOnly && key === 'select')
     );
     this.displayedColumns = [...visible];
   }

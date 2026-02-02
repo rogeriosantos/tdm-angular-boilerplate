@@ -53,6 +53,11 @@
       "type": "Typ",
       "quantity": "Stück",
       "stock-place-id": "Lagerplatz ID",
+      "storage-unit": "Lagereinheit",
+      "shelf": "Fachboden",
+      "width": "Breite",
+      "depth": "Tiefe",
+      "select": "Auswahl",
       "booking-time": "Buchungszeit",
       "expand": "Erweitern",
       "commission-id": "Kommissionierauftrag"

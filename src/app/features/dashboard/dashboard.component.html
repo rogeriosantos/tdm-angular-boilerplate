@@ -16,6 +16,7 @@
       <mat-tab [label]="t('bookings.tab-unconfirmed')">
         <app-bookings-table
           #bookingsTable
+          mode="unconfirmed"
           [toolItems]="toolItems"
           [toolAssemblies]="toolAssemblies"
           [loading]="loadingBookings"
@@ -33,6 +34,7 @@
       <!-- History Tab -->
       <mat-tab [label]="t('bookings.tab-history')">
         <app-bookings-table
+          mode="history"
           [toolItems]="historyToolItems"
           [toolAssemblies]="historyToolAssemblies"
           [loading]="loadingHistory"
