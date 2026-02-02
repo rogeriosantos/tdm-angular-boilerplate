@@ -234,7 +234,10 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.data.type }}
+            <img [src]="getBooktypeIcon(row)"
+                 [alt]="row.data.type"
+                 class="booktype-icon"
+                 [matTooltip]="'' + row.data.type" />
           </td>
         </ng-container>
 
@@ -303,7 +306,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.data.stockplaceId ? row.data.stockplaceId.substring(0, 2) : '' }}
+            {{ row.data.hall }}
           </td>
         </ng-container>
 
@@ -326,7 +329,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
-            {{ row.data.stockplaceId ? row.data.stockplaceId.substring(2, 4) : '' }}
+            {{ row.data.shelf }}
           </td>
         </ng-container>
 
@@ -349,6 +352,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
+            {{ row.data.width }}
           </td>
         </ng-container>
 
@@ -371,6 +375,7 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row">
+            {{ row.data.depth }}
           </td>
         </ng-container>
 

@@ -138,6 +138,7 @@ export class BookingsTableComponent
   @Input() totalCount = 0;
   @Input() readOnly = false;
   @Input() mode: 'unconfirmed' | 'history' = 'unconfirmed';
+  @Input() selectedCostUnit = '';
   @Input() dateRanges: { key: string; labelKey: string }[] = [];
   @Input() selectedDateRange = '';
   @Output() refresh = new EventEmitter<void>();
@@ -268,13 +269,13 @@ export class BookingsTableComponent
         case 'stockPlaceId':
           return data.stockplaceId || '';
         case 'storageUnit':
-          return data.stockplaceId ? data.stockplaceId.substring(0, 2) : '';
+          return data.hall || '';
         case 'shelf':
-          return data.stockplaceId ? data.stockplaceId.substring(2, 4) : '';
+          return data.shelf || '';
         case 'width':
-          return 0;
+          return data.width || '';
         case 'depth':
-          return 0;
+          return data.depth || '';
         case 'bookingTime':
           return data.bookTimestamp;
         case 'commissionId':
@@ -696,6 +697,22 @@ export class BookingsTableComponent
     const hh = String(date.getHours()).padStart(2, '0');
     const min = String(date.getMinutes()).padStart(2, '0');
     return `${dd}.${mm}.${yyyy} ${hh}:${min}`;
+  }
+
+  getBooktypeIcon(row: BookingTableRow): string {
+    const data = row.data;
+    const type = data.type;
+
+    if (type === -3) {
+      const isOutgoing = data.costunitFrom === this.selectedCostUnit;
+      const isAssembly = data.comporTool === 2;
+      if (isAssembly) {
+        return isOutgoing ? 'assets/icons/-3-outbound.png' : 'assets/icons/-3-inbound.png';
+      }
+      return isOutgoing ? 'assets/icons/-3-out.png' : 'assets/icons/-3-in.png';
+    }
+
+    return `assets/icons/${type}.png`;
   }
 
   getQuantity(row: BookingTableRow): number {

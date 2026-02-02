@@ -47,6 +47,12 @@ export interface UnconfirmedBookingApiRow {
   MACHINENAME: string;
   TRANSACTIONNR: string;
   TRANSACTIONLISTPOS: string;
+  HALL: string;
+  SHELF: string;
+  DRAWER: string;
+  WIDTH: string;
+  HEIGHT: string;
+  DEPTH: string;
 }
 
 /**
@@ -98,6 +104,12 @@ export interface BookingRow {
   machineName: string;
   transactionNr: number;
   transactionListPos: number;
+  hall: string;
+  shelf: string;
+  drawer: string;
+  width: string;
+  height: string;
+  depth: string;
 }
 
 export interface BookingsResult {
@@ -362,6 +374,12 @@ export class BookingService {
       machineName: row.MACHINENAME || '',
       transactionNr: parseInt(row.TRANSACTIONNR, 10) || 0,
       transactionListPos: parseInt(row.TRANSACTIONLISTPOS, 10) || 0,
+      hall: row.HALL || '',
+      shelf: row.SHELF || '',
+      drawer: row.DRAWER || '',
+      width: row.WIDTH || '',
+      height: row.HEIGHT || '',
+      depth: row.DEPTH || '',
     };
   }
 }
