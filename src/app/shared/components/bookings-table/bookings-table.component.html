@@ -57,27 +57,23 @@
 
       <span class="filter-bar-spacer"></span>
 
-      <button
-        mat-icon-button
-        [matTooltip]="t('config.export')"
-        (click)="exportColumnConfig()"
-      >
-        <mat-icon>file_download</mat-icon>
+      <button mat-icon-button [matMenuTriggerFor]="settingsMenu">
+        <mat-icon>settings</mat-icon>
       </button>
-      <button
-        mat-icon-button
-        [matTooltip]="t('config.import')"
-        (click)="triggerImport()"
-      >
-        <mat-icon>file_upload</mat-icon>
-      </button>
-      <button
-        mat-icon-button
-        [matTooltip]="t('config.reset')"
-        (click)="resetColumnConfig()"
-      >
-        <mat-icon>settings_backup_restore</mat-icon>
-      </button>
+      <mat-menu #settingsMenu="matMenu">
+        <button mat-menu-item (click)="exportColumnConfig()">
+          <mat-icon>file_download</mat-icon>
+          <span>{{ t('config.export') }}</span>
+        </button>
+        <button mat-menu-item (click)="triggerImport()">
+          <mat-icon>file_upload</mat-icon>
+          <span>{{ t('config.import') }}</span>
+        </button>
+        <button mat-menu-item (click)="resetColumnConfig()">
+          <mat-icon>settings_backup_restore</mat-icon>
+          <span>{{ t('config.reset') }}</span>
+        </button>
+      </mat-menu>
 
       <!-- Hidden file input for import -->
       <input
