@@ -5,7 +5,8 @@
 /tmp
 /out-tsc
 /bazel-out
-
+/webclient
+webclient.zip
 # Node
 /node_modules
 npm-debug.log
