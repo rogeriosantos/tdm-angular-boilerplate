@@ -201,13 +201,10 @@ export class BookingService {
     params: BookingsPaginationParams
   ): Observable<number> {
     const url = `${environment.wsApiUrl}/2025/system/interfacereftab/TDMAPI/select/UNCONFIRMED_COUNT`;
-    let httpParams = new HttpParams()
+    const httpParams = new HttpParams()
       .set('costunit', params.costunitId)
-      .set('workplace', params.workplaceId);
-
-    if (params.filter) {
-      httpParams = httpParams.set('filter', params.filter);
-    }
+      .set('workplace', params.workplaceId)
+      .set('filter', params.filter || '');
 
     return this.http
       .get<Array<{ TOTAL_COUNT: string }>>(url, { params: httpParams })
