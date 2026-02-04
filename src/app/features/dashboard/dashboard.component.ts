@@ -56,12 +56,6 @@ export class DashboardComponent {
   selectedWorkplaceId: string | null = null;
   activeTab: 'unconfirmed' | 'history' = 'unconfirmed';
 
-  // Server-side pagination state (unconfirmed tab)
-  totalBookingCount = 0;
-  currentPageIndex = 0;
-  currentPageSize = 50;
-  currentFilter = '';
-
   dateRanges: DateRangeOption[] = [
     {
       key: 'today',
@@ -154,8 +148,6 @@ export class DashboardComponent {
   onSelectionChanged(event: SelectionChangedEvent): void {
     this.selectedCostUnitId = event.costUnit.id;
     this.selectedWorkplaceId = event.workplace.id;
-    this.currentPageIndex = 0;
-    this.currentFilter = '';
     this.loadBookings();
     this.resetHistory();
   }
@@ -179,18 +171,6 @@ export class DashboardComponent {
     this.loadHistory();
   }
 
-  onPageChange(event: { pageIndex: number; pageSize: number }): void {
-    this.currentPageIndex = event.pageIndex;
-    this.currentPageSize = event.pageSize;
-    this.loadBookings();
-  }
-
-  onFilterChange(filter: string): void {
-    this.currentFilter = filter;
-    this.currentPageIndex = 0;
-    this.loadBookings();
-  }
-
   loadBookings(): void {
     if (!this.selectedCostUnitId || !this.selectedWorkplaceId) {
       return;
@@ -198,18 +178,11 @@ export class DashboardComponent {
 
     this.loadingBookings = true;
     this.bookingService
-      .getUnconfirmedBookings({
-        costunitId: this.selectedCostUnitId,
-        workplaceId: this.selectedWorkplaceId,
-        skip: this.currentPageIndex * this.currentPageSize,
-        take: this.currentPageSize,
-        filter: this.currentFilter,
-      })
+      .getUnconfirmedBookings(this.selectedCostUnitId, this.selectedWorkplaceId)
       .subscribe({
         next: (result) => {
           this.toolItems = result.toolItems;
           this.toolAssemblies = result.toolAssemblies;
-          this.totalBookingCount = result.totalCount;
           this.loadingBookings = false;
         },
         error: () => {
@@ -270,9 +243,6 @@ export class DashboardComponent {
   private resetBookings(): void {
     this.toolItems = [];
     this.toolAssemblies = [];
-    this.totalBookingCount = 0;
-    this.currentPageIndex = 0;
-    this.currentFilter = '';
   }
 
   private resetHistory(): void {

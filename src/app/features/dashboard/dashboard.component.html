@@ -23,11 +23,8 @@
           [hasCostUnit]="!!selectedCostUnitId"
           [hasWorkplace]="!!selectedWorkplaceId"
           [selectedCostUnit]="selectedCostUnitId || ''"
-          [totalCount]="totalBookingCount"
           [readOnly]="false"
           (refresh)="onRefreshBookings()"
-          (pageChange)="onPageChange($event)"
-          (filterChange)="onFilterChange($event)"
           (confirmBookings)="onConfirmBookings()"
         ></app-bookings-table>
       </mat-tab>
@@ -42,7 +39,6 @@
           [hasCostUnit]="!!selectedCostUnitId"
           [hasWorkplace]="!!selectedWorkplaceId"
           [selectedCostUnit]="selectedCostUnitId || ''"
-          [totalCount]="0"
           [readOnly]="true"
           [dateRanges]="dateRanges"
           [selectedDateRange]="selectedDateRange"

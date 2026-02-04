@@ -117,18 +117,6 @@ export interface BookingsResult {
   toolAssemblies: BookingRow[];
 }
 
-export interface PaginatedBookingsResult extends BookingsResult {
-  totalCount: number;
-}
-
-export interface BookingsPaginationParams {
-  costunitId: string;
-  workplaceId: string;
-  skip?: number;
-  take?: number;
-  filter?: string;
-}
-
 export interface HistoryParams {
   costunitId: string;
   workplaceId: string;
@@ -143,40 +131,16 @@ export class BookingService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Fetches paginated unconfirmed bookings (data + count) in parallel.
-   * Pagination is by CANCELNR_BASE groups, not individual rows.
+   * Fetches all unconfirmed bookings (client-side pagination).
    */
   getUnconfirmedBookings(
-    params: BookingsPaginationParams
-  ): Observable<PaginatedBookingsResult> {
-    const data$ = this.fetchBookingsData(params);
-    const count$ = this.fetchBookingsCount(params);
-
-    return forkJoin({ data: data$, count: count$ }).pipe(
-      map(({ data, count }) => ({
-        ...data,
-        totalCount: count,
-      }))
-    );
-  }
-
-  private fetchBookingsData(
-    params: BookingsPaginationParams
+    costunitId: string,
+    workplaceId: string
   ): Observable<BookingsResult> {
     const url = `${environment.wsApiUrl}/2025/system/interfacereftab/TDMAPI/select/UNCONFIRMED`;
-    let httpParams = new HttpParams()
-      .set('costunit', params.costunitId)
-      .set('workplace', params.workplaceId);
-
-    if (params.skip != null) {
-      httpParams = httpParams.set('skip', params.skip.toString());
-    }
-    if (params.take != null) {
-      httpParams = httpParams.set('take', params.take.toString());
-    }
-    if (params.filter) {
-      httpParams = httpParams.set('filter', params.filter);
-    }
+    const httpParams = new HttpParams()
+      .set('costunit', costunitId)
+      .set('workplace', workplaceId);
 
     return this.http
       .get<UnconfirmedBookingApiRow[]>(url, { params: httpParams })
@@ -193,34 +157,6 @@ export class BookingService {
             error
           );
           return of({ toolItems: [], toolAssemblies: [] });
-        })
-      );
-  }
-
-  private fetchBookingsCount(
-    params: BookingsPaginationParams
-  ): Observable<number> {
-    const url = `${environment.wsApiUrl}/2025/system/interfacereftab/TDMAPI/select/UNCONFIRMED_COUNT`;
-    const httpParams = new HttpParams()
-      .set('costunit', params.costunitId)
-      .set('workplace', params.workplaceId)
-      .set('filter', params.filter || '');
-
-    return this.http
-      .get<Array<{ TOTAL_COUNT: string }>>(url, { params: httpParams })
-      .pipe(
-        map((rows) => {
-          if (rows && rows.length > 0) {
-            return parseInt(rows[0].TOTAL_COUNT, 10) || 0;
-          }
-          return 0;
-        }),
-        catchError((error) => {
-          console.error(
-            'BookingService: Error fetching bookings count:',
-            error
-          );
-          return of(0);
         })
       );
   }

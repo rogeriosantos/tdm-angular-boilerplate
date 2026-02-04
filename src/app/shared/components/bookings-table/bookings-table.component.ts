@@ -12,12 +12,8 @@ import {
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
-import { MatSortModule, MatSort, Sort } from '@angular/material/sort';
-import {
-  MatPaginatorModule,
-  MatPaginator,
-  PageEvent,
-} from '@angular/material/paginator';
+import { MatSortModule, MatSort } from '@angular/material/sort';
+import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,8 +26,6 @@ import { MatSelectModule } from '@angular/material/select';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatDialog } from '@angular/material/dialog';
 import { SelectionModel } from '@angular/cdk/collections';
-import { Subject, Subscription } from 'rxjs';
-import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 import { BookingRow } from '../../../core/services/booking.service';
 import {
   ConfirmDialogComponent,
@@ -102,7 +96,7 @@ const HISTORY_COLUMNS: ColumnDef[] = [
   { key: 'quantity', labelKey: 'columns.quantity' },
   { key: 'stockPlaceId', labelKey: 'columns.stock-place-id' },
   { key: 'bookingTime', labelKey: 'columns.booking-time' },
-  { key: 'commissionId', labelKey: 'columns.commission-id' },
+  { key: 'commissionId', labelKey: 'columns.picking-order' },
 ];
 
 @Component({
@@ -135,7 +129,6 @@ export class BookingsTableComponent
   @Input() loading = false;
   @Input() hasCostUnit = false;
   @Input() hasWorkplace = false;
-  @Input() totalCount = 0;
   @Input() readOnly = false;
   @Input() mode: 'unconfirmed' | 'history' = 'unconfirmed';
   @Input() selectedCostUnit = '';
@@ -143,17 +136,9 @@ export class BookingsTableComponent
   @Input() selectedDateRange = '';
   @Output() refresh = new EventEmitter<void>();
   @Output() dateRangeChange = new EventEmitter<string>();
-  @Output() pageChange = new EventEmitter<{
-    pageIndex: number;
-    pageSize: number;
-  }>();
-  @Output() filterChange = new EventEmitter<string>();
   @Output() confirmBookings = new EventEmitter<BookingRow[]>();
 
   confirming = false;
-
-  private filterSubject = new Subject<string>();
-  private filterSubscription!: Subscription;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
 
@@ -207,17 +192,9 @@ export class BookingsTableComponent
     return `${STORAGE_KEY_PREFIX}-${this.mode}`;
   }
 
-  constructor(private dialog: MatDialog) {
-    this.filterSubscription = this.filterSubject
-      .pipe(debounceTime(300), distinctUntilChanged())
-      .subscribe((value) => {
-        this.filterChange.emit(value);
-      });
-  }
+  constructor(private dialog: MatDialog) {}
 
-  ngOnDestroy(): void {
-    this.filterSubscription.unsubscribe();
-  }
+  ngOnDestroy(): void {}
 
   get tableState(): TableState {
     if (this.loading) return 'loading';
@@ -245,6 +222,10 @@ export class BookingsTableComponent
   }
 
   ngAfterViewInit(): void {
+    // Connect paginator for client-side pagination
+    if (this.paginator) {
+      this.dataSource.paginator = this.paginator;
+    }
     // Apply saved widths after view is ready
     this.applySavedWidths();
   }
@@ -392,6 +373,26 @@ export class BookingsTableComponent
     }
 
     this.dataSource.data = rows;
+    this.setupFilterPredicate();
+  }
+
+  private setupFilterPredicate(): void {
+    this.dataSource.filterPredicate = (row: BookingTableRow, filter: string): boolean => {
+      const data = row.data;
+      const searchStr = [
+        data.id,
+        data.name,
+        data.description,
+        data.costunitTo,
+        data.commissionId,
+        row.assemblyId,
+        row.assemblyName,
+      ]
+        .filter(Boolean)
+        .join(' ')
+        .toLowerCase();
+      return searchStr.includes(filter);
+    };
   }
 
   // --- Persistence (localStorage) ---
@@ -637,26 +638,23 @@ export class BookingsTableComponent
     document.addEventListener('mouseup', onMouseUp);
   }
 
-  // --- Filter (server-side, debounced) ---
+  // --- Filter (client-side) ---
 
   applyFilter(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.filterValue = value;
-    this.filterSubject.next(value.trim());
+    const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
+    this.filterValue = (event.target as HTMLInputElement).value;
+    this.dataSource.filter = value;
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   resetFilter(): void {
     this.filterValue = '';
-    this.filterSubject.next('');
-  }
-
-  // --- Pagination (server-side) ---
-
-  onPageChange(event: PageEvent): void {
-    this.pageChange.emit({
-      pageIndex: event.pageIndex,
-      pageSize: event.pageSize,
-    });
+    this.dataSource.filter = '';
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   onRefresh(): void {
