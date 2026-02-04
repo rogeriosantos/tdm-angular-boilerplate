@@ -1,4 +1,10 @@
-// Type declaration for window.APP_CONFIG
+// =============================================================================
+// RUNTIME ENVIRONMENT CONFIGURATION
+// =============================================================================
+// All values are read from window.APP_CONFIG (set in app-config.js)
+// This allows changing configuration without rebuilding the app.
+// =============================================================================
+
 declare global {
   interface Window {
     APP_CONFIG?: {
@@ -15,35 +21,37 @@ declare global {
   }
 }
 
-// Match the machine-operator environment pattern
-// These values are set by the server and read from the index.html or app-config.js
 export const environment = {
-  production: false,
-  // For development, use the actual server URL like machine-operator
-  // In production, this would be set by the server in the DOM element
-  baseApiUrl:
-    document.getElementById('settings::baseUrl')?.innerText.trim() ||
-    ' https://decnt336.win.dom.sandvik.com/TDM2025GlobalLineSQLCASE2',
-  // Separate authentication URL for mixed development environments
-  authUrl:
-    document.getElementById('settings::authUrl')?.innerText.trim() ||
-    document.getElementById('settings::baseUrl')?.innerText.trim() ||
-    ' https://decnt336.win.dom.sandvik.com/TDM2025GlobalLineSQLCASE2',
-  // WSAPI endpoint from APP_CONFIG
+  // ---------------------------------------------------------------------------
+  // All values read from APP_CONFIG at runtime
+  // ---------------------------------------------------------------------------
+
+  get production(): boolean {
+    return window.APP_CONFIG?.environment === 'production';
+  },
+
+  get baseApiUrl(): string {
+    return window.APP_CONFIG?.apiPath || 'https://localhost/TDMGL202502HF01pEBE';
+  },
+
+  get authUrl(): string {
+    return window.APP_CONFIG?.authUrl || 'https://localhost/TDMGL202502HF01pEBE';
+  },
+
   get wsApiUrl(): string {
     return window.APP_CONFIG?.WSAPI || 'http://localhost:8080/tdmapi/rest';
   },
-  // Stock API endpoint from APP_CONFIG
+
   get stockApiUrl(): string {
     return window.APP_CONFIG?.STOCKAPI || '/api/Stock_V1';
   },
-  // OAuth2 Resource Owner Configuration (matching WebClients pattern exactly)
+
+  // ---------------------------------------------------------------------------
+  // OAuth2 Configuration (fixed values - same for all environments)
+  // ---------------------------------------------------------------------------
   oauthConfig: {
     scope: 'openid profile globallineapi',
     clientId: 'serverportalro',
     clientSecret: 'The best is yet to come...',
   },
 };
-
-// https://decnt336.win.dom.sandvik.com/TDM2025GlobalLineSQLCASE2
-//'https://pw-gkyr1t3/202501hf01local',
