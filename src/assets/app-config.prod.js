@@ -19,7 +19,7 @@ window.APP_CONFIG = {
   //   '/test-ack/'  -> IIS app at https://server/test-ack/
   //   '/crib/'      -> IIS app at https://server/crib/
   //   '/'           -> Root site (no subfolder)
-  basePath: '/TDMGlobalLine25hf00pEBE/crib/',
+  basePath: '/test-ack/',
 
   // ---------------------------------------------------------------------------
   // apiPath & authUrl (REQUIRED)
@@ -27,21 +27,22 @@ window.APP_CONFIG = {
   // TDM GlobalLine server URL - NO trailing slash
   // The auth endpoint will be constructed as: {authUrl}/identity/connect/token
   // Usually apiPath and authUrl are the same server
-  apiPath: 'https://localhost/TDMGL202502HF01pEBE',
-  authUrl: 'https://localhost/TDMGL202502HF01pEBE',
+  apiPath: 'https://pw-gkyr1t3/TDMGL202502HF01pEBE',
+  authUrl: 'https://pw-gkyr1t3/TDMGL202502HF01pEBE',
 
   // ---------------------------------------------------------------------------
   // STOCKAPI (REQUIRED)
   // ---------------------------------------------------------------------------
   // Stock API endpoint - usually {apiPath}/api/Stock_V1
-  STOCKAPI: 'https://localhost/TDMGL202502HF01pEBE/api/Stock_V1',
+  STOCKAPI: 'https://pw-gkyr1t3/TDMGL202502HF01pEBE/api/Stock_V1',
 
   // ---------------------------------------------------------------------------
   // WSAPI (REQUIRED)
   // ---------------------------------------------------------------------------
-  // TDM WebService API server (runs on port 8080)
-  // For production: use actual server hostname/IP
-  WSAPI: 'http://localhost:8080/tdmapi/rest',
+  // TDM WebService API server - use RELATIVE URL for IIS reverse proxy
+  // IIS will proxy /tdmapi/* requests to localhost:8080 (via URL Rewrite + ARR)
+  // This avoids CORS issues by keeping requests on same origin
+  WSAPI: '/tdmapi/rest',
 
   // ---------------------------------------------------------------------------
   // Optional Settings

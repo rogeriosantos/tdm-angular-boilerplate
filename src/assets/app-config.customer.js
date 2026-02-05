@@ -40,10 +40,10 @@ window.APP_CONFIG = {
   // ---------------------------------------------------------------------------
   // WSAPI (REQUIRED)
   // ---------------------------------------------------------------------------
-  // TDM WebService API server (runs on port 8080)
-  // For production: use actual server hostname/IP
-  // For local development: http://localhost:8080/tdmapi/rest
-  WSAPI: 'http://localhost:8080/tdmapi/rest',
+  // TDM WebService API server - use RELATIVE URL for IIS reverse proxy
+  // IIS will proxy /tdmapi/* requests to localhost:8080 (via URL Rewrite + ARR)
+  // This avoids CORS issues by keeping requests on same origin
+  WSAPI: '/tdmapi/rest',
 
   // ---------------------------------------------------------------------------
   // Optional Settings
