@@ -140,7 +140,11 @@ export class BookingsTableComponent
 
   confirming = false;
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatPaginator) set paginatorSetter(paginator: MatPaginator) {
+    if (paginator && this.dataSource) {
+      this.dataSource.paginator = paginator;
+    }
+  }
 
   @ViewChild(MatSort) set matSortSetter(sort: MatSort) {
     if (sort && this.dataSource) {
@@ -222,10 +226,6 @@ export class BookingsTableComponent
   }
 
   ngAfterViewInit(): void {
-    // Connect paginator for client-side pagination
-    if (this.paginator) {
-      this.dataSource.paginator = this.paginator;
-    }
     // Apply saved widths after view is ready
     this.applySavedWidths();
   }
