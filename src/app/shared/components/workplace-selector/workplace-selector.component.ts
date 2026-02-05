@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { Observable, map, startWith } from 'rxjs';
 import { CostUnit } from '../../../core/services/costunit.service';
 import { WorkplaceService, Workplace } from '../../../core/services/workplace.service';
@@ -26,6 +27,7 @@ export type { Workplace } from '../../../core/services/workplace.service';
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslocoDirective,
   ],
   templateUrl: './workplace-selector.component.html',
   styleUrls: ['./workplace-selector.component.scss'],

@@ -157,7 +157,7 @@
                       <span class="secondary-text">{{ row.assemblyName }}</span>
                     }
                     @if (row.isFirstChild && hasMultipleChildren(row) && !isAssemblyExpanded(row.parentCancelNrBase!)) {
-                      <span class="collapsed-count">({{ row.siblingCount }} items)</span>
+                      <span class="collapsed-count">({{ t('items-count', { count: getChildCount(row) }) }})</span>
                     }
                   </div>
                 </div>

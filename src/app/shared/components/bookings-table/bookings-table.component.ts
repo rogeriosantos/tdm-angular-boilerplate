@@ -891,4 +891,10 @@ export class BookingsTableComponent
     const children = this.childrenByAssembly.get(row.parentCancelNrBase);
     return children ? children.length > 1 : false;
   }
+
+  getChildCount(row: BookingTableRow): number {
+    if (row.parentCancelNrBase == null) return 0;
+    const children = this.childrenByAssembly.get(row.parentCancelNrBase);
+    return children ? children.length : 0;
+  }
 }

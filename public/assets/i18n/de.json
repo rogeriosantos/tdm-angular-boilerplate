@@ -22,7 +22,22 @@
     "content-placeholder": "Fügen Sie hier Ihre Dashboard-Inhalte hinzu"
   },
   "selection-bar": {
+    "cost-unit": "Kostenstelle",
+    "cost-unit-placeholder": "Kostenstelle auswählen...",
+    "cost-unit-loading": "Laden...",
+    "workplace": "Arbeitsplatz",
+    "workplace-placeholder": "Arbeitsplatz auswählen...",
+    "workplace-disabled": "Zuerst Kostenstelle auswählen...",
+    "workplace-loading": "Laden...",
     "show-details": "Details anzeigen"
+  },
+  "user-profile": {
+    "language-settings": "Spracheinstellungen:",
+    "ui-language": "Oberfläche:",
+    "data-language": "Daten:",
+    "english": "English",
+    "german": "Deutsch",
+    "refresh-profile": "Profil aktualisieren"
   },
   "bookings": {
     "filter": "Filter",
@@ -65,6 +80,15 @@
       "booking-time": "Buchungszeit",
       "expand": "Erweitern",
       "commission-id": "Kommissionierauftrag"
-    }
+    },
+    "paginator": {
+      "items-per-page": "Einträge pro Seite:",
+      "of": "von",
+      "first-page": "Erste Seite",
+      "last-page": "Letzte Seite",
+      "next-page": "Nächste Seite",
+      "previous-page": "Vorherige Seite"
+    },
+    "items-count": "{{count}} Einträge"
   }
 }

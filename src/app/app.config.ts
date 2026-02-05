@@ -12,6 +12,8 @@ import { provideEffects } from '@ngrx/effects';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatPaginatorIntl } from '@angular/material/paginator';
+import { CustomPaginatorIntl } from './core/services/custom-paginator-intl.service';
 
 // Core imports
 import { authInterceptor } from './core/interceptors/auth.interceptor';
@@ -58,5 +60,8 @@ export const appConfig: ApplicationConfig = {
     // I18n and translation setup
     provideI18n(),
     translocoProviders,
+
+    // Custom paginator translations
+    { provide: MatPaginatorIntl, useClass: CustomPaginatorIntl },
   ],
 };

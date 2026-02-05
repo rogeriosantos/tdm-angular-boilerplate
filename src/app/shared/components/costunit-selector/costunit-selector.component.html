@@ -1,7 +1,7 @@
-<div class="flex flex-col w-96">
+<div class="flex flex-col w-96" *transloco="let t; read: 'selection-bar'">
   <label for="costunit" class="text-gray-700 font-medium mb-1 flex items-center">
     <mat-icon class="mr-2">factory</mat-icon>
-    Cost Unit
+    {{ t('cost-unit') }}
   </label>
 
   <mat-form-field appearance="outline" class="custom-combobox">
@@ -14,7 +14,7 @@
     ></mat-progress-spinner>
     <input
       type="text"
-      [placeholder]="isLoading ? 'Loading...' : 'Select a cost unit...'"
+      [placeholder]="isLoading ? t('cost-unit-loading') : t('cost-unit-placeholder')"
       matInput
       [formControl]="selectCostUnitsControl"
       [matAutocomplete]="autoCostUnit"

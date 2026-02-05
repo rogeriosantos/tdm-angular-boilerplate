@@ -22,7 +22,22 @@
     "content-placeholder": "Add your dashboard content here"
   },
   "selection-bar": {
+    "cost-unit": "Cost Unit",
+    "cost-unit-placeholder": "Select a cost unit...",
+    "cost-unit-loading": "Loading...",
+    "workplace": "Workplace",
+    "workplace-placeholder": "Select a workplace...",
+    "workplace-disabled": "Select a cost unit first...",
+    "workplace-loading": "Loading...",
     "show-details": "Show Details"
+  },
+  "user-profile": {
+    "language-settings": "Language Settings:",
+    "ui-language": "UI:",
+    "data-language": "Data:",
+    "english": "English",
+    "german": "Deutsch",
+    "refresh-profile": "Refresh Profile"
   },
   "bookings": {
     "filter": "Filter",
@@ -65,6 +80,15 @@
       "booking-time": "Booking Time",
       "expand": "Expand",
       "commission-id": "Picking Order"
-    }
+    },
+    "paginator": {
+      "items-per-page": "Items per page:",
+      "of": "of",
+      "first-page": "First page",
+      "last-page": "Last page",
+      "next-page": "Next page",
+      "previous-page": "Previous page"
+    },
+    "items-count": "{{count}} items"
   }
 }

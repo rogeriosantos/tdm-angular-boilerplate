@@ -9,6 +9,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { Observable, map, startWith } from 'rxjs';
 import { CostUnitService, CostUnit } from '../../../core/services/costunit.service';
 
@@ -25,6 +26,7 @@ export type { CostUnit } from '../../../core/services/costunit.service';
     MatInputModule,
     MatIconModule,
     MatProgressSpinnerModule,
+    TranslocoDirective,
   ],
   templateUrl: './costunit-selector.component.html',
   styleUrls: ['./costunit-selector.component.scss'],

@@ -1,7 +1,7 @@
-<div class="flex flex-col w-96">
+<div class="flex flex-col w-96" *transloco="let t; read: 'selection-bar'">
   <label for="workplace" class="text-gray-700 font-medium mb-1 flex items-center">
     <mat-icon class="mr-2">work</mat-icon>
-    Workplace
+    {{ t('workplace') }}
   </label>
 
   <mat-form-field appearance="outline" class="custom-combobox">
@@ -14,7 +14,7 @@
     ></mat-progress-spinner>
     <input
       type="text"
-      [placeholder]="isLoading ? 'Loading...' : isDisabled ? 'Select a cost unit first...' : 'Select a workplace...'"
+      [placeholder]="isLoading ? t('workplace-loading') : isDisabled ? t('workplace-disabled') : t('workplace-placeholder')"
       matInput
       [formControl]="selectWorkplacesControl"
       [matAutocomplete]="autoWorkplace"
