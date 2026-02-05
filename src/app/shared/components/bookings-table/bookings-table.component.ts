@@ -178,6 +178,9 @@ export class BookingsTableComponent
   private allRows: BookingTableRow[] = [];
   private childrenByAssembly = new Map<number, BookingTableRow[]>();
 
+  // Track expanded state per assembly (by cancelNrBase) - default is expanded
+  expandedAssemblies = new Map<number, boolean>();
+
   // Column drag state
   draggedColumn: string | null = null;
   dragOverColumn: string | null = null;
@@ -301,10 +304,15 @@ export class BookingsTableComponent
       const key = assembly.cancelNrBase;
       const children = childMap.get(key) || [];
 
+      // Set default expanded state to true if not already set
+      if (!this.expandedAssemblies.has(key)) {
+        this.expandedAssemblies.set(key, true);
+      }
+
       const parentRow: BookingTableRow = {
         data: assembly,
         rowType: 'assembly',
-        isExpanded: false,
+        isExpanded: this.expandedAssemblies.get(key) ?? true,
         parentCancelNrBase: null,
         childCount: children.length,
         assemblyId: assembly.id,
@@ -357,12 +365,34 @@ export class BookingsTableComponent
 
     for (const row of this.allRows) {
       if (row.rowType === 'assembly' && row.childCount > 0) {
-        // Assembly with children: skip parent, show children directly
+        // Assembly with children
         const key = row.data.cancelNrBase;
         const children = this.childrenByAssembly.get(key) || [];
+        const isExpanded = this.expandedAssemblies.get(key) ?? true;
+
+        // Update isExpanded on children for template use
         for (const child of children) {
-          child.groupIndex = groupIndex;
-          rows.push(child);
+          child.isExpanded = isExpanded;
+        }
+
+        if (isExpanded) {
+          // Show all children when expanded - restore proper flags
+          for (let i = 0; i < children.length; i++) {
+            children[i].groupIndex = groupIndex;
+            children[i].isFirstChild = i === 0;
+            children[i].isLastChild = i === children.length - 1;
+            children[i].siblingCount = i === 0 ? children.length : 0;
+            rows.push(children[i]);
+          }
+        } else {
+          // Show only first child when collapsed (represents the assembly)
+          if (children.length > 0) {
+            children[0].groupIndex = groupIndex;
+            children[0].isFirstChild = true;
+            children[0].isLastChild = true; // Single row is both first and last
+            children[0].siblingCount = 1; // Only 1 row visible when collapsed
+            rows.push(children[0]);
+          }
         }
       } else {
         // Assembly without children or standalone: show normally
@@ -812,9 +842,8 @@ export class BookingsTableComponent
   // --- Assembly group selection ---
 
   private getAssemblyChildren(cancelNrBase: number): BookingTableRow[] {
-    return this.dataSource.data.filter(
-      (r) => r.rowType === 'child' && r.parentCancelNrBase === cancelNrBase
-    );
+    // Use childrenByAssembly to get ALL children, not just visible ones
+    return this.childrenByAssembly.get(cancelNrBase) || [];
   }
 
   isAssemblyAllSelected(cancelNrBase: number): boolean {
@@ -840,5 +869,26 @@ export class BookingsTableComponent
     } else {
       this.selection.select(...children);
     }
+  }
+
+  // --- Assembly expand/collapse ---
+
+  toggleAssemblyExpand(row: BookingTableRow): void {
+    const cancelNrBase = row.parentCancelNrBase;
+    if (cancelNrBase == null) return;
+
+    const currentState = this.expandedAssemblies.get(cancelNrBase) ?? true;
+    this.expandedAssemblies.set(cancelNrBase, !currentState);
+    this.refreshDataSource();
+  }
+
+  isAssemblyExpanded(cancelNrBase: number): boolean {
+    return this.expandedAssemblies.get(cancelNrBase) ?? true;
+  }
+
+  hasMultipleChildren(row: BookingTableRow): boolean {
+    if (row.parentCancelNrBase == null) return false;
+    const children = this.childrenByAssembly.get(row.parentCancelNrBase);
+    return children ? children.length > 1 : false;
   }
 }
