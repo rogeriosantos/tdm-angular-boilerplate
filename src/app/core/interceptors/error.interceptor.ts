@@ -8,21 +8,27 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
-      let errorMessage = 'An unknown error occurred';
+      // Silently handle errors for asset/thumbnail requests (404s are expected)
+      const silentPatterns = ['/assets/Thumbnail', '/assets/Image2D', '/assets/ImageFile'];
+      const isSilent = silentPatterns.some((p) => req.url.includes(p));
 
-      if (error.error instanceof ErrorEvent) {
-        // Client-side error
-        errorMessage = `Error: ${error.error.message}`;
-      } else {
-        // Server-side error
-        errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+      if (!isSilent) {
+        let errorMessage = 'An unknown error occurred';
+
+        if (error.error instanceof ErrorEvent) {
+          // Client-side error
+          errorMessage = `Error: ${error.error.message}`;
+        } else {
+          // Server-side error
+          errorMessage = `Error Code: ${error.status}\nMessage: ${error.message}`;
+        }
+
+        // Show error notification
+        snackBar.open(errorMessage, 'Close', {
+          duration: 5000,
+          panelClass: ['error-snackbar'],
+        });
       }
-
-      // Show error notification
-      snackBar.open(errorMessage, 'Close', {
-        duration: 5000,
-        panelClass: ['error-snackbar'],
-      });
 
       return throwError(() => error);
     })
