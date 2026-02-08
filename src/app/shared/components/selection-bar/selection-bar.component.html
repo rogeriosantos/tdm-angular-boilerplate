@@ -4,6 +4,7 @@
     <div class="flex-grow flex justify-center items-center space-x-4">
       <!-- Cost Unit Selector -->
       <app-costunit-selector
+        [initialCostUnit]="initialCostUnit"
         (costUnitSelected)="onCostUnitSelected($event)"
       ></app-costunit-selector>
 
@@ -19,6 +20,7 @@
       <!-- Workplace Selector -->
       <app-workplace-selector
         [selectedCostUnit]="selectedCostUnit"
+        [initialWorkplace]="initialWorkplace"
         (workplaceSelected)="onWorkplaceSelected($event)"
       ></app-workplace-selector>
     </div>

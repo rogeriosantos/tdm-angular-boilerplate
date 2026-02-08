@@ -4,6 +4,8 @@
 
   <!-- Selection Bar (Cost Unit + Workplace) -->
   <app-selection-bar
+    [initialCostUnit]="savedCostUnit"
+    [initialWorkplace]="savedWorkplace"
     (selectionChanged)="onSelectionChanged($event)"
     (costUnitChanged)="onCostUnitChanged($event)"
     (workplaceChanged)="onWorkplaceChanged($event)"

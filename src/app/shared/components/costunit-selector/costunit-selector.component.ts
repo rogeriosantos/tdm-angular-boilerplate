@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -32,6 +32,7 @@ export type { CostUnit } from '../../../core/services/costunit.service';
   styleUrls: ['./costunit-selector.component.scss'],
 })
 export class CostunitSelectorComponent implements OnInit {
+  @Input() initialCostUnit: CostUnit | null = null;
   @Output() costUnitSelected = new EventEmitter<CostUnit | null>();
 
   selectCostUnitsControl = new FormControl('');
@@ -54,6 +55,7 @@ export class CostunitSelectorComponent implements OnInit {
         this.costUnits = costUnits;
         this.isLoading = false;
         this.setupFiltering();
+        this.applyInitialValue();
         console.log('Loaded cost units:', costUnits.length);
       },
       error: (error) => {
@@ -97,5 +99,16 @@ export class CostunitSelectorComponent implements OnInit {
     this.selectCostUnitsControl.setValue('');
     this.selectedCostUnit = null;
     this.costUnitSelected.emit(null);
+  }
+
+  private applyInitialValue(): void {
+    if (this.initialCostUnit) {
+      const match = this.costUnits.find((cu) => cu.id === this.initialCostUnit!.id);
+      if (match) {
+        this.selectedCostUnit = match;
+        this.selectCostUnitsControl.setValue(match as any);
+        this.costUnitSelected.emit(match);
+      }
+    }
   }
 }

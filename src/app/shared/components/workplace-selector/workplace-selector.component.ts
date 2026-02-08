@@ -34,6 +34,7 @@ export type { Workplace } from '../../../core/services/workplace.service';
 })
 export class WorkplaceSelectorComponent implements OnChanges {
   @Input() selectedCostUnit: CostUnit | null = null;
+  @Input() initialWorkplace: Workplace | null = null;
   @Output() workplaceSelected = new EventEmitter<Workplace | null>();
 
   selectWorkplacesControl = new FormControl('');
@@ -51,10 +52,14 @@ export class WorkplaceSelectorComponent implements OnChanges {
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['selectedCostUnit']) {
-      // Reset workplace selection when cost unit changes
+      const isRestoring = this.initialWorkplace != null;
+
+      // Reset workplace selection when cost unit changes (skip emit during restore)
       this.selectWorkplacesControl.setValue('');
       this.selectedWorkplace = null;
-      this.workplaceSelected.emit(null);
+      if (!isRestoring) {
+        this.workplaceSelected.emit(null);
+      }
       this.workplaces = [];
 
       // Load workplaces for the new cost unit
@@ -71,6 +76,7 @@ export class WorkplaceSelectorComponent implements OnChanges {
         this.workplaces = workplaces;
         this.isLoading = false;
         this.setupFiltering();
+        this.applyInitialValue();
         console.log('Loaded workplaces:', workplaces.length);
       },
       error: (error) => {
@@ -114,5 +120,17 @@ export class WorkplaceSelectorComponent implements OnChanges {
     this.selectWorkplacesControl.setValue('');
     this.selectedWorkplace = null;
     this.workplaceSelected.emit(null);
+  }
+
+  private applyInitialValue(): void {
+    if (this.initialWorkplace) {
+      const match = this.workplaces.find((wp) => wp.id === this.initialWorkplace!.id);
+      if (match) {
+        this.selectedWorkplace = match;
+        this.selectWorkplacesControl.setValue(match as any);
+        this.workplaceSelected.emit(match);
+      }
+      this.initialWorkplace = null;
+    }
   }
 }

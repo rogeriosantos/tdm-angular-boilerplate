@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
 import { TranslocoDirective } from '@jsverse/transloco';
@@ -30,6 +30,9 @@ export interface SelectionChangedEvent {
   styleUrls: ['./selection-bar.component.scss'],
 })
 export class SelectionBarComponent {
+  @Input() initialCostUnit: CostUnit | null = null;
+  @Input() initialWorkplace: Workplace | null = null;
+
   selectedCostUnit: CostUnit | null = null;
   selectedWorkplace: Workplace | null = null;
 

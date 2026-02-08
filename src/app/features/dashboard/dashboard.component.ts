@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../auth/services/auth.service';
 import { Router } from '@angular/router';
@@ -14,6 +14,7 @@ import {
   BookingService,
   BookingRow,
 } from '../../core/services/booking.service';
+import { SelectionStateService } from '../../core/services/selection-state.service';
 import { CostUnit } from '../../shared/components/costunit-selector/costunit-selector.component';
 import { Workplace } from '../../shared/components/workplace-selector/workplace-selector.component';
 
@@ -37,7 +38,7 @@ interface DateRangeOption {
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent {
+export class DashboardComponent implements OnInit {
   @ViewChild('bookingsTable') bookingsTable!: BookingsTableComponent;
 
   // Unconfirmed tab state
@@ -55,6 +56,10 @@ export class DashboardComponent {
   selectedCostUnitId: string | null = null;
   selectedWorkplaceId: string | null = null;
   activeTab: 'unconfirmed' | 'history' = 'unconfirmed';
+
+  // Saved selections for restoration
+  savedCostUnit: CostUnit | null = null;
+  savedWorkplace: Workplace | null = null;
 
   dateRanges: DateRangeOption[] = [
     {
@@ -122,8 +127,14 @@ export class DashboardComponent {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private bookingService: BookingService
+    private bookingService: BookingService,
+    private selectionState: SelectionStateService
   ) {}
+
+  ngOnInit(): void {
+    this.savedCostUnit = this.selectionState.getSavedCostUnit();
+    this.savedWorkplace = this.selectionState.getSavedWorkplace();
+  }
 
   logout() {
     this.authService.logout();
@@ -133,12 +144,14 @@ export class DashboardComponent {
   onCostUnitChanged(costUnit: CostUnit | null): void {
     this.selectedCostUnitId = costUnit?.id || null;
     this.selectedWorkplaceId = null;
+    this.selectionState.saveCostUnit(costUnit);
     this.resetBookings();
     this.resetHistory();
   }
 
   onWorkplaceChanged(workplace: Workplace | null): void {
     this.selectedWorkplaceId = workplace?.id || null;
+    this.selectionState.saveWorkplace(workplace);
     if (!workplace) {
       this.resetBookings();
       this.resetHistory();
@@ -148,6 +161,8 @@ export class DashboardComponent {
   onSelectionChanged(event: SelectionChangedEvent): void {
     this.selectedCostUnitId = event.costUnit.id;
     this.selectedWorkplaceId = event.workplace.id;
+    this.selectionState.saveCostUnit(event.costUnit);
+    this.selectionState.saveWorkplace(event.workplace);
     this.loadBookings();
     this.resetHistory();
   }

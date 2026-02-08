@@ -8,6 +8,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTableModule } from '@angular/material/table';
 import { MatTabsModule } from '@angular/material/tabs';
 import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
+import { Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { Store } from '@ngrx/store';
@@ -77,6 +78,7 @@ export class ToolDetailsComponent implements OnInit, OnDestroy {
     private readonly store: Store,
     private readonly router: Router,
     private readonly route: ActivatedRoute,
+    private readonly location: Location,
     private readonly sanitizer: DomSanitizer,
     private readonly dialog: MatDialog
   ) {}
@@ -146,7 +148,7 @@ export class ToolDetailsComponent implements OnInit, OnDestroy {
   }
 
   goBack() {
-    this.router.navigate(['/dashboard']);
+    this.location.back();
   }
 
   maximizeGraphic(url: SafeUrl) {
