@@ -90,5 +90,25 @@
       "previous-page": "Previous page"
     },
     "items-count": "{{count}} items"
+  },
+  "tool-details": {
+    "back": "Back",
+    "id": "ID",
+    "description": "Description",
+    "name": "Name",
+    "tool-class": "Tool Class",
+    "tool-class-type": "Tool Class Type",
+    "tool-group": "Tool Group",
+    "tool-number": "Tool Number",
+    "weight": "Weight",
+    "cutting-grade": "Cutting Grade",
+    "2d-graphic": "2D Graphic",
+    "image": "Image",
+    "bill-of-materials": "Bill of Materials",
+    "qty": "Qty",
+    "2d-graphic-placeholder": "2D Graphic Placeholder",
+    "image-placeholder": "Image Placeholder",
+    "maximized-graphic-alt": "Maximized Graphic",
+    "scroll-to-zoom": "Scroll to Zoom"
   }
 }

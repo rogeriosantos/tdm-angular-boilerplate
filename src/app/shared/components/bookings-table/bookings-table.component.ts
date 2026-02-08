@@ -25,6 +25,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatDialog } from '@angular/material/dialog';
+import { RouterLink } from '@angular/router';
 import { SelectionModel } from '@angular/cdk/collections';
 import { BookingRow } from '../../../core/services/booking.service';
 import {
@@ -117,6 +118,7 @@ const HISTORY_COLUMNS: ColumnDef[] = [
     MatTooltipModule,
     MatSelectModule,
     TranslocoDirective,
+    RouterLink,
   ],
   templateUrl: './bookings-table.component.html',
   styleUrls: ['./bookings-table.component.scss'],

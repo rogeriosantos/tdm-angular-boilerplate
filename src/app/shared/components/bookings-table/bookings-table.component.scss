@@ -177,6 +177,16 @@
   font-weight: 500;
 }
 
+.tool-link {
+  color: #4778f6;
+  text-decoration: none;
+  cursor: pointer;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .secondary-text {
   font-size: 0.75rem;
   color: #757575;

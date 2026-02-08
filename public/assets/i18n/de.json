@@ -90,5 +90,25 @@
       "previous-page": "Vorherige Seite"
     },
     "items-count": "{{count}} Einträge"
+  },
+  "tool-details": {
+    "back": "Zurück",
+    "id": "ID",
+    "description": "Beschreibung",
+    "name": "Name",
+    "tool-class": "Werkzeugklasse",
+    "tool-class-type": "Werkzeugklassentyp",
+    "tool-group": "Werkzeuggruppe",
+    "tool-number": "Werkzeugnummer",
+    "weight": "Gewicht",
+    "cutting-grade": "Schneidstoff",
+    "2d-graphic": "2D Grafik",
+    "image": "Bild",
+    "bill-of-materials": "Stückliste",
+    "qty": "Menge",
+    "2d-graphic-placeholder": "2D Grafik Platzhalter",
+    "image-placeholder": "Bild Platzhalter",
+    "maximized-graphic-alt": "Vergrößerte Grafik",
+    "scroll-to-zoom": "Scrollen zum Zoomen"
   }
 }

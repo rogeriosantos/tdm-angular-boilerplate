@@ -1,0 +1,209 @@
+<ng-container *transloco="let t; read: 'tool-details'">
+  <app-toolbar></app-toolbar>
+
+  <!-- Top Navbar -->
+  <nav class="bg-white shadow p-4 flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <button
+        mat-stroked-button
+        (click)="goBack()"
+        class="button-back px-4 py-2 rounded-md hover:bg-gray-300 hover:text-white"
+      >
+        {{ t('back') }}
+      </button>
+
+      <p>{{ t('id') }}</p>
+      <h1 class="text-[#43424A] font-medium text-[20px]">{{ this.toolId }}</h1>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="p-6 flex gap-6 bg-gray-100 detail-content">
+    <!-- Left Section - Basic Data -->
+    <div class="basic-data-container bg-white shadow p-6 rounded-lg w-[20%] space-y-4">
+      <div class="p-4">
+        <div class="mb-4">
+          <span class="basic-data-label block">{{ t('description') }}</span>
+          <span class="basic-data-value block">{{ (tool$ | async)?.description }}</span>
+        </div>
+        <div class="mb-4">
+          <span class="basic-data-label block">{{ t('name') }}</span>
+          <span class="basic-data-value block">{{ (tool$ | async)?.name }}</span>
+        </div>
+        <div class="mb-4">
+          <span class="basic-data-label block">{{ t('tool-class') }}</span>
+          <span class="basic-data-value block">
+            {{ (tool$ | async)?.toolClass?.id }} /
+            {{ (tool$ | async)?.toolClass?.name }}
+          </span>
+        </div>
+        <div class="mb-4">
+          <span class="basic-data-label block">{{ t('tool-class-type') }}</span>
+          <span class="basic-data-value block">
+            {{ (tool$ | async)?.toolClass?.toolClassType?.id }} /
+            {{ (tool$ | async)?.toolClass?.toolClassType?.name }}
+          </span>
+        </div>
+        <div class="mb-4">
+          <span class="basic-data-label block">{{ t('tool-group') }}</span>
+          <span class="basic-data-value block">
+            {{ (tool$ | async)?.toolGroup?.id }} /
+            {{ (tool$ | async)?.toolGroup?.name }}
+          </span>
+        </div>
+        <div class="mb-4">
+          <span class="basic-data-label block">{{ t('tool-number') }}</span>
+          <span class="basic-data-value block">{{ (tool$ | async)?.toolNumber }}</span>
+        </div>
+        <div class="mb-4">
+          <span class="basic-data-label block">{{ t('weight') }}</span>
+          <span class="basic-data-value block">{{ (tool$ | async)?.weight }}</span>
+        </div>
+        <div class="mb-4">
+          <span class="basic-data-label block">{{ t('cutting-grade') }}</span>
+          <span class="basic-data-value block">
+            {{ (tool$ | async)?.cuttingGrade?.id }} /
+            {{ (tool$ | async)?.cuttingGrade?.name }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Section - Graphics & BOM -->
+    <div class="flex-grow bg-white shadow p-6 rounded-lg space-y-6">
+      <!-- 2D Graphic / Image Section -->
+      <mat-tab-group>
+        <mat-tab [label]="t('2d-graphic')">
+          <div class="graphic-tab-content">
+            <div class="flex justify-center mb-4" *ngIf="(graphic2D$ | async) !== null">
+              <img
+                [src]="graphic2DUrl"
+                [alt]="t('2d-graphic')"
+                class="graphic-item"
+              />
+              <button
+                mat-icon-button
+                class="maximize-button"
+                (click)="maximizeGraphic(graphic2DUrl)"
+              >
+                <mat-icon>fullscreen</mat-icon>
+              </button>
+            </div>
+            <div
+              class="bg-gray-200 h-64 flex items-center justify-center"
+              *ngIf="(graphic2DLoading$ | async) || (graphic2D$ | async) === null"
+            >
+              <span class="text-gray-500">{{ t('2d-graphic-placeholder') }}</span>
+              <div class="spinner-container" *ngIf="graphic2DLoading$ | async">
+                <mat-progress-spinner
+                  mode="indeterminate"
+                  diameter="50"
+                ></mat-progress-spinner>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+        <mat-tab [label]="t('image')">
+          <div class="graphic-tab-content">
+            <div class="flex justify-center mb-4" *ngIf="(graphicImage$ | async) !== null">
+              <img
+                [src]="graphicImageUrl"
+                [alt]="t('image')"
+                class="graphic-item"
+              />
+              <button
+                mat-icon-button
+                class="maximize-button"
+                (click)="maximizeGraphic(graphicImageUrl)"
+              >
+                <mat-icon>fullscreen</mat-icon>
+              </button>
+            </div>
+            <div
+              class="bg-gray-200 h-64 flex items-center justify-center"
+              *ngIf="(graphicImageLoading$ | async) || (graphicImage$ | async) === null"
+            >
+              <span class="text-gray-500">{{ t('image-placeholder') }}</span>
+              <div class="spinner-container" *ngIf="graphicImageLoading$ | async">
+                <mat-progress-spinner
+                  mode="indeterminate"
+                  diameter="50"
+                ></mat-progress-spinner>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+
+      <!-- Bill of Materials -->
+      <mat-tab-group>
+        <mat-tab [label]="t('bill-of-materials')">
+          <mat-card class="material-list-container">
+            <mat-card-title>{{ t('bill-of-materials') }}</mat-card-title>
+
+            <table mat-table [dataSource]="(billsOfMaterials$ | async)?.entities || []">
+              <!-- Position Column -->
+              <ng-container matColumnDef="position">
+                <th mat-header-cell *matHeaderCellDef>POS.</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.position }}
+                </td>
+              </ng-container>
+
+              <!-- Thumbnail Column -->
+              <ng-container matColumnDef="thumbnail">
+                <th mat-header-cell *matHeaderCellDef></th>
+                <td mat-cell *matCellDef="let element">
+                  <ng-container *ngIf="thumbnailUrls$ | async as thumbnailUrls">
+                    <img
+                      *ngIf="thumbnailUrls[element.elementToolItemId]"
+                      [src]="thumbnailUrls[element.elementToolItemId]"
+                      alt="Thumbnail"
+                      class="thumbnail-image"
+                    />
+                  </ng-container>
+                </td>
+              </ng-container>
+
+              <!-- ID Column -->
+              <ng-container matColumnDef="id">
+                <th mat-header-cell *matHeaderCellDef>ID</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.elementToolItemId }}
+                </td>
+              </ng-container>
+
+              <!-- Description Column -->
+              <ng-container matColumnDef="description">
+                <th mat-header-cell *matHeaderCellDef>{{ t('description') }}</th>
+                <td mat-cell *matCellDef="let element">
+                  {{ element.elementToolItem?.description }}
+                </td>
+              </ng-container>
+
+              <!-- Quantity Column -->
+              <ng-container matColumnDef="quantity">
+                <th mat-header-cell *matHeaderCellDef class="text-right">
+                  {{ t('qty') }}
+                </th>
+                <td mat-cell *matCellDef="let element" class="text-right">
+                  {{ element.quantity }}
+                </td>
+              </ng-container>
+
+              <tr mat-header-row *matHeaderRowDef="billOfMaterialsDisplayedColumns"></tr>
+              <tr mat-row *matRowDef="let row; columns: billOfMaterialsDisplayedColumns"></tr>
+            </table>
+
+            <div class="spinner-container" *ngIf="(billsOfMaterials$ | async)?.loading">
+              <mat-progress-spinner
+                mode="indeterminate"
+                diameter="50"
+              ></mat-progress-spinner>
+            </div>
+          </mat-card>
+        </mat-tab>
+      </mat-tab-group>
+    </div>
+  </div>
+</ng-container>

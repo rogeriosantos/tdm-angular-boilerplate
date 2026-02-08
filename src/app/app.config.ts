@@ -25,6 +25,13 @@ import { I18nEffects } from './features/i18n/state/i18n.effects';
 import { i18nFeature } from './features/i18n/state/i18n.reducer';
 import { UserProfileEffects } from './features/user-profile/state/user-profile.effects';
 import { userProfileFeature } from './features/user-profile/state/user-profile.reducer';
+import { ToolDetailEffects } from './features/tool-details/state/tool-detail.effects';
+import {
+  toolDetailFeature,
+  toolDetailBomFeature,
+  toolDetailGraphic2DFeature,
+  toolDetailGraphicImageFeature,
+} from './features/tool-details/state/tool-detail.reducer';
 
 // Configuration imports
 import { translocoProviders } from './core/config/transloco/transloco-root.module';
@@ -45,8 +52,12 @@ export const appConfig: ApplicationConfig = {
     provideStore({
       i18n: i18nFeature.reducer,
       userProfile: userProfileFeature.reducer,
+      toolDetail: toolDetailFeature.reducer,
+      toolDetailBom: toolDetailBomFeature.reducer,
+      toolDetailGraphic2D: toolDetailGraphic2DFeature.reducer,
+      toolDetailGraphicImage: toolDetailGraphicImageFeature.reducer,
     }),
-    provideEffects([I18nEffects, UserProfileEffects]),
+    provideEffects([I18nEffects, UserProfileEffects, ToolDetailEffects]),
     isDevMode()
       ? provideStoreDevtools({
           maxAge: 25,

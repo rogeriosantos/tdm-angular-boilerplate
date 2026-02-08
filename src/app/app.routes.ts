@@ -13,6 +13,12 @@ export const routes: Routes = [
       import('./features/dashboard/dashboard.component').then((m) => m.DashboardComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'tool-details/:toolId',
+    loadComponent: () =>
+      import('./features/tool-details/tool-details.component').then((m) => m.ToolDetailsComponent),
+    canActivate: [authGuard],
+  },
   { path: '', redirectTo: '/login', pathMatch: 'full' },
-  { path: '**', redirectTo: '/login' }, // Wildcard route to catch all unmatched routes
+  { path: '**', redirectTo: '/login' },
 ];

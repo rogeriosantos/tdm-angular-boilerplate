@@ -128,7 +128,7 @@
           >
             <div class="cell-content">
               @if (row.rowType === 'assembly') {
-                <span class="primary-text">{{ row.data.id }}</span>
+                <a class="primary-text tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
                 @if (row.data.name) {
                   <span class="secondary-text">{{ row.data.name }}</span>
                 }
@@ -152,7 +152,7 @@
                     ></mat-checkbox>
                   }
                   <div class="assembly-cell-label">
-                    <span class="primary-text">{{ row.assemblyId }}</span>
+                    <a class="primary-text tool-link" [routerLink]="['/tool-details', row.assemblyId]" (click)="$event.stopPropagation()">{{ row.assemblyId }}</a>
                     @if (row.assemblyName) {
                       <span class="secondary-text">{{ row.assemblyName }}</span>
                     }
@@ -217,7 +217,7 @@
           <td mat-cell *matCellDef="let row">
             @if (row.rowType !== 'assembly') {
               <div class="cell-content">
-                <span class="primary-text article-id">{{ row.data.id }}</span>
+                <a class="primary-text article-id tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
                 <span class="secondary-text">{{ row.data.name }}</span>
                 @if (row.data.description) {
                   <span class="tertiary-text">{{ row.data.description }}</span>
