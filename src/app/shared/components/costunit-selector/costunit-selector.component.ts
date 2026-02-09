@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, SimpleChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -31,7 +31,7 @@ export type { CostUnit } from '../../../core/services/costunit.service';
   templateUrl: './costunit-selector.component.html',
   styleUrls: ['./costunit-selector.component.scss'],
 })
-export class CostunitSelectorComponent implements OnInit {
+export class CostunitSelectorComponent implements OnInit, OnChanges {
   @Input() initialCostUnit: CostUnit | null = null;
   @Output() costUnitSelected = new EventEmitter<CostUnit | null>();
 
@@ -46,6 +46,13 @@ export class CostunitSelectorComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCostUnits();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // If initialCostUnit arrives after cost units are already loaded, apply it
+    if (changes['initialCostUnit'] && !changes['initialCostUnit'].firstChange && this.costUnits.length > 0) {
+      this.applyInitialValue();
+    }
   }
 
   private loadCostUnits(): void {

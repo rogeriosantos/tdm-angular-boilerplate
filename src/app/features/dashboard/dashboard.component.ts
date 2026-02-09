@@ -134,6 +134,16 @@ export class DashboardComponent implements OnInit {
   ngOnInit(): void {
     this.savedCostUnit = this.selectionState.getSavedCostUnit();
     this.savedWorkplace = this.selectionState.getSavedWorkplace();
+
+    // If no saved selection, fetch user defaults from USERCOSTUNIT endpoint
+    if (!this.savedCostUnit) {
+      this.selectionState.fetchUserDefaults().subscribe((defaults) => {
+        if (defaults) {
+          this.savedCostUnit = defaults.costUnit;
+          this.savedWorkplace = defaults.workplace;
+        }
+      });
+    }
   }
 
   logout() {

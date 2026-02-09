@@ -67,6 +67,11 @@ export class WorkplaceSelectorComponent implements OnChanges {
         this.loadWorkplaces(this.selectedCostUnit.id);
       }
     }
+
+    // If initialWorkplace arrives after workplaces are already loaded, apply it
+    if (changes['initialWorkplace'] && !changes['initialWorkplace'].firstChange && this.workplaces.length > 0) {
+      this.applyInitialValue();
+    }
   }
 
   private loadWorkplaces(costUnitId: string): void {

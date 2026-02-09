@@ -27,6 +27,7 @@ export class UserProfileService {
       }),
       map((userInfo) => ({
         username: userInfo.preferred_username || userInfo.name || 'Unknown',
+        claimsName: userInfo['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name'] || '',
         department: userInfo.department || 'Unknown Department',
         email: userInfo.email,
         picture: userInfo.picture,
