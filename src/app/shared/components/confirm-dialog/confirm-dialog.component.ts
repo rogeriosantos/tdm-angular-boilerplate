@@ -279,6 +279,9 @@ export class ConfirmDialogComponent implements OnInit {
 
     this.isComplete = true;
     this.dialogRef.disableClose = false;
+
+    // Auto-close after a brief delay so the user can see the final status
+    setTimeout(() => this.onClose(), 1500);
   }
 
   onClose(): void {
