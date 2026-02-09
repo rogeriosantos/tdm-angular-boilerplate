@@ -212,7 +212,7 @@ export class BookingService {
       {
         transactionNumber: row.transactionNr,
         transactionListPosition: row.transactionListPos,
-        cancelListPosition: 1,
+        cancelListPosition: row.state < 0 ? 1 : 2,
       },
     ];
     console.log('[Confirm] Sending confirmation for:', row.id, payload);
