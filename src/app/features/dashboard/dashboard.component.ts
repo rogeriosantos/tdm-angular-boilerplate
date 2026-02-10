@@ -262,7 +262,6 @@ export class DashboardComponent implements OnInit {
 
   onConfirmBookings(): void {
     this.bookingsTable?.confirmComplete();
-    this.loadBookings();
   }
 
   private resetBookings(): void {

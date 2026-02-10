@@ -28,6 +28,7 @@ export interface UnconfirmedBookingApiRow {
   COUNTREPAIR: string;
   COSTCORRELATION: string;
   STATE: string;
+  BOOKSTATENR: string;
   FACTOR: string;
   COSTUNITCOSTS: string;
   WORKPLACECOSTS: string;
@@ -92,6 +93,7 @@ export interface BookingRow {
   bookDate: string;
   bookTime: string;
   state: number;
+  bookStateNr: number;
   factor: number;
   costCorrelation: number;
   accountId: string;
@@ -205,21 +207,32 @@ export class BookingService {
 
   /**
    * Confirm a single booking via the Stock API.
+   * Tries cancelListPosition=1 first, falls back to cancelListPosition=2 on failure.
    */
   confirmBooking(row: BookingRow): Observable<unknown> {
     const url = `${environment.stockApiUrl}/Bookings/Confirmations?move=false`;
+    return this.tryConfirm(row, url, 1).pipe(
+      catchError(() => this.tryConfirm(row, url, 2))
+    );
+  }
+
+  private tryConfirm(row: BookingRow, url: string, cancelListPosition: number): Observable<unknown> {
     const payload: ConfirmationPayload[] = [
       {
         transactionNumber: row.transactionNr,
         transactionListPosition: row.transactionListPos,
-        cancelListPosition: row.state < 0 ? 1 : 2,
+        cancelListPosition,
       },
     ];
-    console.log('[Confirm] Sending confirmation for:', row.id, payload);
+    console.log(`[Confirm] Trying cancelListPosition=${cancelListPosition} for:`, row.id);
     return this.http.patch(url, payload).pipe(
-      tap(() => console.log('[Confirm] SUCCESS for:', row.id, '| transactionNr:', row.transactionNr, '| transactionListPos:', row.transactionListPos)),
+      tap(() => console.log(`[Confirm] SUCCESS for: ${row.id} | cancelListPosition=${cancelListPosition}`)),
       catchError((error) => {
-        console.error('[Confirm] FAILED for:', row.id, '| transactionNr:', row.transactionNr, '| transactionListPos:', row.transactionListPos, '| Error:', error);
+        if (cancelListPosition === 1) {
+          console.log(`[Confirm] cancelListPosition=1 failed for ${row.id}, will retry with 2...`);
+        } else {
+          console.error(`[Confirm] FAILED for: ${row.id} | both cancelListPosition values failed`, error);
+        }
         throw error;
       })
     );
@@ -295,6 +308,7 @@ export class BookingService {
       bookDate: row.BOOKDATE || '',
       bookTime: row.BOOKTIME || '',
       state: parseInt(row.STATE, 10) || 0,
+      bookStateNr: parseInt(row.BOOKSTATENR, 10) || 0,
       factor: parseFloat(row.FACTOR) || 0,
       costCorrelation: parseInt(row.COSTCORRELATION, 10) || 0,
       accountId: row.ACCOUNTID || '',

@@ -706,8 +706,8 @@ export class BookingsTableComponent
 
     dialogRef.afterClosed().subscribe((result?: ConfirmDialogResult) => {
       this.selection.clear();
-      if (result && result.completed > 0) {
-        this.confirmBookings.emit([]);
+      if (result && result.succeededRows && result.succeededRows.length > 0) {
+        this.removeConfirmedRows(result.succeededRows);
       }
     });
   }
@@ -716,6 +716,14 @@ export class BookingsTableComponent
   confirmComplete(): void {
     this.confirming = false;
     this.selection.clear();
+  }
+
+  /** Remove confirmed rows from the table locally (no API refresh). */
+  private removeConfirmedRows(succeededRows: BookingRow[]): void {
+    const confirmedCancelNrs = new Set(succeededRows.map((r) => r.cancelNr));
+    this.dataSource.data = this.dataSource.data.filter(
+      (tableRow) => !confirmedCancelNrs.has(tableRow.data.cancelNr)
+    );
   }
 
   formatBookingTime(row: BookingTableRow): string {

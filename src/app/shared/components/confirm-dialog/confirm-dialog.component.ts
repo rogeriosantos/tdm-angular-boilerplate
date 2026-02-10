@@ -29,6 +29,7 @@ export interface ConfirmDialogData {
 export interface ConfirmDialogResult {
   completed: number;
   failed: number;
+  succeededRows: BookingRow[];
 }
 
 @Component({
@@ -285,8 +286,9 @@ export class ConfirmDialogComponent implements OnInit {
   }
 
   onClose(): void {
-    const completed = this.items.filter((i) => i.status === 'success').length;
+    const succeededItems = this.items.filter((i) => i.status === 'success');
+    const completed = succeededItems.length;
     const failed = this.items.filter((i) => i.status === 'error').length;
-    this.dialogRef.close({ completed, failed });
+    this.dialogRef.close({ completed, failed, succeededRows: succeededItems.map((i) => i.row) });
   }
 }
