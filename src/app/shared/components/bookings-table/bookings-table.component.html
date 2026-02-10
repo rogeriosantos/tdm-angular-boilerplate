@@ -126,11 +126,15 @@
             [style.display]="(row.rowType === 'child' && !row.isFirstChild) ? 'none' : null"
             (click)="!readOnly && row.isFirstChild ? toggleAssemblySelection(row) : null; $event.stopPropagation()"
           >
-            <div class="cell-content">
+            <div class="cell-content cell-content-assembly">
               @if (row.rowType === 'assembly') {
-                <a class="primary-text tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
-                @if (row.data.name) {
-                  <span class="secondary-text">{{ row.data.name }}</span>
+                @if (row.data.id) {
+                  <a class="primary-text tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
+                  @if (row.data.name) {
+                    <span class="secondary-text">{{ row.data.name }}</span>
+                  }
+                } @else {
+                  <span class="primary-text">-</span>
                 }
               } @else if (row.rowType === 'child') {
                 <div class="assembly-cell-row">
