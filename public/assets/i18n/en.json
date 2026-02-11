@@ -79,7 +79,8 @@
       "select": "Selection",
       "booking-time": "Booking Time",
       "expand": "Expand",
-      "commission-id": "Picking Order"
+      "commission-id": "Commission ID",
+      "picking-order": "Picking Order"
     },
     "paginator": {
       "items-per-page": "Items per page:",

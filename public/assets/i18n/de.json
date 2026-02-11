@@ -79,7 +79,8 @@
       "select": "Auswahl",
       "booking-time": "Buchungszeit",
       "expand": "Erweitern",
-      "commission-id": "Kommissionierauftrag"
+      "commission-id": "Kommissions-ID",
+      "picking-order": "Kommissionierauftrag"
     },
     "paginator": {
       "items-per-page": "Einträge pro Seite:",
