@@ -1,5 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { environment } from '../../core/config/environment';
 import { AuthService } from '../auth/services/auth.service';
 import { Router } from '@angular/router';
 import { MatTabsModule, MatTabChangeEvent } from '@angular/material/tabs';
@@ -38,7 +39,7 @@ interface DateRangeOption {
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   @ViewChild('bookingsTable') bookingsTable!: BookingsTableComponent;
 
   // Unconfirmed tab state
@@ -60,6 +61,10 @@ export class DashboardComponent implements OnInit {
   // Saved selections for restoration
   savedCostUnit: CostUnit | null = null;
   savedWorkplace: Workplace | null = null;
+
+  // Auto-refresh when idle (configured via app-config idleRefreshSeconds, 0 = disabled)
+  private idleTimerId: ReturnType<typeof setTimeout> | null = null;
+  private boundResetIdle = this.resetIdleTimer.bind(this);
 
   dateRanges: DateRangeOption[] = [
     {
@@ -128,7 +133,8 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
     private bookingService: BookingService,
-    private selectionState: SelectionStateService
+    private selectionState: SelectionStateService,
+    private ngZone: NgZone
   ) {}
 
   ngOnInit(): void {
@@ -144,6 +150,58 @@ export class DashboardComponent implements OnInit {
         }
       });
     }
+
+    // Start idle auto-refresh
+    this.startIdleListener();
+  }
+
+  ngOnDestroy(): void {
+    this.stopIdleListener();
+  }
+
+  private get idleTimeoutMs(): number {
+    return environment.idleRefreshSeconds * 1000;
+  }
+
+  private startIdleListener(): void {
+    if (environment.idleRefreshSeconds <= 0) return;
+    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach((e) => document.addEventListener(e, this.boundResetIdle, { passive: true }));
+    this.resetIdleTimer();
+  }
+
+  private stopIdleListener(): void {
+    const events = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'];
+    events.forEach((e) => document.removeEventListener(e, this.boundResetIdle));
+    if (this.idleTimerId) {
+      clearTimeout(this.idleTimerId);
+      this.idleTimerId = null;
+    }
+  }
+
+  private resetIdleTimer(): void {
+    if (this.idleTimerId) {
+      clearTimeout(this.idleTimerId);
+    }
+    if (environment.idleRefreshSeconds <= 0) return;
+    this.ngZone.runOutsideAngular(() => {
+      this.idleTimerId = setTimeout(() => {
+        this.ngZone.run(() => this.onIdle());
+      }, this.idleTimeoutMs);
+    });
+  }
+
+  private onIdle(): void {
+    if (!this.selectedCostUnitId || !this.selectedWorkplaceId) {
+      this.resetIdleTimer();
+      return;
+    }
+    if (this.activeTab === 'unconfirmed') {
+      this.loadBookings();
+    } else {
+      this.loadHistory();
+    }
+    this.resetIdleTimer();
   }
 
   logout() {

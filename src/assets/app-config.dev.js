@@ -43,10 +43,11 @@ window.APP_CONFIG = {
   // ---------------------------------------------------------------------------
   // Optional Settings
   // ---------------------------------------------------------------------------
-  title: 'TDM Management [DEV]',   // Browser tab title - [DEV] helps identify
+  title: 'TDM Management [DEV]', // Browser tab title - [DEV] helps identify
   hostingUrl: 'http://localhost:4200',
-  environment: 'development',      // 'development' | 'production'
-  debug: true,                     // true = enable console logs
+  environment: 'development', // 'development' | 'production'
+  debug: true, // true = enable console logs
+  idleRefreshSeconds: 30, // Auto-refresh data after N seconds of inactivity (0 = disabled)
 };
 
 console.log('App Configuration loaded (DEVELOPMENT):', window.APP_CONFIG);

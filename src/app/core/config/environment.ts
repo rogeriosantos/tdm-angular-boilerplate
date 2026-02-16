@@ -17,6 +17,7 @@ declare global {
       authUrl?: string;
       environment?: string;
       debug?: boolean;
+      idleRefreshSeconds?: number;
     };
   }
 }
@@ -44,6 +45,10 @@ export const environment = {
 
   get stockApiUrl(): string {
     return window.APP_CONFIG?.STOCKAPI || '/api/Stock_V1';
+  },
+
+  get idleRefreshSeconds(): number {
+    return window.APP_CONFIG?.idleRefreshSeconds ?? 10;
   },
 
   // ---------------------------------------------------------------------------
