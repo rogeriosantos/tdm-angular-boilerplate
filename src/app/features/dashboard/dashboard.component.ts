@@ -57,6 +57,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   selectedCostUnitId: string | null = null;
   selectedWorkplaceId: string | null = null;
   activeTab: 'unconfirmed' | 'history' = 'unconfirmed';
+  activeTabIndex = 0;
 
   // Saved selections for restoration
   savedCostUnit: CostUnit | null = null;
@@ -138,6 +139,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Restore active tab from session
+    const savedTab = sessionStorage.getItem('dashboard_active_tab');
+    if (savedTab) {
+      this.activeTabIndex = parseInt(savedTab, 10) || 0;
+      this.activeTab = this.activeTabIndex === 0 ? 'unconfirmed' : 'history';
+    }
+
     this.savedCostUnit = this.selectionState.getSavedCostUnit();
     this.savedWorkplace = this.selectionState.getSavedWorkplace();
 
@@ -231,12 +239,19 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.selectedWorkplaceId = event.workplace.id;
     this.selectionState.saveCostUnit(event.costUnit);
     this.selectionState.saveWorkplace(event.workplace);
-    this.loadBookings();
-    this.resetHistory();
+    if (this.activeTab === 'unconfirmed') {
+      this.loadBookings();
+      this.resetHistory();
+    } else {
+      this.loadHistory();
+      this.resetBookings();
+    }
   }
 
   onTabChange(event: MatTabChangeEvent): void {
     this.activeTab = event.index === 0 ? 'unconfirmed' : 'history';
+    this.activeTabIndex = event.index;
+    sessionStorage.setItem('dashboard_active_tab', event.index.toString());
     if (this.selectedCostUnitId && this.selectedWorkplaceId) {
       if (this.activeTab === 'unconfirmed') {
         this.loadBookings();

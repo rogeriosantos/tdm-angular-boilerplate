@@ -142,9 +142,18 @@ export class BookingsTableComponent
 
   confirming = false;
 
+  private paginator!: MatPaginator;
+
   @ViewChild(MatPaginator) set paginatorSetter(paginator: MatPaginator) {
     if (paginator && this.dataSource) {
+      this.paginator = paginator;
       this.dataSource.paginator = paginator;
+
+      // Listen to page changes and save to sessionStorage
+      paginator.page.subscribe(() => {
+        sessionStorage.setItem(`bookings-table-page-${this.mode}`, paginator.pageIndex.toString());
+        sessionStorage.setItem(`bookings-table-pageSize-${this.mode}`, paginator.pageSize.toString());
+      });
     }
   }
 
@@ -227,6 +236,7 @@ export class BookingsTableComponent
       this.buildTableRows();
       this.refreshDataSource();
       this.selection.clear();
+      this.restorePaginatorState();
     }
   }
 
@@ -507,6 +517,28 @@ export class BookingsTableComponent
           th.style.minWidth = width + 'px';
         }
       }
+    });
+  }
+
+  private restorePaginatorState(): void {
+    setTimeout(() => {
+      if (!this.paginator) return;
+      const savedPageSize = sessionStorage.getItem(`bookings-table-pageSize-${this.mode}`);
+      const savedPage = sessionStorage.getItem(`bookings-table-page-${this.mode}`);
+      if (savedPageSize) {
+        this.paginator.pageSize = parseInt(savedPageSize, 10);
+      }
+      if (savedPage) {
+        const pageIndex = parseInt(savedPage, 10);
+        const maxPage = Math.ceil(this.dataSource.data.length / this.paginator.pageSize) - 1;
+        this.paginator.pageIndex = Math.min(pageIndex, Math.max(0, maxPage));
+      }
+      // Trigger a page event so the table re-renders with the restored page
+      this.paginator.page.emit({
+        pageIndex: this.paginator.pageIndex,
+        pageSize: this.paginator.pageSize,
+        length: this.paginator.length,
+      });
     });
   }
 

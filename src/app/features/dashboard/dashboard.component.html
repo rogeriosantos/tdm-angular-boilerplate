@@ -13,7 +13,7 @@
 
   <!-- Tabs: Unconfirmed / History -->
   <main class="dashboard-content">
-    <mat-tab-group (selectedTabChange)="onTabChange($event)">
+    <mat-tab-group [selectedIndex]="activeTabIndex" (selectedTabChange)="onTabChange($event)">
       <!-- Unconfirmed Tab -->
       <mat-tab [label]="t('bookings.tab-unconfirmed')">
         <app-bookings-table
