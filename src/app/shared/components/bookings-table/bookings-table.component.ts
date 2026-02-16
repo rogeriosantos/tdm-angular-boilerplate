@@ -70,6 +70,7 @@ interface ColumnConfig {
   order: string[];
   visibility: Record<string, boolean>;
   widths: Record<string, number>;
+  pageSize?: number;
 }
 
 const STORAGE_KEY_PREFIX = 'bookings-table-column-config';
@@ -149,10 +150,13 @@ export class BookingsTableComponent
       this.paginator = paginator;
       this.dataSource.paginator = paginator;
 
-      // Listen to page changes and save to sessionStorage
+      // Persist page size to column config and page index to sessionStorage
       paginator.page.subscribe(() => {
         sessionStorage.setItem(`bookings-table-page-${this.mode}`, paginator.pageIndex.toString());
-        sessionStorage.setItem(`bookings-table-pageSize-${this.mode}`, paginator.pageSize.toString());
+        if (paginator.pageSize !== this.currentPageSize) {
+          this.currentPageSize = paginator.pageSize;
+          this.saveToStorage();
+        }
       });
     }
   }
@@ -202,6 +206,8 @@ export class BookingsTableComponent
   // Context menu position
   contextMenuX = 0;
   contextMenuY = 0;
+
+  currentPageSize = 10;
 
   private defaultOrder: string[] = [];
   private modeInitialized = false;
@@ -462,6 +468,7 @@ export class BookingsTableComponent
       order: this.columnOrder,
       visibility: { ...this.columnVisibility },
       widths: { ...this.columnWidths },
+      pageSize: this.currentPageSize,
     };
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(config));
@@ -502,6 +509,11 @@ export class BookingsTableComponent
         }
       }
     }
+
+    // Apply page size
+    if (typeof config.pageSize === 'number' && config.pageSize > 0) {
+      this.currentPageSize = config.pageSize;
+    }
   }
 
   private applySavedWidths(): void {
@@ -523,11 +535,8 @@ export class BookingsTableComponent
   private restorePaginatorState(): void {
     setTimeout(() => {
       if (!this.paginator) return;
-      const savedPageSize = sessionStorage.getItem(`bookings-table-pageSize-${this.mode}`);
+      this.paginator.pageSize = this.currentPageSize;
       const savedPage = sessionStorage.getItem(`bookings-table-page-${this.mode}`);
-      if (savedPageSize) {
-        this.paginator.pageSize = parseInt(savedPageSize, 10);
-      }
       if (savedPage) {
         const pageIndex = parseInt(savedPage, 10);
         const maxPage = Math.ceil(this.dataSource.data.length / this.paginator.pageSize) - 1;
@@ -544,6 +553,7 @@ export class BookingsTableComponent
 
   resetColumnConfig(): void {
     this.initDefaults();
+    this.currentPageSize = 10;
     this.updateDisplayedColumns();
     this.saveToStorage();
 
@@ -563,6 +573,7 @@ export class BookingsTableComponent
       order: this.columnOrder,
       visibility: { ...this.columnVisibility },
       widths: { ...this.columnWidths },
+      pageSize: this.currentPageSize,
     };
     const json = JSON.stringify(config, null, 2);
     const blob = new Blob([json], { type: 'application/json' });

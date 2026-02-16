@@ -88,7 +88,8 @@
       "first-page": "First page",
       "last-page": "Last page",
       "next-page": "Next page",
-      "previous-page": "Previous page"
+      "previous-page": "Previous page",
+      "page": "Page"
     },
     "items-count": "{{count}} items"
   },
