@@ -708,6 +708,7 @@ export class BookingsTableComponent
       this.selection.clear();
       if (result && result.succeededRows && result.succeededRows.length > 0) {
         this.removeConfirmedRows(result.succeededRows);
+        this.refresh.emit();
       }
     });
   }
