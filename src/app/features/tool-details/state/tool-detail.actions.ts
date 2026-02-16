@@ -11,7 +11,7 @@ import {
 
 export const LoadToolAssembly = createAction(
   '[Tool Detail] Load Tool Assembly',
-  props<{ toolId: string }>()
+  props<{ toolId: string; toolType?: 'assembly' | 'item' }>()
 );
 
 export const LoadToolAssemblySuccess = createAction(
@@ -28,7 +28,7 @@ export const LoadToolAssemblyFailure = createAction(
 
 export const LoadBillOfMaterials = createAction(
   '[Tool Detail] Load Bill Of Materials',
-  props<{ toolId: string }>()
+  props<{ toolId: string; toolType?: 'assembly' | 'item' }>()
 );
 
 export const LoadBillOfMaterialsSuccess = createAction(
@@ -50,7 +50,7 @@ export const LoadSingleThumbnailSuccess = createAction(
 
 export const LoadGraphic2D = createAction(
   '[Tool Detail] Load Graphic 2D',
-  props<{ toolId: string }>()
+  props<{ toolId: string; toolType?: 'assembly' | 'item' }>()
 );
 
 export const LoadGraphic2DSuccess = createAction(
@@ -67,7 +67,7 @@ export const LoadGraphic2DFailure = createAction(
 
 export const LoadGraphicImage = createAction(
   '[Tool Detail] Load Graphic Image',
-  props<{ toolId: string }>()
+  props<{ toolId: string; toolType?: 'assembly' | 'item' }>()
 );
 
 export const LoadGraphicImageSuccess = createAction(

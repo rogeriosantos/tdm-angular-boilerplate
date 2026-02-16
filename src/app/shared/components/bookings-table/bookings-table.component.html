@@ -221,7 +221,7 @@
           <td mat-cell *matCellDef="let row">
             @if (row.rowType !== 'assembly') {
               <div class="cell-content">
-                <a class="primary-text article-id tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
+                <a class="primary-text article-id tool-link" [routerLink]="['/tool-details', row.data.id]" [queryParams]="{ type: 'item' }" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
                 <span class="secondary-text">{{ row.data.name }}</span>
                 @if (row.data.description) {
                   <span class="tertiary-text">{{ row.data.description }}</span>
