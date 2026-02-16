@@ -179,14 +179,12 @@ export class DashboardComponent implements OnInit {
 
   onTabChange(event: MatTabChangeEvent): void {
     this.activeTab = event.index === 0 ? 'unconfirmed' : 'history';
-    if (
-      this.activeTab === 'history' &&
-      this.historyToolItems.length === 0 &&
-      this.historyToolAssemblies.length === 0 &&
-      this.selectedCostUnitId &&
-      this.selectedWorkplaceId
-    ) {
-      this.loadHistory();
+    if (this.selectedCostUnitId && this.selectedWorkplaceId) {
+      if (this.activeTab === 'unconfirmed') {
+        this.loadBookings();
+      } else {
+        this.loadHistory();
+      }
     }
   }
 
