@@ -44,18 +44,29 @@ export class AuthService {
 
   private tokenKey = 'auth_token';
   private usernameKey = 'auth_username';
+  private tokenExpiresAtKey = 'auth_token_expires_at';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
-  constructor(private http: HttpClient, private store: Store) {
+  private expirationTimerId: ReturnType<typeof setTimeout> | null = null;
+
+  constructor(
+    private http: HttpClient,
+    private store: Store
+  ) {
     // Check if user is already logged in
     const token = this.getToken();
     const username = this.getUsername();
     if (token) {
-      this.currentUserSubject.next({
-        token,
-        username: username || 'Unknown',
-      });
+      if (this.isTokenExpired()) {
+        this.clearLocalAuth();
+      } else {
+        this.currentUserSubject.next({
+          token,
+          username: username || 'Unknown',
+        });
+        this.scheduleExpirationRedirect();
+      }
     }
   }
 
@@ -110,22 +121,20 @@ export class AuthService {
       tap((response) => {
         if (response.success && response.access_token) {
           this.setToken(response.access_token);
-          this.setUsername(credentials.username); // Store the username
+          this.setUsername(credentials.username);
+          if (response.expires_in) {
+            this.setTokenExpiresAt(Date.now() + response.expires_in * 1000);
+          }
           this.currentUserSubject.next({
             token: response.access_token,
             username: credentials.username,
           });
-          console.log('✅ Authentication successful - token and username stored');
-          console.log('✅ Stored username:', credentials.username);
-          console.log('✅ Mapped login response:', {
-            ...response,
-            access_token: response.access_token
-              ? `${response.access_token.substring(0, 20)}...`
-              : 'NOT_PROVIDED',
-          });
+          console.log('Authentication successful - token and username stored');
+          console.log('Token expires in:', response.expires_in, 'seconds');
+
+          this.scheduleExpirationRedirect();
 
           // Trigger language settings fetch from user profile
-          console.log('🌍 Triggering language fetch from user profile...');
           this.store.dispatch(I18nActions.fetchServerLanguageSettings());
         }
       }),
@@ -156,8 +165,10 @@ export class AuthService {
   }
 
   private clearLocalAuth(): void {
+    this.clearExpirationTimer();
     localStorage.removeItem(this.tokenKey);
     localStorage.removeItem(this.usernameKey);
+    localStorage.removeItem(this.tokenExpiresAtKey);
     this.currentUserSubject.next(null);
   }
 
@@ -177,7 +188,56 @@ export class AuthService {
     localStorage.setItem(this.usernameKey, username);
   }
 
+  private setTokenExpiresAt(expiresAtMs: number): void {
+    localStorage.setItem(this.tokenExpiresAtKey, expiresAtMs.toString());
+  }
+
+  private getTokenExpiresAt(): number | null {
+    const val = localStorage.getItem(this.tokenExpiresAtKey);
+    return val ? parseInt(val, 10) : null;
+  }
+
+  private isTokenExpired(): boolean {
+    const expiresAt = this.getTokenExpiresAt();
+    if (!expiresAt) return false;
+    return Date.now() >= expiresAt;
+  }
+
+  private scheduleExpirationRedirect(): void {
+    this.clearExpirationTimer();
+    const expiresAt = this.getTokenExpiresAt();
+    if (!expiresAt) return;
+
+    const msUntilExpiry = expiresAt - Date.now();
+    if (msUntilExpiry <= 0) {
+      this.onTokenExpired();
+      return;
+    }
+
+    console.log('Token expiration scheduled in', Math.round(msUntilExpiry / 1000), 'seconds');
+    this.expirationTimerId = setTimeout(() => this.onTokenExpired(), msUntilExpiry);
+  }
+
+  private clearExpirationTimer(): void {
+    if (this.expirationTimerId) {
+      clearTimeout(this.expirationTimerId);
+      this.expirationTimerId = null;
+    }
+  }
+
+  private onTokenExpired(): void {
+    console.log('Token expired - redirecting to login');
+    this.clearLocalAuth();
+    // Use window.location to ensure full navigation to login
+    const basePath = window.APP_CONFIG?.basePath || '/';
+    window.location.href = `${basePath.replace(/\/+$/, '')}/login`;
+  }
+
   isAuthenticated(): boolean {
+    if (this.isTokenExpired()) {
+      this.clearLocalAuth();
+      return false;
+    }
     return !!this.getToken();
   }
 
