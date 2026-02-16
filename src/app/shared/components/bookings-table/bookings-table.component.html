@@ -418,6 +418,7 @@
               (click)="$event.stopPropagation()"
               (change)="$event ? selection.toggle(row) : null"
               [checked]="selection.isSelected(row)"
+              [disabled]="isRowDisabled(row)"
             >
             </mat-checkbox>
           </td>
@@ -478,8 +479,9 @@
         <tr
           mat-row
           *matRowDef="let row; columns: displayedColumns"
-          (click)="selection.toggle(row)"
+          (click)="!isRowDisabled(row) && selection.toggle(row)"
           [class.selected-row]="selection.isSelected(row)"
+          [class.disabled-row]="isRowDisabled(row)"
           [class.assembly-row]="row.rowType === 'assembly'"
           [class.child-row]="row.rowType === 'child'"
           [class.first-child-row]="row.isFirstChild"

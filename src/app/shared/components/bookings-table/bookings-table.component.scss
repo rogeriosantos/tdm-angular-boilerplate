@@ -397,6 +397,12 @@ tr.group-odd {
   background-color: #f7f9fc !important;
 }
 
+// Disabled rows (type -2 / -4)
+.disabled-row {
+  opacity: 0.5;
+  cursor: default;
+}
+
 // Paginator styling
 ::ng-deep .mat-mdc-paginator {
   border-top: 1px solid #e0e0e0;

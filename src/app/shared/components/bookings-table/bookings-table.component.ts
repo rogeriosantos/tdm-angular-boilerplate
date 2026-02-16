@@ -86,6 +86,7 @@ const UNCONFIRMED_COLUMNS: ColumnDef[] = [
   { key: 'shelf', labelKey: 'columns.shelf' },
   { key: 'width', labelKey: 'columns.width' },
   { key: 'depth', labelKey: 'columns.depth' },
+  { key: 'bookingTime', labelKey: 'columns.booking-time' },
   { key: 'select', labelKey: 'columns.select' },
   { key: 'commissionId', labelKey: 'columns.commission-id' },
 ];
@@ -801,17 +802,22 @@ export class BookingsTableComponent
     return row.data.countNew + row.data.countUsed + row.data.countRepair;
   }
 
+  isRowDisabled(row: BookingTableRow): boolean {
+    const type = row.data.type;
+    return type === -2 || type === -4;
+  }
+
   isAllSelected(): boolean {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return numSelected === numRows;
+    const selectableRows = this.dataSource.data.filter((r) => !this.isRowDisabled(r));
+    return selectableRows.length > 0 && selectableRows.every((r) => this.selection.isSelected(r));
   }
 
   toggleAllRows(): void {
+    const selectableRows = this.dataSource.data.filter((r) => !this.isRowDisabled(r));
     if (this.isAllSelected()) {
       this.selection.clear();
     } else {
-      this.selection.select(...this.dataSource.data);
+      this.selection.select(...selectableRows);
     }
   }
 
@@ -901,14 +907,14 @@ export class BookingsTableComponent
   }
 
   isAssemblyAllSelected(cancelNrBase: number): boolean {
-    const children = this.getAssemblyChildren(cancelNrBase);
+    const children = this.getAssemblyChildren(cancelNrBase).filter((c) => !this.isRowDisabled(c));
     return (
       children.length > 0 && children.every((c) => this.selection.isSelected(c))
     );
   }
 
   isAssemblyIndeterminate(cancelNrBase: number): boolean {
-    const children = this.getAssemblyChildren(cancelNrBase);
+    const children = this.getAssemblyChildren(cancelNrBase).filter((c) => !this.isRowDisabled(c));
     const selectedCount = children.filter((c) =>
       this.selection.isSelected(c)
     ).length;
@@ -917,7 +923,7 @@ export class BookingsTableComponent
 
   toggleAssemblySelection(row: BookingTableRow): void {
     const cancelNrBase = row.parentCancelNrBase!;
-    const children = this.getAssemblyChildren(cancelNrBase);
+    const children = this.getAssemblyChildren(cancelNrBase).filter((c) => !this.isRowDisabled(c));
     if (this.isAssemblyAllSelected(cancelNrBase)) {
       this.selection.deselect(...children);
     } else {
