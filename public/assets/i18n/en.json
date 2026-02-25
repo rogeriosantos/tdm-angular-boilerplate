@@ -41,6 +41,8 @@
   },
   "bookings": {
     "filter": "Filter",
+    "user-filter": "User",
+    "user-filter-placeholder": "Filter by user...",
     "empty": "No bookings found",
     "select-cost-unit-and-workplace": "Please select a cost unit and workplace to see the bookings",
     "select-workplace": "Please select a workplace to see the bookings",

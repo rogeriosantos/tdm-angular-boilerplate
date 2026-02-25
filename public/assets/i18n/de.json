@@ -41,6 +41,8 @@
   },
   "bookings": {
     "filter": "Filter",
+    "user-filter": "Benutzer",
+    "user-filter-placeholder": "Nach Benutzer filtern...",
     "empty": "Keine Buchungen gefunden",
     "select-cost-unit-and-workplace": "Bitte wählen Sie eine Kostenstelle und einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
     "select-workplace": "Bitte wählen Sie einen Arbeitsplatz aus, um die Buchungen anzuzeigen",

@@ -42,6 +42,26 @@
         }
       </mat-form-field>
 
+      <mat-form-field class="user-filter-field" appearance="outline">
+        <mat-label>{{ t('user-filter') }}</mat-label>
+        <input
+          matInput
+          [formControl]="userFilterCtrl"
+          [matAutocomplete]="userAuto"
+          [placeholder]="t('user-filter-placeholder')"
+        />
+        @if (selectedUserId) {
+          <button matSuffix mat-icon-button (click)="clearUserFilter(); $event.stopPropagation()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+        <mat-autocomplete #userAuto="matAutocomplete" (optionSelected)="selectUser($event.option.value)">
+          @for (userId of filteredUserIds; track userId) {
+            <mat-option [value]="userId">{{ userId }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+
       @if (dateRanges.length > 0) {
         <mat-form-field class="date-range-field" appearance="outline">
           <mat-label>{{ t('history.date-range') }}</mat-label>

@@ -11,6 +11,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -23,6 +24,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
@@ -107,6 +109,7 @@ const HISTORY_COLUMNS: ColumnDef[] = [
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatTableModule,
     MatSortModule,
     MatPaginatorModule,
@@ -119,6 +122,7 @@ const HISTORY_COLUMNS: ColumnDef[] = [
     MatMenuModule,
     MatTooltipModule,
     MatSelectModule,
+    MatAutocompleteModule,
     TranslocoDirective,
     RouterLink,
   ],
@@ -190,6 +194,12 @@ export class BookingsTableComponent
   selection = new SelectionModel<BookingTableRow>(true, []);
   filterValue = '';
 
+  // User ID filter
+  userFilterCtrl = new FormControl('');
+  userIds: string[] = [];
+  filteredUserIds: string[] = [];
+  selectedUserId = '';
+
   // All built rows (parents/standalone + children)
   private allRows: BookingTableRow[] = [];
   private childrenByAssembly = new Map<number, BookingTableRow[]>();
@@ -217,7 +227,12 @@ export class BookingsTableComponent
     return `${STORAGE_KEY_PREFIX}-${this.mode}`;
   }
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog) {
+    this.userFilterCtrl.valueChanges.subscribe((value) => {
+      const search = (value || '').toUpperCase();
+      this.filteredUserIds = this.userIds.filter((id) => id.toUpperCase().includes(search));
+    });
+  }
 
   ngOnDestroy(): void {}
 
@@ -240,6 +255,7 @@ export class BookingsTableComponent
       this.modeInitialized = true;
     }
     if (changes['toolItems'] || changes['toolAssemblies']) {
+      this.extractUserIds();
       this.buildTableRows();
       this.refreshDataSource();
       this.selection.clear();
@@ -427,6 +443,14 @@ export class BookingsTableComponent
 
   private setupFilterPredicate(): void {
     this.dataSource.filterPredicate = (row: BookingTableRow, filter: string): boolean => {
+      // User ID filter — applied on top of text filter
+      if (this.selectedUserId && row.data.userId !== this.selectedUserId) {
+        return false;
+      }
+
+      // Sentinel value (\u200B) means only user filter is active, no text search
+      if (!filter || filter === '\u200B') return true;
+
       const data = row.data;
       const searchStr = [
         data.id,
@@ -442,6 +466,47 @@ export class BookingsTableComponent
         .toLowerCase();
       return searchStr.includes(filter);
     };
+  }
+
+  private extractUserIds(): void {
+    const allRows = [...this.toolItems, ...this.toolAssemblies];
+    const uniqueIds = new Set<string>();
+    for (const row of allRows) {
+      if (row.userId) {
+        uniqueIds.add(row.userId);
+      }
+    }
+    this.userIds = Array.from(uniqueIds).sort();
+    this.filteredUserIds = [...this.userIds];
+
+    // Clear selection if the user no longer exists in the data
+    if (this.selectedUserId && !uniqueIds.has(this.selectedUserId)) {
+      this.selectedUserId = '';
+      this.userFilterCtrl.setValue('', { emitEvent: false });
+    }
+  }
+
+  selectUser(userId: string): void {
+    this.selectedUserId = userId;
+    this.userFilterCtrl.setValue(userId, { emitEvent: false });
+    this.applyUserFilter();
+  }
+
+  clearUserFilter(): void {
+    this.selectedUserId = '';
+    this.userFilterCtrl.setValue('', { emitEvent: false });
+    this.filteredUserIds = [...this.userIds];
+    this.applyUserFilter();
+  }
+
+  private applyUserFilter(): void {
+    // When a user filter is active, we need a non-empty filter string
+    // to trigger the filterPredicate. Use a zero-width space as sentinel.
+    const textFilter = this.filterValue.trim().toLowerCase();
+    this.dataSource.filter = this.selectedUserId && !textFilter ? '\u200B' : textFilter;
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   // --- Persistence (localStorage) ---
@@ -717,9 +782,9 @@ export class BookingsTableComponent
   // --- Filter (client-side) ---
 
   applyFilter(event: Event): void {
-    const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
     this.filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = value;
+    const textFilter = this.filterValue.trim().toLowerCase();
+    this.dataSource.filter = this.selectedUserId && !textFilter ? '\u200B' : textFilter;
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
@@ -727,7 +792,7 @@ export class BookingsTableComponent
 
   resetFilter(): void {
     this.filterValue = '';
-    this.dataSource.filter = '';
+    this.dataSource.filter = this.selectedUserId ? '\u200B' : '';
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
