@@ -851,13 +851,13 @@ export class BookingsTableComponent
     const data = row.data;
     const type = data.type;
 
-    if (type === -3) {
-      const isOutgoing = data.costunitFrom === this.selectedCostUnit;
+    if (type === -3 || type === 3) {
+      const isOutbound = type < 0;
       const isAssembly = data.comporTool === 2;
       if (isAssembly) {
-        return isOutgoing ? 'assets/icons/-3-outbound.png' : 'assets/icons/-3-inbound.png';
+        return isOutbound ? 'assets/icons/-3-outbound-toolassembly.png' : 'assets/icons/-3-inbound-toolassembly.png';
       }
-      return isOutgoing ? 'assets/icons/-3-out.png' : 'assets/icons/-3-in.png';
+      return isOutbound ? 'assets/icons/-3-outbound-component.png' : 'assets/icons/-3-inbound-component.png';
     }
 
     return `assets/icons/${type}.png`;
