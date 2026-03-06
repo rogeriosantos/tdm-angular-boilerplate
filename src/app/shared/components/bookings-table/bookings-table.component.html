@@ -79,6 +79,7 @@
         <mat-icon>settings</mat-icon>
       </button>
       <mat-menu #settingsMenu="matMenu">
+        <!-- TODO: re-enable export/import when needed
         <button mat-menu-item (click)="exportColumnConfig()">
           <mat-icon>file_download</mat-icon>
           <span>{{ t('config.export') }}</span>
@@ -87,6 +88,7 @@
           <mat-icon>file_upload</mat-icon>
           <span>{{ t('config.import') }}</span>
         </button>
+        -->
         <button mat-menu-item (click)="resetColumnConfig()">
           <mat-icon>settings_backup_restore</mat-icon>
           <span>{{ t('config.reset') }}</span>

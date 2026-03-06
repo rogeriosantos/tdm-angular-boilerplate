@@ -40,6 +40,8 @@
   top: 49px;
   z-index: 15;
   background: white;
+  // Extend background below to cover any gap before sticky table headers
+  box-shadow: 0 4px 0 0 white;
 
   // Compact form fields in filter bar
   ::ng-deep {
@@ -429,6 +431,12 @@ tr.first-child-row {
 tr.last-child-row {
   td.mat-mdc-cell {
     border-bottom: 3px solid #607d8b;
+  }
+
+  // Override the border removal on merged assembly cells
+  td.assembly-group-cell,
+  td.assembly-group-cell-cont {
+    border-bottom: 3px solid #607d8b !important;
   }
 }
 

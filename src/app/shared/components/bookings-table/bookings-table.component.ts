@@ -452,12 +452,23 @@ export class BookingsTableComponent
       if (!filter || filter === '\u200B') return true;
 
       const data = row.data;
+      const quantity = data.countNew + data.countUsed + data.countRepair;
       const searchStr = [
         data.id,
         data.name,
         data.description,
         data.costunitTo,
         data.commissionId,
+        data.stockplaceId,
+        data.hall,
+        data.shelf,
+        data.width,
+        data.depth,
+        data.userId,
+        data.bookDate,
+        data.bookTime,
+        String(data.type),
+        String(quantity),
         row.assemblyId,
         row.assemblyName,
       ]
