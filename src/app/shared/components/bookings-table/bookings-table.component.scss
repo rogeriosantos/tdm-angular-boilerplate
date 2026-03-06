@@ -35,11 +35,38 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 0;
+  padding: 4px 0;
   position: sticky;
   top: 49px;
   z-index: 15;
   background: white;
+
+  // Compact form fields in filter bar
+  ::ng-deep {
+    .mat-mdc-text-field-wrapper {
+      padding-top: 0;
+      padding-bottom: 0;
+    }
+
+    .mat-mdc-form-field-infix {
+      min-height: 36px;
+      padding-top: 6px;
+      padding-bottom: 6px;
+    }
+
+    // Keep suffix icon buttons compact so they don't expand the field
+    .mat-mdc-form-field-icon-suffix .mat-mdc-icon-button {
+      width: 28px;
+      height: 28px;
+      padding: 2px;
+
+      .mat-icon {
+        font-size: 18px;
+        width: 18px;
+        height: 18px;
+      }
+    }
+  }
 }
 
 .refresh-button {

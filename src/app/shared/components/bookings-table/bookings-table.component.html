@@ -43,12 +43,11 @@
       </mat-form-field>
 
       <mat-form-field class="user-filter-field" appearance="outline">
-        <mat-label>{{ t('user-filter') }}</mat-label>
         <input
           matInput
           [formControl]="userFilterCtrl"
           [matAutocomplete]="userAuto"
-          [placeholder]="t('user-filter-placeholder')"
+          [placeholder]="t('user-filter')"
         />
         @if (selectedUserId) {
           <button matSuffix mat-icon-button (click)="clearUserFilter(); $event.stopPropagation()">
@@ -64,8 +63,7 @@
 
       @if (dateRanges.length > 0) {
         <mat-form-field class="date-range-field" appearance="outline">
-          <mat-label>{{ t('history.date-range') }}</mat-label>
-          <mat-select [value]="selectedDateRange" (selectionChange)="dateRangeChange.emit($event.value)">
+          <mat-select [value]="selectedDateRange" (selectionChange)="dateRangeChange.emit($event.value)" [placeholder]="t('history.date-range')">
             @for (range of dateRanges; track range.key) {
               <mat-option [value]="range.key">
                 {{ t(range.labelKey) }}

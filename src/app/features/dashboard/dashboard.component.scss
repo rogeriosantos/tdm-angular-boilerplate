@@ -37,10 +37,17 @@ main {
     background: white;
   }
 
-  // Remove overflow from the entire mat-tab chain so sticky works inside
-  .dashboard-content .mat-mdc-tab-body-wrapper,
-  .dashboard-content .mat-mdc-tab-body,
-  .dashboard-content .mat-mdc-tab-body-content {
+  // Remove overflow only on the ACTIVE tab so sticky works inside
+  // (inactive tabs must keep overflow:hidden or they intercept events)
+  .dashboard-content .mat-mdc-tab-body-wrapper {
     overflow: visible !important;
+  }
+
+  .dashboard-content .mat-mdc-tab-body-active {
+    overflow: visible !important;
+
+    .mat-mdc-tab-body-content {
+      overflow: visible !important;
+    }
   }
 }
