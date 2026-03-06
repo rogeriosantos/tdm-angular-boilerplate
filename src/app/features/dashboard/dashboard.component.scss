@@ -27,3 +27,20 @@ main {
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
+
+// Sticky tab header + allow sticky to work inside tab body
+::ng-deep {
+  .dashboard-content .mat-mdc-tab-header {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: white;
+  }
+
+  // Remove overflow from the entire mat-tab chain so sticky works inside
+  .dashboard-content .mat-mdc-tab-body-wrapper,
+  .dashboard-content .mat-mdc-tab-body,
+  .dashboard-content .mat-mdc-tab-body-content {
+    overflow: visible !important;
+  }
+}
