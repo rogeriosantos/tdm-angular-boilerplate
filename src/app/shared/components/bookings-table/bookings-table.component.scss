@@ -54,6 +54,18 @@
   }
 }
 
+.user-filter-field {
+  width: 180px;
+
+  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+    display: none;
+  }
+
+  ::ng-deep .mdc-notched-outline__notch {
+    border-right: none;
+  }
+}
+
 .filter-bar-spacer {
   flex: 1;
 }
@@ -166,6 +178,11 @@
   padding: 4px 0;
 }
 
+.cell-content-assembly {
+  min-height: 36px;
+  justify-content: center;
+}
+
 .primary-text {
   font-weight: 500;
   font-size: 0.813rem;
@@ -185,6 +202,11 @@
   &:hover {
     text-decoration: underline;
   }
+}
+
+.standalone-label {
+  color: #9e9e9e;
+  font-style: italic;
 }
 
 .secondary-text {
@@ -397,6 +419,12 @@ tr.group-odd {
 
 .merged-group-odd {
   background-color: #f7f9fc !important;
+}
+
+// Disabled rows (type -2 / -4)
+.disabled-row {
+  opacity: 0.5;
+  cursor: default;
 }
 
 // Paginator styling

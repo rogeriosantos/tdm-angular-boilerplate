@@ -14,6 +14,7 @@ export class CustomPaginatorIntl implements MatPaginatorIntl {
   lastPageLabel = 'Last page';
 
   private ofLabel = 'of';
+  private pageLabel = 'Page';
 
   constructor(private transloco: TranslocoService) {
     this.transloco.langChanges$.subscribe(() => {
@@ -30,17 +31,19 @@ export class CustomPaginatorIntl implements MatPaginatorIntl {
     this.firstPageLabel = this.transloco.translate('bookings.paginator.first-page');
     this.lastPageLabel = this.transloco.translate('bookings.paginator.last-page');
     this.ofLabel = this.transloco.translate('bookings.paginator.of');
+    this.pageLabel = this.transloco.translate('bookings.paginator.page');
   }
 
   getRangeLabel = (page: number, pageSize: number, length: number): string => {
     if (length === 0 || pageSize === 0) {
-      return `0 ${this.ofLabel} ${length}`;
+      return `${this.pageLabel} 0 ${this.ofLabel} 0`;
     }
     length = Math.max(length, 0);
+    const totalPages = Math.ceil(length / pageSize);
     const startIndex = page * pageSize;
     const endIndex = startIndex < length
       ? Math.min(startIndex + pageSize, length)
       : startIndex + pageSize;
-    return `${startIndex + 1} – ${endIndex} ${this.ofLabel} ${length}`;
+    return `${startIndex + 1} – ${endIndex} ${this.ofLabel} ${length}  |  ${this.pageLabel} ${page + 1} ${this.ofLabel} ${totalPages}`;
   };
 }

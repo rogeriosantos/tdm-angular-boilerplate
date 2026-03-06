@@ -11,6 +11,7 @@ import {
   AfterViewInit,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
 import { MatSortModule, MatSort } from '@angular/material/sort';
 import { MatPaginatorModule, MatPaginator } from '@angular/material/paginator';
@@ -23,6 +24,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatMenuModule, MatMenuTrigger } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSelectModule } from '@angular/material/select';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { MatDialog } from '@angular/material/dialog';
 import { RouterLink } from '@angular/router';
@@ -70,6 +72,7 @@ interface ColumnConfig {
   order: string[];
   visibility: Record<string, boolean>;
   widths: Record<string, number>;
+  pageSize?: number;
 }
 
 const STORAGE_KEY_PREFIX = 'bookings-table-column-config';
@@ -85,6 +88,7 @@ const UNCONFIRMED_COLUMNS: ColumnDef[] = [
   { key: 'shelf', labelKey: 'columns.shelf' },
   { key: 'width', labelKey: 'columns.width' },
   { key: 'depth', labelKey: 'columns.depth' },
+  { key: 'bookingTime', labelKey: 'columns.booking-time' },
   { key: 'select', labelKey: 'columns.select' },
   { key: 'commissionId', labelKey: 'columns.commission-id' },
 ];
@@ -105,6 +109,7 @@ const HISTORY_COLUMNS: ColumnDef[] = [
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     MatTableModule,
     MatSortModule,
     MatPaginatorModule,
@@ -117,6 +122,7 @@ const HISTORY_COLUMNS: ColumnDef[] = [
     MatMenuModule,
     MatTooltipModule,
     MatSelectModule,
+    MatAutocompleteModule,
     TranslocoDirective,
     RouterLink,
   ],
@@ -142,9 +148,21 @@ export class BookingsTableComponent
 
   confirming = false;
 
+  private paginator!: MatPaginator;
+
   @ViewChild(MatPaginator) set paginatorSetter(paginator: MatPaginator) {
     if (paginator && this.dataSource) {
+      this.paginator = paginator;
       this.dataSource.paginator = paginator;
+
+      // Persist page size to column config and page index to sessionStorage
+      paginator.page.subscribe(() => {
+        sessionStorage.setItem(`bookings-table-page-${this.mode}`, paginator.pageIndex.toString());
+        if (paginator.pageSize !== this.currentPageSize) {
+          this.currentPageSize = paginator.pageSize;
+          this.saveToStorage();
+        }
+      });
     }
   }
 
@@ -176,6 +194,12 @@ export class BookingsTableComponent
   selection = new SelectionModel<BookingTableRow>(true, []);
   filterValue = '';
 
+  // User ID filter
+  userFilterCtrl = new FormControl('');
+  userIds: string[] = [];
+  filteredUserIds: string[] = [];
+  selectedUserId = '';
+
   // All built rows (parents/standalone + children)
   private allRows: BookingTableRow[] = [];
   private childrenByAssembly = new Map<number, BookingTableRow[]>();
@@ -194,6 +218,8 @@ export class BookingsTableComponent
   contextMenuX = 0;
   contextMenuY = 0;
 
+  currentPageSize = 10;
+
   private defaultOrder: string[] = [];
   private modeInitialized = false;
 
@@ -201,7 +227,12 @@ export class BookingsTableComponent
     return `${STORAGE_KEY_PREFIX}-${this.mode}`;
   }
 
-  constructor(private dialog: MatDialog) {}
+  constructor(private dialog: MatDialog) {
+    this.userFilterCtrl.valueChanges.subscribe((value) => {
+      const search = (value || '').toUpperCase();
+      this.filteredUserIds = this.userIds.filter((id) => id.toUpperCase().includes(search));
+    });
+  }
 
   ngOnDestroy(): void {}
 
@@ -224,9 +255,11 @@ export class BookingsTableComponent
       this.modeInitialized = true;
     }
     if (changes['toolItems'] || changes['toolAssemblies']) {
+      this.extractUserIds();
       this.buildTableRows();
       this.refreshDataSource();
       this.selection.clear();
+      this.restorePaginatorState();
     }
   }
 
@@ -410,6 +443,14 @@ export class BookingsTableComponent
 
   private setupFilterPredicate(): void {
     this.dataSource.filterPredicate = (row: BookingTableRow, filter: string): boolean => {
+      // User ID filter — applied on top of text filter
+      if (this.selectedUserId && row.data.userId !== this.selectedUserId) {
+        return false;
+      }
+
+      // Sentinel value (\u200B) means only user filter is active, no text search
+      if (!filter || filter === '\u200B') return true;
+
       const data = row.data;
       const searchStr = [
         data.id,
@@ -425,6 +466,47 @@ export class BookingsTableComponent
         .toLowerCase();
       return searchStr.includes(filter);
     };
+  }
+
+  private extractUserIds(): void {
+    const allRows = [...this.toolItems, ...this.toolAssemblies];
+    const uniqueIds = new Set<string>();
+    for (const row of allRows) {
+      if (row.userId) {
+        uniqueIds.add(row.userId);
+      }
+    }
+    this.userIds = Array.from(uniqueIds).sort();
+    this.filteredUserIds = [...this.userIds];
+
+    // Clear selection if the user no longer exists in the data
+    if (this.selectedUserId && !uniqueIds.has(this.selectedUserId)) {
+      this.selectedUserId = '';
+      this.userFilterCtrl.setValue('', { emitEvent: false });
+    }
+  }
+
+  selectUser(userId: string): void {
+    this.selectedUserId = userId;
+    this.userFilterCtrl.setValue(userId, { emitEvent: false });
+    this.applyUserFilter();
+  }
+
+  clearUserFilter(): void {
+    this.selectedUserId = '';
+    this.userFilterCtrl.setValue('', { emitEvent: false });
+    this.filteredUserIds = [...this.userIds];
+    this.applyUserFilter();
+  }
+
+  private applyUserFilter(): void {
+    // When a user filter is active, we need a non-empty filter string
+    // to trigger the filterPredicate. Use a zero-width space as sentinel.
+    const textFilter = this.filterValue.trim().toLowerCase();
+    this.dataSource.filter = this.selectedUserId && !textFilter ? '\u200B' : textFilter;
+    if (this.dataSource.paginator) {
+      this.dataSource.paginator.firstPage();
+    }
   }
 
   // --- Persistence (localStorage) ---
@@ -452,6 +534,7 @@ export class BookingsTableComponent
       order: this.columnOrder,
       visibility: { ...this.columnVisibility },
       widths: { ...this.columnWidths },
+      pageSize: this.currentPageSize,
     };
     try {
       localStorage.setItem(this.storageKey, JSON.stringify(config));
@@ -492,6 +575,11 @@ export class BookingsTableComponent
         }
       }
     }
+
+    // Apply page size
+    if (typeof config.pageSize === 'number' && config.pageSize > 0) {
+      this.currentPageSize = config.pageSize;
+    }
   }
 
   private applySavedWidths(): void {
@@ -510,8 +598,28 @@ export class BookingsTableComponent
     });
   }
 
+  private restorePaginatorState(): void {
+    setTimeout(() => {
+      if (!this.paginator) return;
+      this.paginator.pageSize = this.currentPageSize;
+      const savedPage = sessionStorage.getItem(`bookings-table-page-${this.mode}`);
+      if (savedPage) {
+        const pageIndex = parseInt(savedPage, 10);
+        const maxPage = Math.ceil(this.dataSource.data.length / this.paginator.pageSize) - 1;
+        this.paginator.pageIndex = Math.min(pageIndex, Math.max(0, maxPage));
+      }
+      // Trigger a page event so the table re-renders with the restored page
+      this.paginator.page.emit({
+        pageIndex: this.paginator.pageIndex,
+        pageSize: this.paginator.pageSize,
+        length: this.paginator.length,
+      });
+    });
+  }
+
   resetColumnConfig(): void {
     this.initDefaults();
+    this.currentPageSize = 10;
     this.updateDisplayedColumns();
     this.saveToStorage();
 
@@ -531,6 +639,7 @@ export class BookingsTableComponent
       order: this.columnOrder,
       visibility: { ...this.columnVisibility },
       widths: { ...this.columnWidths },
+      pageSize: this.currentPageSize,
     };
     const json = JSON.stringify(config, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
@@ -673,9 +782,9 @@ export class BookingsTableComponent
   // --- Filter (client-side) ---
 
   applyFilter(event: Event): void {
-    const value = (event.target as HTMLInputElement).value.trim().toLowerCase();
     this.filterValue = (event.target as HTMLInputElement).value;
-    this.dataSource.filter = value;
+    const textFilter = this.filterValue.trim().toLowerCase();
+    this.dataSource.filter = this.selectedUserId && !textFilter ? '\u200B' : textFilter;
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
@@ -683,7 +792,7 @@ export class BookingsTableComponent
 
   resetFilter(): void {
     this.filterValue = '';
-    this.dataSource.filter = '';
+    this.dataSource.filter = this.selectedUserId ? '\u200B' : '';
     if (this.dataSource.paginator) {
       this.dataSource.paginator.firstPage();
     }
@@ -706,8 +815,9 @@ export class BookingsTableComponent
 
     dialogRef.afterClosed().subscribe((result?: ConfirmDialogResult) => {
       this.selection.clear();
-      if (result && result.completed > 0) {
-        this.confirmBookings.emit([]);
+      if (result && result.succeededRows && result.succeededRows.length > 0) {
+        this.removeConfirmedRows(result.succeededRows);
+        this.refresh.emit();
       }
     });
   }
@@ -716,6 +826,14 @@ export class BookingsTableComponent
   confirmComplete(): void {
     this.confirming = false;
     this.selection.clear();
+  }
+
+  /** Remove confirmed rows from the table locally (no API refresh). */
+  private removeConfirmedRows(succeededRows: BookingRow[]): void {
+    const confirmedCancelNrs = new Set(succeededRows.map((r) => r.cancelNr));
+    this.dataSource.data = this.dataSource.data.filter(
+      (tableRow) => !confirmedCancelNrs.has(tableRow.data.cancelNr)
+    );
   }
 
   formatBookingTime(row: BookingTableRow): string {
@@ -733,13 +851,13 @@ export class BookingsTableComponent
     const data = row.data;
     const type = data.type;
 
-    if (type === -3) {
-      const isOutgoing = data.costunitFrom === this.selectedCostUnit;
+    if (type === -3 || type === 3) {
+      const isOutbound = type < 0;
       const isAssembly = data.comporTool === 2;
       if (isAssembly) {
-        return isOutgoing ? 'assets/icons/-3-outbound.png' : 'assets/icons/-3-inbound.png';
+        return isOutbound ? 'assets/icons/-3-outbound-toolassembly.png' : 'assets/icons/-3-inbound-toolassembly.png';
       }
-      return isOutgoing ? 'assets/icons/-3-out.png' : 'assets/icons/-3-in.png';
+      return isOutbound ? 'assets/icons/-3-outbound-component.png' : 'assets/icons/-3-inbound-component.png';
     }
 
     return `assets/icons/${type}.png`;
@@ -749,17 +867,22 @@ export class BookingsTableComponent
     return row.data.countNew + row.data.countUsed + row.data.countRepair;
   }
 
+  isRowDisabled(row: BookingTableRow): boolean {
+    const type = row.data.type;
+    return type === -2 || type === -4;
+  }
+
   isAllSelected(): boolean {
-    const numSelected = this.selection.selected.length;
-    const numRows = this.dataSource.data.length;
-    return numSelected === numRows;
+    const selectableRows = this.dataSource.data.filter((r) => !this.isRowDisabled(r));
+    return selectableRows.length > 0 && selectableRows.every((r) => this.selection.isSelected(r));
   }
 
   toggleAllRows(): void {
+    const selectableRows = this.dataSource.data.filter((r) => !this.isRowDisabled(r));
     if (this.isAllSelected()) {
       this.selection.clear();
     } else {
-      this.selection.select(...this.dataSource.data);
+      this.selection.select(...selectableRows);
     }
   }
 
@@ -849,14 +972,14 @@ export class BookingsTableComponent
   }
 
   isAssemblyAllSelected(cancelNrBase: number): boolean {
-    const children = this.getAssemblyChildren(cancelNrBase);
+    const children = this.getAssemblyChildren(cancelNrBase).filter((c) => !this.isRowDisabled(c));
     return (
       children.length > 0 && children.every((c) => this.selection.isSelected(c))
     );
   }
 
   isAssemblyIndeterminate(cancelNrBase: number): boolean {
-    const children = this.getAssemblyChildren(cancelNrBase);
+    const children = this.getAssemblyChildren(cancelNrBase).filter((c) => !this.isRowDisabled(c));
     const selectedCount = children.filter((c) =>
       this.selection.isSelected(c)
     ).length;
@@ -865,7 +988,7 @@ export class BookingsTableComponent
 
   toggleAssemblySelection(row: BookingTableRow): void {
     const cancelNrBase = row.parentCancelNrBase!;
-    const children = this.getAssemblyChildren(cancelNrBase);
+    const children = this.getAssemblyChildren(cancelNrBase).filter((c) => !this.isRowDisabled(c));
     if (this.isAssemblyAllSelected(cancelNrBase)) {
       this.selection.deselect(...children);
     } else {

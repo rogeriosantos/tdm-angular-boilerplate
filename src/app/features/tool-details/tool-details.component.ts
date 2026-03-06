@@ -93,10 +93,11 @@ export class ToolDetailsComponent implements OnInit, OnDestroy {
       const toolId = (this.toolId = params.get('toolId'));
 
       if (toolId) {
-        this.store.dispatch(ToolDetailActions.LoadToolAssembly({ toolId }));
-        this.store.dispatch(ToolDetailActions.LoadBillOfMaterials({ toolId }));
-        this.store.dispatch(ToolDetailActions.LoadGraphic2D({ toolId }));
-        this.store.dispatch(ToolDetailActions.LoadGraphicImage({ toolId }));
+        const toolType = (this.route.snapshot.queryParamMap.get('type') as 'assembly' | 'item') || 'assembly';
+        this.store.dispatch(ToolDetailActions.LoadToolAssembly({ toolId, toolType }));
+        this.store.dispatch(ToolDetailActions.LoadBillOfMaterials({ toolId, toolType }));
+        this.store.dispatch(ToolDetailActions.LoadGraphic2D({ toolId, toolType }));
+        this.store.dispatch(ToolDetailActions.LoadGraphicImage({ toolId, toolType }));
 
         this.tool$ = this.store.select(selectToolAssembly).pipe(takeUntil(this.destroy$));
 

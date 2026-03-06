@@ -16,30 +16,36 @@ export class ToolDetailEffects {
   loadToolAssembly$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ToolDetailActions.LoadToolAssembly),
-      concatMap(({ toolId }) =>
-        this.toolDetailService.getToolAssembly(toolId).pipe(
+      concatMap(({ toolId, toolType }) => {
+        const call = toolType === 'item'
+          ? this.toolDetailService.getToolItem(toolId)
+          : this.toolDetailService.getToolAssembly(toolId);
+        return call.pipe(
           map((tool) => ToolDetailActions.LoadToolAssemblySuccess({ tool })),
           catchError((error: any) =>
             of(ToolDetailActions.LoadToolAssemblyFailure({ error }))
           )
-        )
-      )
+        );
+      })
     )
   );
 
   loadBillOfMaterials$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ToolDetailActions.LoadBillOfMaterials),
-      concatMap(({ toolId }) =>
-        this.toolDetailService.getToolAssemblyBillOfMaterials(toolId).pipe(
+      concatMap(({ toolId, toolType }) => {
+        const call = toolType === 'item'
+          ? this.toolDetailService.getToolItemBillOfMaterials(toolId)
+          : this.toolDetailService.getToolAssemblyBillOfMaterials(toolId);
+        return call.pipe(
           map((billOfMaterials) =>
             ToolDetailActions.LoadBillOfMaterialsSuccess({ billOfMaterials })
           ),
           catchError((error: any) =>
             of(ToolDetailActions.LoadBillOfMaterialsFailure({ error }))
           )
-        )
-      )
+        );
+      })
     )
   );
 
@@ -76,32 +82,38 @@ export class ToolDetailEffects {
   loadGraphic2D$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ToolDetailActions.LoadGraphic2D),
-      concatMap(({ toolId }) =>
-        this.toolDetailService.getToolAssembly2DGraphics(toolId, 1024, 768).pipe(
+      concatMap(({ toolId, toolType }) => {
+        const call = toolType === 'item'
+          ? this.toolDetailService.getToolItem2DGraphics(toolId, 1024, 768)
+          : this.toolDetailService.getToolAssembly2DGraphics(toolId, 1024, 768);
+        return call.pipe(
           map((graphic2D) =>
             ToolDetailActions.LoadGraphic2DSuccess({ graphic2D })
           ),
           catchError((error: any) =>
             of(ToolDetailActions.LoadGraphic2DFailure({ error }))
           )
-        )
-      )
+        );
+      })
     )
   );
 
   loadGraphicImage$ = createEffect(() =>
     this.actions$.pipe(
       ofType(ToolDetailActions.LoadGraphicImage),
-      concatMap(({ toolId }) =>
-        this.toolDetailService.getToolAssemblyImage(toolId, 1024, 768).pipe(
+      concatMap(({ toolId, toolType }) => {
+        const call = toolType === 'item'
+          ? this.toolDetailService.getToolItemImage(toolId, 1024, 768)
+          : this.toolDetailService.getToolAssemblyImage(toolId, 1024, 768);
+        return call.pipe(
           map((graphicImage) =>
             ToolDetailActions.LoadGraphicImageSuccess({ graphicImage })
           ),
           catchError((error: any) =>
             of(ToolDetailActions.LoadGraphicImageFailure({ error }))
           )
-        )
-      )
+        );
+      })
     )
   );
 }

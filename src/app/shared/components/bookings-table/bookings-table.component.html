@@ -42,6 +42,26 @@
         }
       </mat-form-field>
 
+      <mat-form-field class="user-filter-field" appearance="outline">
+        <mat-label>{{ t('user-filter') }}</mat-label>
+        <input
+          matInput
+          [formControl]="userFilterCtrl"
+          [matAutocomplete]="userAuto"
+          [placeholder]="t('user-filter-placeholder')"
+        />
+        @if (selectedUserId) {
+          <button matSuffix mat-icon-button (click)="clearUserFilter(); $event.stopPropagation()">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+        <mat-autocomplete #userAuto="matAutocomplete" (optionSelected)="selectUser($event.option.value)">
+          @for (userId of filteredUserIds; track userId) {
+            <mat-option [value]="userId">{{ userId }}</mat-option>
+          }
+        </mat-autocomplete>
+      </mat-form-field>
+
       @if (dateRanges.length > 0) {
         <mat-form-field class="date-range-field" appearance="outline">
           <mat-label>{{ t('history.date-range') }}</mat-label>
@@ -98,7 +118,6 @@
         mat-table
         [dataSource]="dataSource"
         matSort
-        matSortDisableClear
         class="bookings-mat-table"
       >
         <!-- Tool Assembly Column -->
@@ -120,23 +139,26 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row"
-            [class.assembly-group-cell]="row.rowType === 'child' && row.siblingCount > 1"
-            [class.assembly-group-cell-cont]="row.rowType === 'child' && !row.isFirstChild && row.siblingCount === 0"
-            [class.merged-group-even]="row.rowType === 'child' && row.groupIndex % 2 === 0"
-            [class.merged-group-odd]="row.rowType === 'child' && row.groupIndex % 2 === 1"
+            [attr.rowspan]="row.isFirstChild && row.siblingCount > 1 ? row.siblingCount : null"
+            [class.merged-assembly-cell]="row.isFirstChild && row.siblingCount > 1"
+            [class.merged-group-even]="row.isFirstChild && row.siblingCount > 1 && row.groupIndex % 2 === 0"
+            [class.merged-group-odd]="row.isFirstChild && row.siblingCount > 1 && row.groupIndex % 2 === 1"
+            [style.display]="(row.rowType === 'child' && !row.isFirstChild) ? 'none' : null"
             (click)="!readOnly && row.isFirstChild ? toggleAssemblySelection(row) : null; $event.stopPropagation()"
           >
-            @if (row.rowType === 'assembly') {
-              <div class="cell-content">
-                <a class="primary-text tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
-                @if (row.data.name) {
-                  <span class="secondary-text">{{ row.data.name }}</span>
+            <div class="cell-content cell-content-assembly">
+              @if (row.rowType === 'assembly') {
+                @if (row.data.id) {
+                  <a class="primary-text tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
+                  @if (row.data.name) {
+                    <span class="secondary-text">{{ row.data.name }}</span>
+                  }
+                } @else {
+                  <span class="primary-text">-</span>
                 }
-              </div>
-            } @else if (row.rowType === 'child' && row.isFirstChild) {
-              <div class="cell-content">
+              } @else if (row.rowType === 'child') {
                 <div class="assembly-cell-row">
-                  @if (hasMultipleChildren(row)) {
+                  @if (row.isFirstChild && hasMultipleChildren(row)) {
                     <button
                       mat-icon-button
                       class="expand-button"
@@ -158,19 +180,15 @@
                     @if (row.assemblyName) {
                       <span class="secondary-text">{{ row.assemblyName }}</span>
                     }
-                    @if (hasMultipleChildren(row) && !isAssemblyExpanded(row.parentCancelNrBase!)) {
+                    @if (row.isFirstChild && hasMultipleChildren(row) && !isAssemblyExpanded(row.parentCancelNrBase!)) {
                       <span class="collapsed-count">({{ t('items-count', { count: getChildCount(row) }) }})</span>
                     }
                   </div>
                 </div>
-              </div>
-            } @else if (row.rowType === 'child') {
-              <!-- Non-first child: empty cell to maintain column structure -->
-            } @else {
-              <div class="cell-content">
-                <span class="primary-text">-</span>
-              </div>
-            }
+              } @else {
+                <span class="primary-text standalone-label">---</span>
+              }
+            </div>
           </td>
         </ng-container>
 
@@ -223,7 +241,7 @@
           <td mat-cell *matCellDef="let row">
             @if (row.rowType !== 'assembly') {
               <div class="cell-content">
-                <a class="primary-text article-id tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
+                <a class="primary-text article-id tool-link" [routerLink]="['/tool-details', row.data.id]" [queryParams]="{ type: 'item' }" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
                 <span class="secondary-text">{{ row.data.name }}</span>
                 @if (row.data.description) {
                   <span class="tertiary-text">{{ row.data.description }}</span>
@@ -420,6 +438,7 @@
               (click)="$event.stopPropagation()"
               (change)="$event ? selection.toggle(row) : null"
               [checked]="selection.isSelected(row)"
+              [disabled]="isRowDisabled(row)"
             >
             </mat-checkbox>
           </td>
@@ -480,8 +499,9 @@
         <tr
           mat-row
           *matRowDef="let row; columns: displayedColumns"
-          (click)="selection.toggle(row)"
+          (click)="!isRowDisabled(row) && selection.toggle(row)"
           [class.selected-row]="selection.isSelected(row)"
+          [class.disabled-row]="isRowDisabled(row)"
           [class.assembly-row]="row.rowType === 'assembly'"
           [class.child-row]="row.rowType === 'child'"
           [class.first-child-row]="row.isFirstChild"
@@ -532,8 +552,8 @@
 
     <!-- Paginator (client-side) -->
     <mat-paginator
-      [pageSizeOptions]="[10, 25, 50]"
-      [pageSize]="10"
+      [pageSizeOptions]="[10, 25, 50, 100]"
+      [pageSize]="currentPageSize"
       showFirstLastButtons
     >
     </mat-paginator>

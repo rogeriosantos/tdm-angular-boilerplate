@@ -41,6 +41,8 @@
   },
   "bookings": {
     "filter": "Filter",
+    "user-filter": "Benutzer",
+    "user-filter-placeholder": "Nach Benutzer filtern...",
     "empty": "Keine Buchungen gefunden",
     "select-cost-unit-and-workplace": "Bitte wählen Sie eine Kostenstelle und einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
     "select-workplace": "Bitte wählen Sie einen Arbeitsplatz aus, um die Buchungen anzuzeigen",
@@ -79,7 +81,8 @@
       "select": "Auswahl",
       "booking-time": "Buchungszeit",
       "expand": "Erweitern",
-      "commission-id": "Kommissionierauftrag"
+      "commission-id": "Kommissions-ID",
+      "picking-order": "Kommissionierauftrag"
     },
     "paginator": {
       "items-per-page": "Einträge pro Seite:",
@@ -87,7 +90,8 @@
       "first-page": "Erste Seite",
       "last-page": "Letzte Seite",
       "next-page": "Nächste Seite",
-      "previous-page": "Vorherige Seite"
+      "previous-page": "Vorherige Seite",
+      "page": "Seite"
     },
     "items-count": "{{count}} Einträge"
   },

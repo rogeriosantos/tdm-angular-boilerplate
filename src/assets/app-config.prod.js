@@ -51,6 +51,7 @@ window.APP_CONFIG = {
   hostingUrl: 'https://localhost/TDMGL202502HF01pEBE',
   environment: 'production',       // 'development' | 'production'
   debug: false,                    // true = enable console logs
+  idleRefreshSeconds: 10,          // Auto-refresh data after N seconds of inactivity (0 = disabled)
 };
 
 console.log('App Configuration loaded (PRODUCTION):', window.APP_CONFIG);

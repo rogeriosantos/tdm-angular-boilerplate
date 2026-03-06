@@ -9,7 +9,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       // Silently handle errors for asset/thumbnail requests (404s are expected)
-      const silentPatterns = ['/assets/Thumbnail', '/assets/Image2D', '/assets/ImageFile'];
+      const silentPatterns = ['/assets/Thumbnail', '/assets/Image2D', '/assets/ImageFile', '/Bookings/Confirmations'];
       const isSilent = silentPatterns.some((p) => req.url.includes(p));
 
       if (!isSilent) {

@@ -24,12 +24,31 @@ export class ToolDetailService {
     return this.http.get<ToolAssemblyBillOfMaterial[]>(url);
   }
 
+  getToolItem(toolItemId: string): Observable<ToolAssemblyDetail> {
+    const url = `${environment.baseApiUrl}/api/V1_1/ToolItems/${toolItemId}`;
+    return this.http.get<ToolAssemblyDetail>(url);
+  }
+
+  getToolItemBillOfMaterials(toolItemId: string): Observable<ToolAssemblyBillOfMaterial[]> {
+    const url = `${environment.baseApiUrl}/api/V1_1/ToolItems/${toolItemId}/billOfMaterials`;
+    return this.http.get<ToolAssemblyBillOfMaterial[]>(url);
+  }
+
   getToolAssembly2DGraphics(
     assetId: string,
     width: number = 400,
     height: number = 400
   ): Observable<Blob> {
     const url = `${environment.baseApiUrl}/api/V1_1/Tools/assets/Image2D/${assetId}?width=${width}&height=${height}&showDimensions=true&usePrintTemplate=false`;
+    return this.http.get(url, { responseType: 'blob' });
+  }
+
+  getToolItem2DGraphics(
+    assetId: string,
+    width: number = 400,
+    height: number = 400
+  ): Observable<Blob> {
+    const url = `${environment.baseApiUrl}/api/V1_1/ToolItems/assets/Image2D/${assetId}?width=${width}&height=${height}&showDimensions=true&usePrintTemplate=false`;
     return this.http.get(url, { responseType: 'blob' });
   }
 
