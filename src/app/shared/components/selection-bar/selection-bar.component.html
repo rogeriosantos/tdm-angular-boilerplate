@@ -1,39 +1,47 @@
 <div
-  class="flex flex-row bg-white border-t-2 border-gray-200 p-4 shadow-md"
+  class="selection-bar"
+  [class.selection-bar--collapsed]="collapsed"
   *transloco="let t; read: 'selection-bar'"
 >
-  <div class="basis-1/3"></div>
-  <div class="basis-1/3">
-    <div class="flex-grow flex justify-center items-center space-x-4">
-      <!-- Cost Unit Selector -->
+  <!-- Collapsed: compact summary -->
+  @if (collapsed) {
+    <div class="collapsed-bar" (click)="toggleCollapsed()">
+      <div class="collapse-toggle" (click)="toggleCollapsed(); $event.stopPropagation()">
+        <mat-icon>chevron_right</mat-icon>
+      </div>
+      <div class="collapsed-summary">
+        <mat-icon class="collapsed-icon">business</mat-icon>
+        <span class="collapsed-label">{{ costUnitDisplay }}</span>
+        <mat-icon class="collapsed-arrow">arrow_forward</mat-icon>
+        <mat-icon class="collapsed-icon">folder</mat-icon>
+        <span class="collapsed-label">{{ workplaceDisplay }}</span>
+      </div>
+    </div>
+  }
+
+  <!-- Expanded: full selectors (always in DOM to preserve state) -->
+  <div class="expanded-bar" [class.expanded-bar--hidden]="collapsed">
+    @if (canCollapse) {
+      <div class="collapse-toggle" (click)="toggleCollapsed()">
+        <mat-icon>expand_less</mat-icon>
+      </div>
+    }
+
+    <div class="selectors-row">
       <app-costunit-selector
         [initialCostUnit]="initialCostUnit"
         (costUnitSelected)="onCostUnitSelected($event)"
       ></app-costunit-selector>
 
-      <!-- separator -->
-      <div class="flex flex-col justify-end">
+      <div class="separator">
         <img class="arrow" src="assets/icons/arrow-right.svg" alt="arrow right" />
       </div>
 
-      <!-- Workplace Selector -->
       <app-workplace-selector
         [selectedCostUnit]="selectedCostUnit"
         [initialWorkplace]="initialWorkplace"
         (workplaceSelected)="onWorkplaceSelected($event)"
       ></app-workplace-selector>
-    </div>
-  </div>
-  <div class="basis-1/3 ml-4 mt-1.5">
-    <div>
-      <!-- <button
-        mat-flat-button
-        [disabled]="!selectedCostUnit || !selectedWorkplace"
-        (click)="onShowDetails()"
-        class="details-button px-4 py-2 rounded-md hover:bg-gray-300 hover:text-white right_button"
-      >
-        {{ t('show-details') }}
-      </button> -->
     </div>
   </div>
 </div>
