@@ -205,12 +205,12 @@
   max-width: 200px;
 }
 
-// Merged assembly cell (rowspan) — centered vertically and horizontally
-.merged-assembly-cell {
+// Assembly group cell — first child shows content, continuation cells are empty
+.assembly-group-cell {
   vertical-align: middle !important;
   text-align: left;
-  border-bottom: 3px solid #607d8b !important;
   border-right: 2px solid #d0d7e2;
+  border-bottom: none !important;
   cursor: pointer;
 
   .cell-content {
@@ -221,6 +221,13 @@
   &:hover {
     background-color: #e8edf3;
   }
+}
+
+// Non-first child continuation cell — empty, blends visually with first child
+.assembly-group-cell-cont {
+  border-right: 2px solid #d0d7e2;
+  border-top: none !important;
+  border-bottom: none !important;
 }
 
 // Assembly cell with checkbox and label side by side
@@ -350,7 +357,7 @@ tr.child-row {
   td.mat-mdc-cell {
     border-bottom: 1px solid #f0f0f0;
     // Per-cell hover so child cells and merged assembly cell are independent
-    &:not(.merged-assembly-cell):hover {
+    &:not(.assembly-group-cell):not(.assembly-group-cell-cont):hover {
       background-color: #eef8fd;
     }
   }
@@ -372,18 +379,18 @@ tr.last-child-row {
 
 // Group striping — alternating background per group
 tr.group-even {
-  td.mat-mdc-cell:not(.merged-assembly-cell) {
+  td.mat-mdc-cell:not(.assembly-group-cell):not(.assembly-group-cell-cont) {
     background-color: #ffffff;
   }
 }
 
 tr.group-odd {
-  td.mat-mdc-cell:not(.merged-assembly-cell) {
+  td.mat-mdc-cell:not(.assembly-group-cell):not(.assembly-group-cell-cont) {
     background-color: #f7f9fc;
   }
 }
 
-// Merged assembly cell stripe
+// Assembly cell stripe (applies to first child and continuation cells)
 .merged-group-even {
   background-color: #ffffff !important;
 }
