@@ -118,6 +118,7 @@
         mat-table
         [dataSource]="dataSource"
         matSort
+        matSortDisableClear
         class="bookings-mat-table"
       >
         <!-- Tool Assembly Column -->
@@ -139,15 +140,14 @@
             </span>
           </th>
           <td mat-cell *matCellDef="let row"
-            [attr.rowspan]="row.isFirstChild && row.siblingCount > 1 ? row.siblingCount : null"
-            [class.merged-assembly-cell]="row.isFirstChild && row.siblingCount > 1"
-            [class.merged-group-even]="row.isFirstChild && row.siblingCount > 1 && row.groupIndex % 2 === 0"
-            [class.merged-group-odd]="row.isFirstChild && row.siblingCount > 1 && row.groupIndex % 2 === 1"
-            [style.display]="(row.rowType === 'child' && !row.isFirstChild) ? 'none' : null"
+            [class.assembly-group-cell]="row.rowType === 'child' && row.siblingCount > 1"
+            [class.assembly-group-cell-cont]="row.rowType === 'child' && !row.isFirstChild && row.siblingCount === 0"
+            [class.merged-group-even]="row.rowType === 'child' && row.groupIndex % 2 === 0"
+            [class.merged-group-odd]="row.rowType === 'child' && row.groupIndex % 2 === 1"
             (click)="!readOnly && row.isFirstChild ? toggleAssemblySelection(row) : null; $event.stopPropagation()"
           >
-            <div class="cell-content cell-content-assembly">
-              @if (row.rowType === 'assembly') {
+            @if (row.rowType === 'assembly') {
+              <div class="cell-content cell-content-assembly">
                 @if (row.data.id) {
                   <a class="primary-text tool-link" [routerLink]="['/tool-details', row.data.id]" (click)="$event.stopPropagation()">{{ row.data.id }}</a>
                   @if (row.data.name) {
@@ -156,9 +156,11 @@
                 } @else {
                   <span class="primary-text">-</span>
                 }
-              } @else if (row.rowType === 'child') {
+              </div>
+            } @else if (row.rowType === 'child' && row.isFirstChild) {
+              <div class="cell-content cell-content-assembly">
                 <div class="assembly-cell-row">
-                  @if (row.isFirstChild && hasMultipleChildren(row)) {
+                  @if (hasMultipleChildren(row)) {
                     <button
                       mat-icon-button
                       class="expand-button"
@@ -180,15 +182,19 @@
                     @if (row.assemblyName) {
                       <span class="secondary-text">{{ row.assemblyName }}</span>
                     }
-                    @if (row.isFirstChild && hasMultipleChildren(row) && !isAssemblyExpanded(row.parentCancelNrBase!)) {
+                    @if (hasMultipleChildren(row) && !isAssemblyExpanded(row.parentCancelNrBase!)) {
                       <span class="collapsed-count">({{ t('items-count', { count: getChildCount(row) }) }})</span>
                     }
                   </div>
                 </div>
-              } @else {
+              </div>
+            } @else if (row.rowType === 'child') {
+              <!-- Non-first child: empty cell to maintain column structure -->
+            } @else {
+              <div class="cell-content cell-content-assembly">
                 <span class="primary-text standalone-label">---</span>
-              }
-            </div>
+              </div>
+            }
           </td>
         </ng-container>
 
